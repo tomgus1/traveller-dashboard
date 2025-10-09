@@ -3,13 +3,14 @@ import SectionCard from "../../components/SectionCard";
 import Table from "../../components/Table";
 import MoneyInput from "../../components/MoneyInput";
 import { todayISO } from "../../utils/number";
+import type { FinanceRow } from "../../types";
 
 export default function ShipAccounts({
   rows,
   onAdd,
 }: {
-  rows: any[];
-  onAdd: (r: any) => void;
+  rows: FinanceRow[];
+  onAdd: (r: FinanceRow) => void;
 }) {
   const [form, setForm] = useState({
     Date: todayISO(),

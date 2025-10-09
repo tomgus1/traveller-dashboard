@@ -16,7 +16,7 @@ export const DEFAULT_STATE: CampaignState = {
       n,
       { Finance: [], Inventory: [], Weapons: [], Armor: [], Ammo: [] },
     ]),
-  ) as any,
+  ),
 };
 
 export function loadState(): CampaignState {

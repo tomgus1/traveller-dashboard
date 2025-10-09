@@ -1,13 +1,14 @@
 import { useState } from "react";
 import SectionCard from "../../components/SectionCard";
 import Table from "../../components/Table";
+import type { InventoryRow } from "../../types";
 
 export default function Inventory({
   rows,
   onAdd,
 }: {
-  rows: any[];
-  onAdd: (r: any) => void;
+  rows: InventoryRow[];
+  onAdd: (r: InventoryRow) => void;
 }) {
   const [form, setForm] = useState({
     Item: "",

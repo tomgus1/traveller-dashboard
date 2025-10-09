@@ -3,6 +3,7 @@ import SectionCard from "../../components/SectionCard";
 import Table from "../../components/Table";
 import MoneyInput from "../../components/MoneyInput";
 import { fmtCr, todayISO } from "../../utils/number";
+import type { FinanceRow } from "../../types";
 
 export default function Characters({
   pcNames,
@@ -15,8 +16,8 @@ export default function Characters({
   pcNames: string[];
   pc: string;
   onPcChange: (name: string) => void;
-  rows: any[];
-  onAdd: (r: any) => void;
+  rows: FinanceRow[];
+  onAdd: (r: FinanceRow) => void;
   balance: number;
 }) {
   const [form, setForm] = useState({

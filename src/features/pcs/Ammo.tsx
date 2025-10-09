@@ -1,13 +1,14 @@
 import { useState } from "react";
 import SectionCard from "../../components/SectionCard";
 import Table from "../../components/Table";
+import type { AmmoRow } from "../../types";
 
 export default function Ammo({
   rows,
   onAdd,
 }: {
-  rows: any[];
-  onAdd: (r: any) => void;
+  rows: AmmoRow[];
+  onAdd: (r: AmmoRow) => void;
 }) {
   const [form, setForm] = useState({
     Weapon: "",

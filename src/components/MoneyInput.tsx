@@ -3,7 +3,7 @@ export default function MoneyInput({
   onChange,
   placeholder,
 }: {
-  value: any;
+  value: string | number;
   onChange: (v: string) => void;
   placeholder?: string;
 }) {

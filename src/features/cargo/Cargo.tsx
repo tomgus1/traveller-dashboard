@@ -1,13 +1,14 @@
 import { useState } from "react";
 import SectionCard from "../../components/SectionCard";
 import Table from "../../components/Table";
+import type { CargoRow } from "../../types";
 
 export default function Cargo({
   rows,
   onAdd,
 }: {
-  rows: any[];
-  onAdd: (r: any) => void;
+  rows: CargoRow[];
+  onAdd: (r: CargoRow) => void;
 }) {
   const [form, setForm] = useState({
     Route: "",

@@ -80,7 +80,7 @@ export default function App() {
           { id: "characters", label: "Characters" },
         ]}
         active={tab}
-        onChange={(id) => setTab(id as any)}
+        onChange={(id) => setTab(id as 'party'|'ship'|'cargo'|'characters')}
       />
 
       {tab === "party" && (
@@ -138,7 +138,7 @@ export default function App() {
               { id: "ammo", label: "Ammo" },
             ]}
             active={charTab}
-            onChange={(id) => setCharTab(id as any)}
+            onChange={(id) => setCharTab(id as 'ledger'|'inventory'|'ammo')}
           />
 
           {charTab === "ledger" && (

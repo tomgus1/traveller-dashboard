@@ -33,11 +33,59 @@ export type AmmoRow = {
   Notes?: string;
 };
 
+export type InventoryRow = {
+  Item: string;
+  Qty?: number;
+  ["Unit Mass (kg)"]?: number;
+  ["Total Mass (kg)"]?: number;
+  ["Unit Value (Cr)"]?: number;
+  ["Total Value (Cr)"]?: number;
+  ["Location/Container"]?: string;
+  Notes?: string;
+};
+
+export type WeaponRow = {
+  Weapon: string;
+  Type?: string;
+  Damage?: string;
+  Range?: string;
+  Mass?: number | string;
+  Cost?: number;
+  Notes?: string;
+};
+
+export type ArmorRow = {
+  Armor: string;
+  Type?: string;
+  Protection?: number | string;
+  Mass?: number | string;
+  Cost?: number;
+  Notes?: string;
+};
+
+export type MaintenanceLogRow = {
+  Date: string;
+  Type: string;
+  Description: string;
+  ["Cost (Cr)"]?: number;
+  Location?: string;
+  Notes?: string;
+};
+
+export type LoanRow = {
+  ["Loan Type"]: string;
+  Principal: number;
+  ["Interest Rate"]?: number;
+  ["Monthly Payment"]?: number;
+  ["Remaining Balance"]?: number;
+  Notes?: string;
+};
+
 export type CharacterSheets = {
   Finance: FinanceRow[];
-  Inventory: any[];
-  Weapons: any[];
-  Armor: any[];
+  Inventory: InventoryRow[];
+  Weapons: WeaponRow[];
+  Armor: ArmorRow[];
   Ammo?: AmmoRow[];
 };
 
@@ -45,9 +93,9 @@ export type CampaignState = {
   Party_Finances: FinanceRow[];
   Ship_Accounts: FinanceRow[];
   Ship_Cargo: CargoRow[];
-  Ship_Maintenance_Log: any[];
-  Loans_Mortgage: any[];
-  Party_Inventory: any[];
-  Ammo_Tracker: any[];
+  Ship_Maintenance_Log: MaintenanceLogRow[];
+  Loans_Mortgage: LoanRow[];
+  Party_Inventory: InventoryRow[];
+  Ammo_Tracker: AmmoRow[];
   PCs: Record<string, CharacterSheets>;
 };

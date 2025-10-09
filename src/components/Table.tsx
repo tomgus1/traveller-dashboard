@@ -3,7 +3,7 @@ export default function Table({
   rows,
 }: {
   columns: string[];
-  rows: any[];
+  rows: Record<string, unknown>[];
 }) {
   return (
     <div className="overflow-auto border rounded-2xl">
