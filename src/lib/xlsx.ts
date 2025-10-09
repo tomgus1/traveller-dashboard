@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { CampaignState } from "../types";
+import type { CampaignState } from "../types";
 import { DEFAULT_STATE } from "../utils/storage";
 import { PC_NAMES } from "../constants";
 

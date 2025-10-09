@@ -1,13 +1,7 @@
-import { ReactNode } from "react";
-export default function Stat({
-  icon,
-  label,
-  value,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string | number;
-}) {
+import type { ReactNode } from 'react'
+
+
+export default function Stat({ icon, label, value }: { icon: ReactNode, label: string, value: string|number }) {
   return (
     <div className="card flex items-center gap-3">
       <div className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800">{icon}</div>
@@ -16,5 +10,5 @@ export default function Stat({
         <div className="text-xl font-semibold">{value}</div>
       </div>
     </div>
-  );
+  )
 }

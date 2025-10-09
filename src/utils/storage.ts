@@ -1,4 +1,4 @@
-import { CampaignState } from "../types";
+import type { CampaignState } from "../types";
 import { PC_NAMES } from "../constants";
 
 const STORAGE_KEY = "traveller-ui-state-v1";
