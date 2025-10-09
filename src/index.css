@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal app-wide styles */
+:root {
+    color-scheme: light dark;
+}
+body {
+    @apply bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50;
+}
+.card {
+    @apply rounded-2xl border p-4 shadow-sm bg-white/60 dark:bg-zinc-900/60;
+}
+.btn {
+    @apply inline-flex items-center gap-2 rounded-2xl px-3 py-2 border;
+}
+.input {
+    @apply rounded-xl border px-3 py-2 bg-transparent;
+}
+.select {
+    @apply rounded-xl border px-3 py-2 bg-transparent;
+}
+.table {
+    @apply w-full text-sm;
+}
+.table th {
+    @apply text-left px-3 py-2 font-medium bg-zinc-100 dark:bg-zinc-900/50;
+}
+.table td {
+    @apply px-3 py-2 border-t;
+}
