@@ -73,10 +73,25 @@ export function exportXlsx(state: CampaignState) {
     });
   };
 
-  const add = (name: string, rows: Record<string, unknown>[]) => {
-    if (rows.length === 0) return; // Skip empty sheets
-
+  const add = (
+    name: string,
+    rows: Record<string, unknown>[],
+    defaultHeaders?: string[]
+  ) => {
     const cleanedRows = cleanDataForExport(rows);
+
+    // If no data but we have default headers, create empty sheet with headers
+    if (cleanedRows.length === 0 && defaultHeaders) {
+      const headerRow: Record<string, unknown> = {};
+      defaultHeaders.forEach((header) => {
+        headerRow[header] = "";
+      });
+      cleanedRows.push(headerRow);
+    }
+
+    // Skip completely empty sheets (no data and no default headers)
+    if (cleanedRows.length === 0) return;
+
     const ws = XLSX.utils.json_to_sheet(cleanedRows, {
       // Ensure consistent column ordering
       header: Object.keys(cleanedRows[0] || {}),
@@ -98,38 +113,80 @@ export function exportXlsx(state: CampaignState) {
   };
 
   // Export main sheets with cleaned data
-  add("Party_Finances", state.Party_Finances);
-  add("Ship_Accounts", state.Ship_Accounts);
-  add("Ship_Cargo", state.Ship_Cargo);
-  add("Ship_Maintenance_Log", state.Ship_Maintenance_Log);
-  add("Loans_Mortgage", state.Loans_Mortgage);
-  add("Party_Inventory", state.Party_Inventory);
-  add("Ammo_Tracker", state.Ammo_Tracker);
+  add("Party_Finances", state.Party_Finances, [
+    "Date",
+    "Description",
+    "Amount (Cr)",
+    "Running Total",
+  ]);
+  add("Ship_Accounts", state.Ship_Accounts, [
+    "Date",
+    "Description",
+    "Amount (Cr)",
+    "Running Total",
+  ]);
+  add("Ship_Cargo", state.Ship_Cargo, [
+    "Item",
+    "Quantity",
+    "Unit Value (Cr)",
+    "Total Value (Cr)",
+  ]);
+  add("Ship_Maintenance_Log", state.Ship_Maintenance_Log, [
+    "Date",
+    "Item",
+    "Hours",
+  ]);
+  add("Loans_Mortgage", state.Loans_Mortgage, [
+    "Loan",
+    "Principal",
+    "Interest Rate",
+    "Monthly Payment",
+    "Balance",
+  ]);
+  add("Party_Inventory", state.Party_Inventory, [
+    "Item",
+    "Quantity",
+    "Unit Value (Cr)",
+    "Total Value (Cr)",
+  ]);
+  add("Ammo_Tracker", state.Ammo_Tracker, [
+    "Character",
+    "Weapon",
+    "Type",
+    "Count",
+  ]);
 
   // Export PC sheets with better structure
   for (const pc of PC_NAMES) {
     const pcData = state.PCs[pc];
 
-    // Create separate sheets for each PC's finance and inventory if they have data
-    if (pcData.Finance && pcData.Finance.length > 0) {
-      add(`${pc}_Finance`, pcData.Finance);
-    }
-
-    if (pcData.Inventory && pcData.Inventory.length > 0) {
-      add(`${pc}_Inventory`, pcData.Inventory);
-    }
-
-    if (pcData.Weapons && pcData.Weapons.length > 0) {
-      add(`${pc}_Weapons`, pcData.Weapons);
-    }
-
-    if (pcData.Armour && pcData.Armour.length > 0) {
-      add(`${pc}_Armour`, pcData.Armour);
-    }
-
-    if (pcData.Ammo && pcData.Ammo.length > 0) {
-      add(`${pc}_Ammo`, pcData.Ammo);
-    }
+    // Create separate sheets for each PC's data - always include with headers even if empty
+    add(`${pc}_Finance`, pcData.Finance || [], [
+      "Date",
+      "Description",
+      "Amount (Cr)",
+      "Running Total",
+    ]);
+    add(`${pc}_Inventory`, pcData.Inventory || [], [
+      "Item",
+      "Quantity",
+      "Unit Value (Cr)",
+      "Total Value (Cr)",
+    ]);
+    add(`${pc}_Weapons`, pcData.Weapons || [], [
+      "Weapon",
+      "Damage",
+      "Range",
+      "Mass",
+      "Cost",
+    ]);
+    add(`${pc}_Armour`, pcData.Armour || [], [
+      "Armour",
+      "Protection",
+      "Mass",
+      "Cost",
+    ]);
+    add(`${pc}_Ammo`, pcData.Ammo || [], ["Weapon", "Type", "Count"]);
   }
 
   const filename = `Traveller_Campaign_Export_${new Date().toISOString().slice(0, 10)}.xlsx`;
