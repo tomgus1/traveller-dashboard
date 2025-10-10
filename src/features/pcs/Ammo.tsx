@@ -1,7 +1,28 @@
-import { useState } from "react";
 import SectionCard from "../../components/SectionCard";
 import Table from "../../components/Table";
+import FormField from "../../components/FormField";
+import { useForm } from "../../hooks/useForm";
 import type { AmmoRow } from "../../types";
+
+type AmmoFormData = Record<string, string> & {
+  Weapon: string;
+  "Ammo Type": string;
+  "Magazine Size": string;
+  "Rounds Loaded": string;
+  "Spare Magazines": string;
+  "Loose Rounds": string;
+  Notes: string;
+};
+
+const INITIAL_FORM: AmmoFormData = {
+  Weapon: "",
+  "Ammo Type": "",
+  "Magazine Size": "",
+  "Rounds Loaded": "",
+  "Spare Magazines": "",
+  "Loose Rounds": "",
+  Notes: "",
+};
 
 export default function Ammo({
   rows,
@@ -10,104 +31,77 @@ export default function Ammo({
   rows: AmmoRow[];
   onAdd: (r: AmmoRow) => void;
 }) {
-  const [form, setForm] = useState({
-    Weapon: "",
-    "Ammo Type": "",
-    "Magazine Size": "",
-    "Rounds Loaded": "",
-    "Spare Magazines": "",
-    "Loose Rounds": "",
-    Notes: "",
-  });
+  const { form, createInputHandler, resetForm } = useForm(INITIAL_FORM);
 
-  const add = () => {
+  const handleSubmit = () => {
     if (!form.Weapon) return;
-    const mag = Number(form["Magazine Size"] || 0);
-    const load = Number(form["Rounds Loaded"] || 0);
-    const spm = Number(form["Spare Magazines"] || 0);
-    const loose = Number(form["Loose Rounds"] || 0);
-    const total = mag * spm + load + loose;
+
+    const magazineSize = Number(form["Magazine Size"] || 0);
+    const roundsLoaded = Number(form["Rounds Loaded"] || 0);
+    const spareMagazines = Number(form["Spare Magazines"] || 0);
+    const looseRounds = Number(form["Loose Rounds"] || 0);
+    const totalRounds =
+      magazineSize * spareMagazines + roundsLoaded + looseRounds;
+
     onAdd({
-      Weapon: form.Weapon,
-      "Ammo Type": form["Ammo Type"],
-      "Magazine Size": mag,
-      "Rounds Loaded": load,
-      "Spare Magazines": spm,
-      "Loose Rounds": loose,
-      "Total Rounds": total,
-      Notes: form.Notes,
+      Weapon: form.Weapon as string,
+      "Ammo Type": form["Ammo Type"] as string,
+      "Magazine Size": magazineSize,
+      "Rounds Loaded": roundsLoaded,
+      "Spare Magazines": spareMagazines,
+      "Loose Rounds": looseRounds,
+      "Total Rounds": totalRounds,
+      Notes: form.Notes as string,
     });
-    setForm({
-      Weapon: "",
-      "Ammo Type": "",
-      "Magazine Size": "",
-      "Rounds Loaded": "",
-      "Spare Magazines": "",
-      "Loose Rounds": "",
-      Notes: "",
-    });
+
+    resetForm();
   };
 
   return (
     <div className="space-y-4">
       <SectionCard title="Add Ammunition Entry">
         <div className="grid md:grid-cols-3 gap-3">
-          <input
-            className="input"
+          <FormField
             placeholder="Weapon"
             value={form.Weapon}
-            onChange={(e) => setForm({ ...form, Weapon: e.target.value })}
+            onChange={createInputHandler("Weapon")}
           />
-          <input
-            className="input"
+          <FormField
             placeholder="Ammo Type"
             value={form["Ammo Type"]}
-            onChange={(e) => setForm({ ...form, "Ammo Type": e.target.value })}
+            onChange={createInputHandler("Ammo Type")}
           />
-          <input
-            className="input"
+          <FormField
+            type="number"
             placeholder="Magazine Size"
-            type="number"
             value={form["Magazine Size"]}
-            onChange={(e) =>
-              setForm({ ...form, "Magazine Size": e.target.value })
-            }
+            onChange={createInputHandler("Magazine Size")}
           />
-          <input
-            className="input"
+          <FormField
+            type="number"
             placeholder="Rounds Loaded"
-            type="number"
             value={form["Rounds Loaded"]}
-            onChange={(e) =>
-              setForm({ ...form, "Rounds Loaded": e.target.value })
-            }
+            onChange={createInputHandler("Rounds Loaded")}
           />
-          <input
-            className="input"
+          <FormField
+            type="number"
             placeholder="Spare Magazines"
-            type="number"
             value={form["Spare Magazines"]}
-            onChange={(e) =>
-              setForm({ ...form, "Spare Magazines": e.target.value })
-            }
+            onChange={createInputHandler("Spare Magazines")}
           />
-          <input
-            className="input"
-            placeholder="Loose Rounds"
+          <FormField
             type="number"
+            placeholder="Loose Rounds"
             value={form["Loose Rounds"]}
-            onChange={(e) =>
-              setForm({ ...form, "Loose Rounds": e.target.value })
-            }
+            onChange={createInputHandler("Loose Rounds")}
           />
-          <input
-            className="input"
+          <FormField
             placeholder="Notes"
             value={form.Notes}
-            onChange={(e) => setForm({ ...form, Notes: e.target.value })}
+            onChange={createInputHandler("Notes")}
           />
         </div>
-        <button className="btn mt-2" onClick={add}>
+        <button className="btn mt-2" onClick={handleSubmit}>
           Add
         </button>
       </SectionCard>

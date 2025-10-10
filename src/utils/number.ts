@@ -1,9 +1,3 @@
-export const toNumber = (v: unknown) =>
-  Number.isFinite(Number(v)) ? Number(v) : 0;
-export const sumColumn = <T extends Record<string, unknown>>(
-  rows: T[],
-  key: keyof T
-) => rows.reduce((a, r) => a + toNumber(r[key]), 0);
 export const fmtCr = (n: number) =>
   new Intl.NumberFormat(undefined, {
     style: "currency",

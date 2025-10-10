@@ -1,7 +1,32 @@
-import { useState } from "react";
 import SectionCard from "../../components/SectionCard";
 import Table from "../../components/Table";
+import FormField from "../../components/FormField";
+import { useForm } from "../../hooks/useForm";
 import type { CargoRow } from "../../types";
+
+type CargoFormData = Record<string, string> & {
+  Route: string;
+  Item: string;
+  Tons: string;
+  BuyWorld: string;
+  BuyPP: string;
+  SellWorld: string;
+  SellPP: string;
+  DM: string;
+  Fees: string;
+};
+
+const INITIAL_FORM: CargoFormData = {
+  Route: "",
+  Item: "",
+  Tons: "",
+  BuyWorld: "",
+  BuyPP: "",
+  SellWorld: "",
+  SellPP: "",
+  DM: "",
+  Fees: "",
+};
 
 export default function Cargo({
   rows,
@@ -10,122 +35,97 @@ export default function Cargo({
   rows: CargoRow[];
   onAdd: (r: CargoRow) => void;
 }) {
-  const [form, setForm] = useState({
-    Route: "",
-    Item: "",
-    Tons: "",
-    BuyWorld: "",
-    BuyPP: "",
-    SellWorld: "",
-    SellPP: "",
-    DM: "",
-    Fees: "",
-  });
+  const { form, createInputHandler, resetForm } = useForm(INITIAL_FORM);
+
+  const handleSubmit = () => {
+    if (
+      !form.Route ||
+      !form.Item ||
+      !form.Tons ||
+      !form.BuyWorld ||
+      !form.BuyPP
+    ) {
+      return;
+    }
+
+    const tons = Number(form.Tons);
+    const buyPrice = Number(form.BuyPP);
+    const sellPrice = form.SellPP === "" ? null : Number(form.SellPP);
+    const fees = form.Fees === "" ? 0 : Number(form.Fees);
+    const profit =
+      sellPrice === null ? null : (sellPrice - buyPrice) * tons - fees;
+
+    onAdd({
+      "Leg/Route": form.Route as string,
+      Item: form.Item as string,
+      Tons: tons,
+      "Purchase World": form.BuyWorld as string,
+      "Purchase Price (Cr/ton)": buyPrice,
+      "Sale World": form.SellWorld as string,
+      "Sale Price (Cr/ton)": sellPrice,
+      "Broker (±DM)": form.DM as string,
+      "Fees/Taxes (Cr)": fees,
+      "Profit (Cr)": profit,
+    });
+
+    resetForm();
+  };
 
   return (
     <div className="space-y-4">
       <SectionCard title="Record Cargo Leg">
         <div className="grid md:grid-cols-3 gap-3">
-          <input
-            className="input"
+          <FormField
             placeholder="Route (Vland → Regina)"
             value={form.Route}
-            onChange={(e) => setForm({ ...form, Route: e.target.value })}
+            onChange={createInputHandler("Route")}
           />
-          <input
-            className="input"
+          <FormField
             placeholder="Item"
             value={form.Item}
-            onChange={(e) => setForm({ ...form, Item: e.target.value })}
+            onChange={createInputHandler("Item")}
           />
-          <input
-            className="input"
-            placeholder="Tons"
+          <FormField
             type="number"
+            placeholder="Tons"
             value={form.Tons}
-            onChange={(e) => setForm({ ...form, Tons: e.target.value })}
+            onChange={createInputHandler("Tons")}
           />
-          <input
-            className="input"
+          <FormField
             placeholder="Purchase World"
             value={form.BuyWorld}
-            onChange={(e) => setForm({ ...form, BuyWorld: e.target.value })}
+            onChange={createInputHandler("BuyWorld")}
           />
-          <input
-            className="input"
-            placeholder="Purchase Price (Cr/ton)"
+          <FormField
             type="number"
+            placeholder="Purchase Price (Cr/ton)"
             value={form.BuyPP}
-            onChange={(e) => setForm({ ...form, BuyPP: e.target.value })}
+            onChange={createInputHandler("BuyPP")}
           />
-          <input
-            className="input"
+          <FormField
             placeholder="Sale World (optional)"
             value={form.SellWorld}
-            onChange={(e) => setForm({ ...form, SellWorld: e.target.value })}
+            onChange={createInputHandler("SellWorld")}
           />
-          <input
-            className="input"
-            placeholder="Sale Price (Cr/ton)"
+          <FormField
             type="number"
+            placeholder="Sale Price (Cr/ton)"
             value={form.SellPP}
-            onChange={(e) => setForm({ ...form, SellPP: e.target.value })}
+            onChange={createInputHandler("SellPP")}
           />
-          <input
-            className="input"
+          <FormField
             placeholder="Broker DM"
             value={form.DM}
-            onChange={(e) => setForm({ ...form, DM: e.target.value })}
+            onChange={createInputHandler("DM")}
           />
-          <input
-            className="input"
-            placeholder="Fees/Taxes (Cr)"
+          <FormField
             type="number"
+            placeholder="Fees/Taxes (Cr)"
             value={form.Fees}
-            onChange={(e) => setForm({ ...form, Fees: e.target.value })}
+            onChange={createInputHandler("Fees")}
           />
         </div>
-        <button
-          className="btn mt-2"
-          onClick={() => {
-            if (
-              !form.Route ||
-              !form.Item ||
-              !form.Tons ||
-              !form.BuyWorld ||
-              !form.BuyPP
-            )
-              return;
-            const tons = Number(form.Tons);
-            const buy = Number(form.BuyPP);
-            const sell = form.SellPP === "" ? null : Number(form.SellPP);
-            const fees = form.Fees === "" ? 0 : Number(form.Fees);
-            const profit = sell === null ? null : (sell - buy) * tons - fees;
-            onAdd({
-              "Leg/Route": form.Route,
-              Item: form.Item,
-              Tons: tons,
-              "Purchase World": form.BuyWorld,
-              "Purchase Price (Cr/ton)": buy,
-              "Sale World": form.SellWorld,
-              "Sale Price (Cr/ton)": sell,
-              "Broker (±DM)": form.DM,
-              "Fees/Taxes (Cr)": fees,
-              "Profit (Cr)": profit,
-            });
-            setForm({
-              Route: "",
-              Item: "",
-              Tons: "",
-              BuyWorld: "",
-              BuyPP: "",
-              SellWorld: "",
-              SellPP: "",
-              DM: "",
-              Fees: "",
-            });
-          }}
-        >
+        <button className="btn mt-2" onClick={handleSubmit}>
           Add
         </button>
       </SectionCard>

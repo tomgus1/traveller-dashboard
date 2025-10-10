@@ -75,4 +75,19 @@ export default defineConfig([
       'max-params': ['warn', 5],
     },
   },
+  // Test files configuration
+  {
+    files: ['**/__tests__/**/*.{ts,tsx}', '**/*.{test,spec}.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+      },
+    },
+    rules: {
+      // Relax some rules for test files
+      'max-lines-per-function': 'off', // Test files can have long describe blocks
+      '@typescript-eslint/no-explicit-any': 'off', // Sometimes needed in tests
+      'no-console': 'off', // Allow console.log in tests for debugging
+    },
+  },
 ])

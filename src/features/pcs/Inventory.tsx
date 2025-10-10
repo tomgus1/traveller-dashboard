@@ -1,7 +1,26 @@
-import { useState } from "react";
 import SectionCard from "../../components/SectionCard";
 import Table from "../../components/Table";
+import FormField from "../../components/FormField";
+import { useForm } from "../../hooks/useForm";
 import type { InventoryRow } from "../../types";
+
+type InventoryFormData = Record<string, string> & {
+  Item: string;
+  Qty: string;
+  "Unit Mass (kg)": string;
+  "Unit Value (Cr)": string;
+  "Location/Container": string;
+  Notes: string;
+};
+
+const INITIAL_FORM: InventoryFormData = {
+  Item: "",
+  Qty: "",
+  "Unit Mass (kg)": "",
+  "Unit Value (Cr)": "",
+  "Location/Container": "",
+  Notes: "",
+};
 
 export default function Inventory({
   rows,
@@ -10,91 +29,68 @@ export default function Inventory({
   rows: InventoryRow[];
   onAdd: (r: InventoryRow) => void;
 }) {
-  const [form, setForm] = useState({
-    Item: "",
-    Qty: "",
-    "Unit Mass (kg)": "",
-    "Unit Value (Cr)": "",
-    "Location/Container": "",
-    Notes: "",
-  });
+  const { form, createInputHandler, resetForm } = useForm(INITIAL_FORM);
 
-  const add = () => {
+  const handleSubmit = () => {
     if (!form.Item || form.Qty === "") return;
+
     const qty = Number(form.Qty || 0);
-    const um = Number(form["Unit Mass (kg)"] || 0);
-    const uv = Number(form["Unit Value (Cr)"] || 0);
+    const unitMass = Number(form["Unit Mass (kg)"] || 0);
+    const unitValue = Number(form["Unit Value (Cr)"] || 0);
+
     onAdd({
-      Item: form.Item,
+      Item: form.Item as string,
       Qty: qty,
-      "Unit Mass (kg)": um,
-      "Total Mass (kg)": qty * um,
-      "Unit Value (Cr)": uv,
-      "Total Value (Cr)": qty * uv,
-      "Location/Container": form["Location/Container"],
-      Notes: form.Notes,
+      "Unit Mass (kg)": unitMass,
+      "Total Mass (kg)": qty * unitMass,
+      "Unit Value (Cr)": unitValue,
+      "Total Value (Cr)": qty * unitValue,
+      "Location/Container": form["Location/Container"] as string,
+      Notes: form.Notes as string,
     });
-    setForm({
-      Item: "",
-      Qty: "",
-      "Unit Mass (kg)": "",
-      "Unit Value (Cr)": "",
-      "Location/Container": "",
-      Notes: "",
-    });
+
+    resetForm();
   };
 
   return (
     <div className="space-y-4">
       <SectionCard title="Add Inventory Item">
         <div className="grid md:grid-cols-3 gap-3">
-          <input
-            className="input"
+          <FormField
             placeholder="Item"
             value={form.Item}
-            onChange={(e) => setForm({ ...form, Item: e.target.value })}
+            onChange={createInputHandler("Item")}
           />
-          <input
-            className="input"
+          <FormField
+            type="number"
             placeholder="Qty"
-            type="number"
             value={form.Qty}
-            onChange={(e) => setForm({ ...form, Qty: e.target.value })}
+            onChange={createInputHandler("Qty")}
           />
-          <input
-            className="input"
+          <FormField
+            type="number"
             placeholder="Unit Mass (kg)"
-            type="number"
             value={form["Unit Mass (kg)"]}
-            onChange={(e) =>
-              setForm({ ...form, "Unit Mass (kg)": e.target.value })
-            }
+            onChange={createInputHandler("Unit Mass (kg)")}
           />
-          <input
-            className="input"
-            placeholder="Unit Value (Cr)"
+          <FormField
             type="number"
+            placeholder="Unit Value (Cr)"
             value={form["Unit Value (Cr)"]}
-            onChange={(e) =>
-              setForm({ ...form, "Unit Value (Cr)": e.target.value })
-            }
+            onChange={createInputHandler("Unit Value (Cr)")}
           />
-          <input
-            className="input"
+          <FormField
             placeholder="Location/Container"
             value={form["Location/Container"]}
-            onChange={(e) =>
-              setForm({ ...form, "Location/Container": e.target.value })
-            }
+            onChange={createInputHandler("Location/Container")}
           />
-          <input
-            className="input"
+          <FormField
             placeholder="Notes"
             value={form.Notes}
-            onChange={(e) => setForm({ ...form, Notes: e.target.value })}
+            onChange={createInputHandler("Notes")}
           />
         </div>
-        <button className="btn mt-2" onClick={add}>
+        <button className="btn mt-2" onClick={handleSubmit}>
           Add
         </button>
       </SectionCard>
