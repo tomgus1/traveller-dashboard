@@ -45,8 +45,7 @@ export function TabsBar({
       {tabs.map((t) => (
         <button
           key={t.id}
-          className={`px-3 py-2 rounded-t-xl transition-colors cursor-pointer
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+          className={`px-3 py-2 rounded-t-xl transition-colors cursor-pointer focus-ring
             ${
               active === t.id
                 ? "bg-zinc-100 dark:bg-zinc-900 border border-b-0"

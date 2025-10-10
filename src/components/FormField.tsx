@@ -25,11 +25,15 @@ export default function FormField({
   value,
   onChange,
   children,
-  className = "input",
+  className,
   required = false,
 }: FormFieldProps) {
+  // Use appropriate default className based on element type
+  const defaultClassName = type === "select" ? "select" : "input";
+  const elementClassName = className || defaultClassName;
+
   const commonProps = {
-    className,
+    className: elementClassName,
     placeholder,
     value,
     onChange,
