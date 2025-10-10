@@ -5,7 +5,15 @@ import { TabsBar } from "../components/Tabs";
 import Characters from "../features/pcs/Characters";
 import Inventory from "../features/pcs/Inventory";
 import Ammo from "../features/pcs/Ammo";
-import type { FinanceRow, InventoryRow, AmmoRow } from "../types";
+import Weapons from "../features/pcs/Weapons";
+import Armour from "../features/pcs/Armour";
+import type {
+  FinanceRow,
+  InventoryRow,
+  AmmoRow,
+  WeaponRow,
+  ArmourRow,
+} from "../types";
 
 interface CharacterSectionProps {
   selectedPc: string;
@@ -14,9 +22,13 @@ interface CharacterSectionProps {
   characterFinance: FinanceRow[];
   characterInventory: InventoryRow[];
   characterAmmo: AmmoRow[];
+  characterWeapons: WeaponRow[];
+  characterArmour: ArmourRow[];
   onUpdateFinance: (pc: string, rows: FinanceRow[]) => void;
   onAddInventory: (pc: string, item: InventoryRow) => void;
   onAddAmmo: (pc: string, ammo: AmmoRow) => void;
+  onAddWeapon: (pc: string, weapon: WeaponRow) => void;
+  onAddArmour: (pc: string, armour: ArmourRow) => void;
 }
 
 /**
@@ -31,13 +43,17 @@ export default function CharacterSection({
   characterFinance,
   characterInventory,
   characterAmmo,
+  characterWeapons,
+  characterArmour,
   onUpdateFinance,
   onAddInventory,
   onAddAmmo,
+  onAddWeapon,
+  onAddArmour,
 }: CharacterSectionProps) {
-  const [charTab, setCharTab] = useState<"ledger" | "inventory" | "ammo">(
-    "ledger"
-  );
+  const [charTab, setCharTab] = useState<
+    "ledger" | "inventory" | "weapons" | "armour" | "ammo"
+  >("ledger");
 
   return (
     <div className="space-y-4">
@@ -71,10 +87,16 @@ export default function CharacterSection({
         tabs={[
           { id: "ledger", label: "Ledger" },
           { id: "inventory", label: "Inventory" },
+          { id: "weapons", label: "Weapons" },
+          { id: "armour", label: "Armour" },
           { id: "ammo", label: "Ammo" },
         ]}
         active={charTab}
-        onChange={(id) => setCharTab(id as "ledger" | "inventory" | "ammo")}
+        onChange={(id) =>
+          setCharTab(
+            id as "ledger" | "inventory" | "weapons" | "armour" | "ammo"
+          )
+        }
       />
 
       {/* Character Tab Content */}
@@ -93,6 +115,20 @@ export default function CharacterSection({
         <Inventory
           rows={characterInventory}
           onAdd={(item) => onAddInventory(selectedPc, item)}
+        />
+      )}
+
+      {charTab === "weapons" && (
+        <Weapons
+          rows={characterWeapons}
+          onAdd={(weapon) => onAddWeapon(selectedPc, weapon)}
+        />
+      )}
+
+      {charTab === "armour" && (
+        <Armour
+          rows={characterArmour}
+          onAdd={(armour) => onAddArmour(selectedPc, armour)}
         />
       )}
 

@@ -6,6 +6,8 @@ import type {
   CargoRow,
   InventoryRow,
   AmmoRow,
+  WeaponRow,
+  ArmourRow,
 } from "../types";
 
 /**
@@ -79,6 +81,32 @@ export function useAppState() {
     }));
   }, []);
 
+  const addCharacterWeapon = useCallback((pc: string, weapon: WeaponRow) => {
+    setState((prev) => ({
+      ...prev,
+      PCs: {
+        ...prev.PCs,
+        [pc]: {
+          ...prev.PCs[pc],
+          Weapons: [...(prev.PCs[pc].Weapons || []), weapon],
+        },
+      },
+    }));
+  }, []);
+
+  const addCharacterArmour = useCallback((pc: string, armour: ArmourRow) => {
+    setState((prev) => ({
+      ...prev,
+      PCs: {
+        ...prev.PCs,
+        [pc]: {
+          ...prev.PCs[pc],
+          Armour: [...(prev.PCs[pc].Armour || []), armour],
+        },
+      },
+    }));
+  }, []);
+
   return {
     state,
     setState,
@@ -88,5 +116,7 @@ export function useAppState() {
     updateCharacterFinance,
     addCharacterInventory,
     addCharacterAmmo,
+    addCharacterWeapon,
+    addCharacterArmour,
   };
 }

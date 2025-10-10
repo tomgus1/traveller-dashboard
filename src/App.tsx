@@ -25,6 +25,8 @@ export default function App() {
     updateCharacterFinance,
     addCharacterInventory,
     addCharacterAmmo,
+    addCharacterWeapon,
+    addCharacterArmour,
     setState,
   } = useAppState();
 
@@ -66,6 +68,8 @@ export default function App() {
         onUpdateCharacterFinance={updateCharacterFinance}
         onAddCharacterInventory={addCharacterInventory}
         onAddCharacterAmmo={addCharacterAmmo}
+        onAddCharacterWeapon={addCharacterWeapon}
+        onAddCharacterArmour={addCharacterArmour}
       />
     </div>
   );

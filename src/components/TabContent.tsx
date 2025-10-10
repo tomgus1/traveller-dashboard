@@ -4,6 +4,8 @@ import type {
   CargoRow,
   InventoryRow,
   AmmoRow,
+  WeaponRow,
+  ArmourRow,
 } from "../types";
 import Cargo from "../features/cargo/Cargo";
 import FinanceManager from "./FinanceManager";
@@ -21,6 +23,8 @@ interface TabContentProps {
   onUpdateCharacterFinance: (pc: string, rows: FinanceRow[]) => void;
   onAddCharacterInventory: (pc: string, item: InventoryRow) => void;
   onAddCharacterAmmo: (pc: string, ammo: AmmoRow) => void;
+  onAddCharacterWeapon: (pc: string, weapon: WeaponRow) => void;
+  onAddCharacterArmour: (pc: string, armour: ArmourRow) => void;
 }
 
 export default function TabContent({
@@ -35,6 +39,8 @@ export default function TabContent({
   onUpdateCharacterFinance,
   onAddCharacterInventory,
   onAddCharacterAmmo,
+  onAddCharacterWeapon,
+  onAddCharacterArmour,
 }: TabContentProps) {
   return (
     <div
@@ -76,9 +82,13 @@ export default function TabContent({
           characterFinance={state.PCs[selectedPc].Finance}
           characterInventory={state.PCs[selectedPc].Inventory}
           characterAmmo={state.PCs[selectedPc].Ammo || []}
+          characterWeapons={state.PCs[selectedPc].Weapons || []}
+          characterArmour={state.PCs[selectedPc].Armour || []}
           onUpdateFinance={onUpdateCharacterFinance}
           onAddInventory={onAddCharacterInventory}
           onAddAmmo={onAddCharacterAmmo}
+          onAddWeapon={onAddCharacterWeapon}
+          onAddArmour={onAddCharacterArmour}
         />
       )}
     </div>
