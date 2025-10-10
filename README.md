@@ -12,7 +12,7 @@ Works offline (localStorage) and can **import/export** your LibreOffice/Excel wo
 - **Ship**: fuel, docking, maintenance and other accounts.
 - **Cargo**: record speculative trade legs and profit per ton.
 - **Characters**: per-PC ledger, inventory totals, ammunition totals.
-- **Import/Export XLSX**: round-trip with your spreadsheet.
+- **Import/Export XLSX**: round-trip with your spreadsheet (Microsoft Office, Google Sheets, LibreOffice Calc).
 - **KISS/DRY**: small reusable components; no heavy state library.
 
 ---
@@ -191,8 +191,10 @@ src/
 
 5. **Import / Export XLSX**
    - **Export** creates an `.xlsx` with sheets: `Party_Finances`, `Ship_Accounts`, `Ship_Cargo`, plus per-PC sheets.
-   - **Import** reads the same sheets back into the app.  
-     Keep your LibreOffice workbook closed while importing to avoid locks.
+   - **Import** reads the same sheets back into the app.
+   - **Universal compatibility**: Works with Microsoft Office, Google Sheets, and LibreOffice Calc.
+   - **Data optimization**: Handles null values and data types for maximum compatibility.
+   - Keep your LibreOffice workbook closed while importing to avoid locks.
 
 Data also persists in your browser (localStorage).
 
@@ -248,6 +250,10 @@ jobs:
 - **Blank page on Pages**: `vite.config.ts` must set `base` to `'/<repo>/'`.
 - **Import fails**: sheet names must match (`Party_Finances`, `Ship_Accounts`, `Ship_Cargo`, etc.).
 - **Totals look wrong**: Expenses should be negative, Income positive.
+- **LibreOffice Calc issues**: Export is optimized for universal compatibility. If you still encounter issues, try:
+  - Closing LibreOffice completely before importing the file
+  - Opening the file directly from LibreOffice instead of double-clicking
+  - Using "Open" menu in LibreOffice and selecting "Microsoft Excel" format explicitly
 
 ---
 
