@@ -25,7 +25,7 @@ export function loadState(): CampaignState {
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw);
     for (const name of PC_NAMES) {
-      if (!parsed.PCs[name])
+      if (!parsed.PCs[name]) {
         parsed.PCs[name] = {
           Finance: [],
           Inventory: [],
@@ -33,7 +33,14 @@ export function loadState(): CampaignState {
           Armour: [],
           Ammo: [],
         };
-      if (!parsed.PCs[name].Ammo) parsed.PCs[name].Ammo = [];
+      } else {
+        // Ensure all required properties exist
+        if (!parsed.PCs[name].Finance) parsed.PCs[name].Finance = [];
+        if (!parsed.PCs[name].Inventory) parsed.PCs[name].Inventory = [];
+        if (!parsed.PCs[name].Weapons) parsed.PCs[name].Weapons = [];
+        if (!parsed.PCs[name].Armour) parsed.PCs[name].Armour = [];
+        if (!parsed.PCs[name].Ammo) parsed.PCs[name].Ammo = [];
+      }
     }
     return parsed;
   } catch {
