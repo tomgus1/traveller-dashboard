@@ -54,8 +54,8 @@ export type WeaponRow = {
   Notes?: string;
 };
 
-export type ArmorRow = {
-  Armor: string;
+export type ArmourRow = {
+  Armour: string;
   Type?: string;
   Protection?: number | string;
   Mass?: number | string;
@@ -85,7 +85,7 @@ export type CharacterSheets = {
   Finance: FinanceRow[];
   Inventory: InventoryRow[];
   Weapons: WeaponRow[];
-  Armor: ArmorRow[];
+  Armour: ArmourRow[];
   Ammo?: AmmoRow[];
 };
 

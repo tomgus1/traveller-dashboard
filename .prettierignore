@@ -1,0 +1,9 @@
+dist/
+node_modules/
+*.config.js
+*.config.ts
+.git/
+.vscode/
+.npm/
+.yarn/
+coverage/

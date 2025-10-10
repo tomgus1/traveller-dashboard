@@ -16,16 +16,31 @@ import Inventory from "./features/pcs/Inventory";
 import Ammo from "./features/pcs/Ammo";
 
 export default function App() {
-  const [state, setState] = useState<CampaignState>(loadState())
-  const [pc, setPc] = useState<string>(PC_NAMES[0])
-  const [tab, setTab] = useState<'party'|'ship'|'cargo'|'characters'>('party')
-  const [charTab, setCharTab] = useState<'ledger'|'inventory'|'ammo'>('ledger')
+  const [state, setState] = useState<CampaignState>(loadState());
+  const [pc, setPc] = useState<string>(PC_NAMES[0]);
+  const [tab, setTab] = useState<"party" | "ship" | "cargo" | "characters">(
+    "party"
+  );
+  const [charTab, setCharTab] = useState<"ledger" | "inventory" | "ammo">(
+    "ledger"
+  );
 
-  useEffect(() => { saveState(state) }, [state])
+  useEffect(() => {
+    saveState(state);
+  }, [state]);
 
-  const partyBal = useMemo(() => sumColumn(state.Party_Finances, 'Amount (Cr)'), [state])
-  const shipBal  = useMemo(() => sumColumn(state.Ship_Accounts, 'Amount (Cr)'), [state])
-  const pcBal    = useMemo(() => sumColumn(state.PCs[pc].Finance, 'Amount (Cr)'), [pc, state])
+  const partyBal = useMemo(
+    () => sumColumn(state.Party_Finances, "Amount (Cr)"),
+    [state]
+  );
+  const shipBal = useMemo(
+    () => sumColumn(state.Ship_Accounts, "Amount (Cr)"),
+    [state]
+  );
+  const pcBal = useMemo(
+    () => sumColumn(state.PCs[pc].Finance, "Amount (Cr)"),
+    [pc, state]
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -80,7 +95,9 @@ export default function App() {
           { id: "characters", label: "Characters" },
         ]}
         active={tab}
-        onChange={(id) => setTab(id as 'party'|'ship'|'cargo'|'characters')}
+        onChange={(id) =>
+          setTab(id as "party" | "ship" | "cargo" | "characters")
+        }
       />
 
       {tab === "party" && (
@@ -138,7 +155,7 @@ export default function App() {
               { id: "ammo", label: "Ammo" },
             ]}
             active={charTab}
-            onChange={(id) => setCharTab(id as 'ledger'|'inventory'|'ammo')}
+            onChange={(id) => setCharTab(id as "ledger" | "inventory" | "ammo")}
           />
 
           {charTab === "ledger" && (

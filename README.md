@@ -42,40 +42,60 @@ Open <http://localhost:5173>
 This project uses **Tailwind v3** for maximum compatibility.
 
 **postcss.config.js**
+
 ```js
 export default {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},
   },
-}
+};
 ```
 
 **tailwind.config.js**
+
 ```js
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: { extend: {} },
   plugins: [],
-}
+};
 ```
 
 **src/index.css**
+
 ```css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Small app styles */
-:root { color-scheme: light dark; }
-body { @apply bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50; }
-.card { @apply rounded-2xl border p-4 shadow-sm bg-white/60 dark:bg-zinc-900/60; }
-.btn { @apply inline-flex items-center gap-2 rounded-2xl px-3 py-2 border; }
-.input, .select { @apply rounded-xl border px-3 py-2 bg-transparent; }
-.table { @apply w-full text-sm; }
-.table th { @apply text-left px-3 py-2 font-medium bg-zinc-100 dark:bg-zinc-900/50; }
-.table td { @apply px-3 py-2 border-t; }
+:root {
+  color-scheme: light dark;
+}
+body {
+  @apply bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50;
+}
+.card {
+  @apply rounded-2xl border p-4 shadow-sm bg-white/60 dark:bg-zinc-900/60;
+}
+.btn {
+  @apply inline-flex items-center gap-2 rounded-2xl px-3 py-2 border;
+}
+.input,
+.select {
+  @apply rounded-xl border px-3 py-2 bg-transparent;
+}
+.table {
+  @apply w-full text-sm;
+}
+.table th {
+  @apply text-left px-3 py-2 font-medium bg-zinc-100 dark:bg-zinc-900/50;
+}
+.table td {
+  @apply px-3 py-2 border-t;
+}
 ```
 
 > Prefer Tailwind v4? Install `@tailwindcss/postcss` and use `@import "tailwindcss";` in `index.css`.
@@ -92,6 +112,7 @@ npm run deploy   # build and publish dist/ to the gh-pages branch
 ```
 
 Ensure `package.json` includes:
+
 ```json
 {
   "scripts": {
@@ -110,14 +131,15 @@ Ensure `package.json` includes:
 Set your repository name as the base:
 
 **vite.config.ts**
+
 ```ts
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: '/traveller-dashboard/', // <-- replace with your repo name
-})
+  base: "/traveller-dashboard/", // <-- replace with your repo name
+});
 ```
 
 ---
@@ -162,15 +184,15 @@ src/
    Add a leg when you **buy** cargo; later add a row with the **sale** price to compute profit (Cr).
 
 4. **Characters** tab  
-   Choose a PC from the drop-down.  
-   - **Ledger**: credit/debit entries.  
-   - **Inventory**: item, quantity, mass, value with totals.  
+   Choose a PC from the drop-down.
+   - **Ledger**: credit/debit entries.
+   - **Inventory**: item, quantity, mass, value with totals.
    - **Ammo**: weapon, magazine size, loaded, spares, loose; auto total rounds.
 
-5. **Import / Export XLSX**  
-   - **Export** creates an `.xlsx` with sheets: `Party_Finances`, `Ship_Accounts`, `Ship_Cargo`, plus per-PC sheets.  
+5. **Import / Export XLSX**
+   - **Export** creates an `.xlsx` with sheets: `Party_Finances`, `Ship_Accounts`, `Ship_Cargo`, plus per-PC sheets.
    - **Import** reads the same sheets back into the app.  
-   Keep your LibreOffice workbook closed while importing to avoid locks.
+     Keep your LibreOffice workbook closed while importing to avoid locks.
 
 Data also persists in your browser (localStorage).
 
@@ -187,6 +209,7 @@ Then on GitHub → **Settings → Pages**:
 Source: **Deploy from a branch** → Branch: `gh-pages` → `/ (root)`.
 
 Your site will be available at:
+
 ```
 https://<your-username>.github.io/<repo-name>/
 ```
@@ -194,10 +217,11 @@ https://<your-username>.github.io/<repo-name>/
 ### Optional: auto-deploy on push (GitHub Actions)
 
 Create `.github/workflows/gh-pages.yml`:
+
 ```yaml
 name: Deploy to Pages
 on:
-  push: { branches: [ main ] }
+  push: { branches: [main] }
 permissions: { contents: write }
 jobs:
   build-deploy:
@@ -205,7 +229,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: "20" }
       - run: npm ci
       - run: npm run build
       - uses: peaceiris/actions-gh-pages@v3
@@ -213,6 +237,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: dist
 ```
+
 ---
 
 ## Troubleshooting

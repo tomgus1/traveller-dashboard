@@ -100,7 +100,7 @@ export default function Cargo({
             const buy = Number(form.BuyPP);
             const sell = form.SellPP === "" ? null : Number(form.SellPP);
             const fees = form.Fees === "" ? 0 : Number(form.Fees);
-            const profit = sell == null ? null : (sell - buy) * tons - fees;
+            const profit = sell === null ? null : (sell - buy) * tons - fees;
             onAdd({
               "Leg/Route": form.Route,
               Item: form.Item,

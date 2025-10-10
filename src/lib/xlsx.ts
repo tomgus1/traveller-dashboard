@@ -1,5 +1,13 @@
 import * as XLSX from "xlsx";
-import type { CampaignState, FinanceRow, CargoRow, InventoryRow, MaintenanceLogRow, LoanRow, AmmoRow } from "../types";
+import type {
+  CampaignState,
+  FinanceRow,
+  CargoRow,
+  InventoryRow,
+  MaintenanceLogRow,
+  LoanRow,
+  AmmoRow,
+} from "../types";
 import { DEFAULT_STATE } from "../utils/storage";
 import { PC_NAMES } from "../constants";
 
@@ -16,17 +24,19 @@ export function importXlsx(file: File, setState: (s: CampaignState) => void) {
     next.Party_Finances = toJson("Party_Finances") as FinanceRow[];
     next.Ship_Accounts = toJson("Ship_Accounts") as FinanceRow[];
     next.Ship_Cargo = toJson("Ship_Cargo") as CargoRow[];
-    next.Ship_Maintenance_Log = toJson("Ship_Maintenance_Log") as MaintenanceLogRow[];
+    next.Ship_Maintenance_Log = toJson(
+      "Ship_Maintenance_Log"
+    ) as MaintenanceLogRow[];
     next.Loans_Mortgage = toJson("Loans_Mortgage") as LoanRow[];
     next.Party_Inventory = toJson("Party_Inventory") as InventoryRow[];
     next.Ammo_Tracker = toJson("Ammo_Tracker") as AmmoRow[];
     for (const pc of PC_NAMES) {
       const rows = toJson(pc);
       const finance = rows.filter((r) =>
-        Object.keys(r).includes("Amount (Cr)"),
+        Object.keys(r).includes("Amount (Cr)")
       ) as FinanceRow[];
       const inventory = rows.filter((r) =>
-        Object.keys(r).includes("Unit Value (Cr)"),
+        Object.keys(r).includes("Unit Value (Cr)")
       ) as InventoryRow[];
       next.PCs[pc].Finance = finance;
       next.PCs[pc].Inventory = inventory;

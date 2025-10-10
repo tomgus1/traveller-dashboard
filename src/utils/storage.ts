@@ -14,8 +14,8 @@ export const DEFAULT_STATE: CampaignState = {
   PCs: Object.fromEntries(
     PC_NAMES.map((n) => [
       n,
-      { Finance: [], Inventory: [], Weapons: [], Armor: [], Ammo: [] },
-    ]),
+      { Finance: [], Inventory: [], Weapons: [], Armour: [], Ammo: [] },
+    ])
   ),
 };
 
@@ -30,7 +30,7 @@ export function loadState(): CampaignState {
           Finance: [],
           Inventory: [],
           Weapons: [],
-          Armor: [],
+          Armour: [],
           Ammo: [],
         };
       if (!parsed.PCs[name].Ammo) parsed.PCs[name].Ammo = [];

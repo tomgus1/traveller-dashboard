@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import SectionCard from '../../components/SectionCard'
-import Table from '../../components/Table'
-import MoneyInput from '../../components/MoneyInput'
+import { useState } from "react";
+import SectionCard from "../../components/SectionCard";
+import Table from "../../components/Table";
+import MoneyInput from "../../components/MoneyInput";
 import { todayISO } from "../../utils/number";
 import type { FinanceRow } from "../../types";
 
