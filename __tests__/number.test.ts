@@ -41,7 +41,7 @@ describe("Number Utilities", () => {
     it("should return today's date in ISO format", () => {
       const result = todayISO();
       const today = new Date().toISOString().slice(0, 10);
-      
+
       expect(result).toBe(today);
       expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
@@ -49,7 +49,7 @@ describe("Number Utilities", () => {
     it("should return consistent format", () => {
       const result1 = todayISO();
       const result2 = todayISO();
-      
+
       // Should be same format (might be different date if called at midnight)
       expect(result1).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(result2).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -59,24 +59,24 @@ describe("Number Utilities", () => {
       const result = todayISO();
       const now = new Date();
       const expected = now.toISOString().slice(0, 10);
-      
+
       expect(result).toBe(expected);
     });
 
     it("should be in YYYY-MM-DD format", () => {
       const result = todayISO();
       const parts = result.split("-");
-      
+
       expect(parts).toHaveLength(3);
       expect(parts[0]).toHaveLength(4); // Year
       expect(parts[1]).toHaveLength(2); // Month
       expect(parts[2]).toHaveLength(2); // Day
-      
+
       // Validate ranges
       const year = parseInt(parts[0]);
       const month = parseInt(parts[1]);
       const day = parseInt(parts[2]);
-      
+
       expect(year).toBeGreaterThan(2020);
       expect(month).toBeGreaterThanOrEqual(1);
       expect(month).toBeLessThanOrEqual(12);

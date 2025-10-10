@@ -117,139 +117,215 @@ const addWorksheet = (
   // Ensure worksheet name is universally compatible (max 31 chars, no special chars)
   const safeName = name
     .slice(0, 31)
-    .replace(/[\\/?*[\]]/g, "_")
+    .replace(/[\\/?*[\]:–—]/g, "_") // Include em dash and en dash
+    .replace(/[^\w\s-_]/g, "_") // Replace any other special characters
     .trim();
 
   const worksheet = workbook.addWorksheet(safeName);
 
-  // Add headers
-  worksheet.addRow(headers);
-
-  // Style the header row
-  const headerRow = worksheet.getRow(1);
+  // Add headers with simple formatting for better compatibility
+  const headerRow = worksheet.addRow(headers);
   headerRow.font = { bold: true };
+
+  // Simpler fill that's more compatible
   headerRow.fill = {
     type: "pattern",
     pattern: "solid",
-    fgColor: { argb: "FFE0E0E0" },
+    fgColor: { argb: "FFCCCCCC" }, // Light gray
   };
 
   // Add data rows
   cleanedRows.forEach((row) => {
-    const values = headers.map((header) => row[header] || "");
+    const values = headers.map((header) => {
+      const value = row[header];
+      // Ensure all values are properly typed for Excel
+      if (typeof value === "number") {
+        return value;
+      }
+      if (value === null || value === undefined) {
+        return "";
+      }
+      return String(value);
+    });
     worksheet.addRow(values);
   });
 
-  // Auto-fit columns
-  worksheet.columns.forEach((column: Partial<ExcelJS.Column>) => {
-    if (column.header) {
-      column.width = Math.max(String(column.header).length, 15);
+  // Set column widths for better readability
+  worksheet.columns.forEach(
+    (column: Partial<ExcelJS.Column>, index: number) => {
+      const header = headers[index];
+      if (header) {
+        // Set width based on header length, with reasonable min/max
+        column.width = Math.min(Math.max(header.length + 2, 10), 30);
+      }
     }
-  });
+  );
 };
 
 const addMainSheets = (workbook: ExcelJS.Workbook, state: CampaignState) => {
+  // Only add sheets that have data or meaningful headers
   addWorksheet(workbook, "Party_Finances", state.Party_Finances, [
     "Date",
     "Description",
+    "Category",
     "Amount (Cr)",
-    "Running Total",
   ]);
   addWorksheet(workbook, "Ship_Accounts", state.Ship_Accounts, [
     "Date",
     "Description",
+    "Category",
     "Amount (Cr)",
-    "Running Total",
   ]);
   addWorksheet(workbook, "Ship_Cargo", state.Ship_Cargo, [
+    "Leg/Route",
     "Item",
-    "Quantity",
-    "Unit Value (Cr)",
-    "Total Value (Cr)",
+    "Tons",
+    "Purchase World",
+    "Purchase Price (Cr/ton)",
+    "Sale World",
+    "Sale Price (Cr/ton)",
   ]);
-  addWorksheet(workbook, "Ship_Maintenance_Log", state.Ship_Maintenance_Log, [
-    "Date",
-    "Item",
-    "Hours",
-  ]);
-  addWorksheet(workbook, "Loans_Mortgage", state.Loans_Mortgage, [
-    "Loan",
-    "Principal",
-    "Interest Rate",
-    "Monthly Payment",
-    "Balance",
-  ]);
-  addWorksheet(workbook, "Party_Inventory", state.Party_Inventory, [
-    "Item",
-    "Quantity",
-    "Unit Value (Cr)",
-    "Total Value (Cr)",
-  ]);
-  addWorksheet(workbook, "Ammo_Tracker", state.Ammo_Tracker, [
-    "Character",
-    "Weapon",
-    "Type",
-    "Count",
-  ]);
+
+  // Only add other sheets if they have data
+  if (state.Ship_Maintenance_Log.length > 0) {
+    addWorksheet(workbook, "Ship_Maintenance_Log", state.Ship_Maintenance_Log, [
+      "Date",
+      "Type",
+      "Description",
+      "Cost (Cr)",
+    ]);
+  }
+
+  if (state.Loans_Mortgage.length > 0) {
+    addWorksheet(workbook, "Loans_Mortgage", state.Loans_Mortgage, [
+      "Loan Type",
+      "Principal",
+      "Interest Rate",
+      "Monthly Payment",
+      "Remaining Balance",
+    ]);
+  }
+
+  if (state.Party_Inventory.length > 0) {
+    addWorksheet(workbook, "Party_Inventory", state.Party_Inventory, [
+      "Item",
+      "Qty",
+      "Unit Value (Cr)",
+      "Total Value (Cr)",
+    ]);
+  }
+
+  if (state.Ammo_Tracker.length > 0) {
+    addWorksheet(workbook, "Ammo_Tracker", state.Ammo_Tracker, [
+      "Weapon",
+      "Ammo Type",
+      "Magazine Size",
+      "Rounds Loaded",
+    ]);
+  }
 };
 
 const addPCSheets = (workbook: ExcelJS.Workbook, state: CampaignState) => {
   for (const pc of PC_NAMES) {
     const pcData = state.PCs[pc];
+    // Use just the first name for worksheet names to avoid special character issues
+    const shortName = pc.split(" ")[0]; // "Andrew", "Nicole", etc.
 
-    addWorksheet(workbook, `${pc}_Finance`, pcData.Finance || [], [
+    // Always add Finance sheet (most important)
+    addWorksheet(workbook, `${shortName}_Finance`, pcData.Finance || [], [
       "Date",
       "Description",
+      "Category",
       "Amount (Cr)",
-      "Running Total",
     ]);
-    addWorksheet(workbook, `${pc}_Inventory`, pcData.Inventory || [], [
-      "Item",
-      "Quantity",
-      "Unit Value (Cr)",
-      "Total Value (Cr)",
-    ]);
-    addWorksheet(workbook, `${pc}_Weapons`, pcData.Weapons || [], [
-      "Weapon",
-      "Damage",
-      "Range",
-      "Mass",
-      "Cost",
-    ]);
-    addWorksheet(workbook, `${pc}_Armour`, pcData.Armour || [], [
-      "Armour",
-      "Protection",
-      "Mass",
-      "Cost",
-    ]);
-    addWorksheet(workbook, `${pc}_Ammo`, pcData.Ammo || [], [
-      "Weapon",
-      "Type",
-      "Count",
-    ]);
+
+    // Only add other sheets if they have data
+    if (pcData.Inventory && pcData.Inventory.length > 0) {
+      addWorksheet(workbook, `${shortName}_Inventory`, pcData.Inventory, [
+        "Item",
+        "Qty",
+        "Unit Value (Cr)",
+        "Total Value (Cr)",
+      ]);
+    }
+
+    if (pcData.Weapons && pcData.Weapons.length > 0) {
+      addWorksheet(workbook, `${shortName}_Weapons`, pcData.Weapons, [
+        "Weapon",
+        "Type",
+        "Damage",
+        "Range",
+        "Mass",
+        "Cost",
+      ]);
+    }
+
+    if (pcData.Armour && pcData.Armour.length > 0) {
+      addWorksheet(workbook, `${shortName}_Armour`, pcData.Armour, [
+        "Armour",
+        "Type",
+        "Protection",
+        "Mass",
+        "Cost",
+      ]);
+    }
+
+    if (pcData.Ammo && pcData.Ammo.length > 0) {
+      addWorksheet(workbook, `${shortName}_Ammo`, pcData.Ammo, [
+        "Weapon",
+        "Ammo Type",
+        "Magazine Size",
+        "Rounds Loaded",
+      ]);
+    }
   }
 };
 
 export async function exportXlsx(state: CampaignState) {
-  const workbook = new ExcelJS.Workbook();
+  try {
+    const workbook = new ExcelJS.Workbook();
 
-  addMainSheets(workbook, state);
-  addPCSheets(workbook, state);
+    // Set workbook properties for better compatibility
+    workbook.creator = "Traveller Campaign Dashboard";
+    workbook.created = new Date();
+    workbook.modified = new Date();
+    workbook.lastPrinted = new Date();
 
-  const filename = `Traveller_Campaign_Export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    addMainSheets(workbook, state);
+    addPCSheets(workbook, state);
 
-  // Generate the file and download
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
+    const filename = `Traveller_Campaign_Export_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
+    // Generate the file with specific options for better compatibility
+    const buffer = await workbook.xlsx.writeBuffer({
+      useSharedStrings: true,
+      useStyles: true,
+    });
 
-  // Cleanup
-  window.URL.revokeObjectURL(url);
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.style.display = "none";
+
+    // Add to DOM, click, then cleanup
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup after a short delay
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Export failed: ${error.message}`);
+    }
+    throw new Error("Export failed: Unknown error");
+  }
 }

@@ -90,7 +90,13 @@ export default function Inventory({
             onChange={createInputHandler("Notes")}
           />
         </div>
-        <button className="btn mt-2" onClick={handleSubmit}>
+        <button
+          className="btn mt-2"
+          onClick={handleSubmit}
+          type="button"
+          data-testid="add-inventory-button"
+          aria-label="Add new item to character inventory"
+        >
           Add
         </button>
       </SectionCard>

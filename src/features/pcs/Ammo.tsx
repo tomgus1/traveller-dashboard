@@ -101,7 +101,13 @@ export default function Ammo({
             onChange={createInputHandler("Notes")}
           />
         </div>
-        <button className="btn mt-2" onClick={handleSubmit}>
+        <button
+          className="btn mt-2"
+          onClick={handleSubmit}
+          type="button"
+          data-testid="add-ammo-button"
+          aria-label="Add new ammunition entry to character equipment"
+        >
           Add
         </button>
       </SectionCard>

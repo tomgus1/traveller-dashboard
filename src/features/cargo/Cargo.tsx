@@ -125,7 +125,13 @@ export default function Cargo({
             onChange={createInputHandler("Fees")}
           />
         </div>
-        <button className="btn mt-2" onClick={handleSubmit}>
+        <button
+          className="btn mt-2"
+          onClick={handleSubmit}
+          type="button"
+          data-testid="add-cargo-button"
+          aria-label="Add new cargo leg to the manifest"
+        >
           Add
         </button>
       </SectionCard>

@@ -42,19 +42,27 @@ export default function CharacterSection({
   return (
     <div className="space-y-4">
       {/* Character Selection and Balance */}
-      <div className="flex items-centre gap-3">
+      <div className="flex items-center gap-3">
         <select
           className="select"
           value={selectedPc}
           onChange={(e) => onPcChange(e.target.value)}
+          data-testid="character-select"
+          aria-label="Select character to view and manage"
         >
           {PC_NAMES.map((n) => (
-            <option key={n}>{n}</option>
+            <option key={n} value={n}>
+              {n}
+            </option>
           ))}
         </select>
         <div className="text-sm">
-          Balance:{" "}
-          <span className="font-semibold">{fmtCr(characterBalance)}</span>
+          <span
+            aria-label={`Current character balance: ${fmtCr(characterBalance)}`}
+          >
+            Balance:{" "}
+            <span className="font-semibold">{fmtCr(characterBalance)}</span>
+          </span>
         </div>
       </div>
 

@@ -113,7 +113,13 @@ export default function TransactionForm({
           onChange={createInputHandler("Notes")}
         />
       </div>
-      <button className="btn mt-2" onClick={handleSubmit}>
+      <button
+        className="btn mt-2"
+        onClick={handleSubmit}
+        type="button"
+        data-testid="add-transaction-button"
+        aria-label="Add new transaction to the financial record"
+      >
         Add Transaction
       </button>
     </SectionCard>
