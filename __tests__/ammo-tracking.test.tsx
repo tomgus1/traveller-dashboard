@@ -109,9 +109,9 @@ describe("Ammo Tracking Component", () => {
     // Hover over the button to show tooltip
     await userEvent.hover(infoButton);
 
-    // Wait for tooltip content to appear
+    // Wait for tooltip content to appear - check for fire button instruction which is unique to tooltip
     await waitFor(() => {
-      expect(screen.getByText("🎯 Ammunition Tracking")).toBeInTheDocument();
+      expect(screen.getByText(/Fire Button:/)).toBeInTheDocument();
     });
 
     expect(screen.getByText(/Fire Button:/)).toBeInTheDocument();
@@ -137,8 +137,8 @@ describe("Ammo Tracking Component", () => {
     expect(screen.getByText("15")).toBeInTheDocument();
 
     // Check action buttons are present
-    expect(screen.getByText("🔥 Fire")).toBeInTheDocument();
-    expect(screen.getByText("🔄 Reload")).toBeInTheDocument();
+    expect(screen.getByText("Fire")).toBeInTheDocument();
+    expect(screen.getByText("Reload")).toBeInTheDocument();
   });
 
   it("calls onFireRound when fire button is clicked", () => {
@@ -152,7 +152,7 @@ describe("Ammo Tracking Component", () => {
       />
     );
 
-    const fireButton = screen.getByText("🔥 Fire");
+    const fireButton = screen.getByText("Fire");
     fireEvent.click(fireButton);
 
     expect(mockOnFireRound).toHaveBeenCalledWith(0);
@@ -169,7 +169,7 @@ describe("Ammo Tracking Component", () => {
       />
     );
 
-    const reloadButton = screen.getByText("🔄 Reload");
+    const reloadButton = screen.getByText("Reload");
     fireEvent.click(reloadButton);
 
     expect(mockOnReload).toHaveBeenCalledWith(0);
@@ -199,7 +199,7 @@ describe("Ammo Tracking Component", () => {
       />
     );
 
-    const fireButton = screen.getByText("🔥 Fire");
+    const fireButton = screen.getByText("Fire");
     expect(fireButton).toBeDisabled();
   });
 
@@ -227,7 +227,7 @@ describe("Ammo Tracking Component", () => {
       />
     );
 
-    const reloadButton = screen.getByText("🔄 Reload");
+    const reloadButton = screen.getByText("Reload");
     expect(reloadButton).toBeDisabled();
   });
 

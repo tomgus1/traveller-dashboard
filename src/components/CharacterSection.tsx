@@ -80,7 +80,7 @@ export default function CharacterSection({
           <span
             aria-label={`Current character balance: ${fmtCr(characterBalance)}`}
           >
-            Balance:{" "}
+            Current Balance:{" "}
             <span className="font-semibold">{fmtCr(characterBalance)}</span>
           </span>
         </div>
@@ -106,11 +106,8 @@ export default function CharacterSection({
       {/* Character Tab Content */}
       {charTab === "ledger" && (
         <Characters
-          pcNames={[...PC_NAMES]}
           pc={selectedPc}
-          onPcChange={onPcChange}
           rows={characterFinance}
-          balance={characterBalance}
           onAdd={(rows) => onUpdateFinance(selectedPc, rows)}
         />
       )}
