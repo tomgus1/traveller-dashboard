@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/traveller-dashboard/',
   build: {
+    chunkSizeWarningLimit: 1000, // Increase limit since ExcelJS is legitimately large but lazy-loaded
     rollupOptions: {
       output: {
         manualChunks: {

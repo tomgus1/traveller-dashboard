@@ -3,14 +3,13 @@ export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'jsdom', // Changed to jsdom for React components
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
-  moduleNameMapping: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-  },
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       useESM: true,
       tsconfig: {
-        jsx: 'react-jsx' // Added JSX support
+        jsx: 'react-jsx',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true
       }
     }]
   },

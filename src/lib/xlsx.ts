@@ -1,4 +1,4 @@
-import * as ExcelJS from "exceljs";
+import type * as ExcelJSTypes from "exceljs";
 import type {
   CampaignState,
   FinanceRow,
@@ -15,6 +15,7 @@ export async function importXlsx(
   file: File,
   setState: (s: CampaignState) => void
 ) {
+  const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   const buffer = await file.arrayBuffer();
   await workbook.xlsx.load(buffer);
@@ -30,16 +31,16 @@ export async function importXlsx(
     const headers: string[] = [];
 
     // Get headers
-    headerRow.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
+    headerRow.eachCell((cell: ExcelJSTypes.Cell, colNumber: number) => {
       headers[colNumber - 1] = String(cell.value || "");
     });
 
     // Get data rows
-    worksheet.eachRow((row: ExcelJS.Row, rowNumber: number) => {
+    worksheet.eachRow((row: ExcelJSTypes.Row, rowNumber: number) => {
       if (rowNumber === 1) return; // Skip header row
 
       const rowData: Record<string, unknown> = {};
-      row.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
+      row.eachCell((cell: ExcelJSTypes.Cell, colNumber: number) => {
         const header = headers[colNumber - 1];
         if (header) {
           rowData[header] = cell.value || "";
@@ -101,7 +102,7 @@ const cleanDataForExport = (
 };
 
 const addWorksheet = (
-  workbook: ExcelJS.Workbook,
+  workbook: ExcelJSTypes.Workbook,
   name: string,
   rows: Record<string, unknown>[],
   defaultHeaders?: string[]
@@ -152,7 +153,7 @@ const addWorksheet = (
 
   // Set column widths for better readability
   worksheet.columns.forEach(
-    (column: Partial<ExcelJS.Column>, index: number) => {
+    (column: Partial<ExcelJSTypes.Column>, index: number) => {
       const header = headers[index];
       if (header) {
         // Set width based on header length, with reasonable min/max
@@ -162,7 +163,7 @@ const addWorksheet = (
   );
 };
 
-const addMainSheets = (workbook: ExcelJS.Workbook, state: CampaignState) => {
+const addMainSheets = (workbook: ExcelJSTypes.Workbook, state: CampaignState) => {
   // Only add sheets that have data or meaningful headers
   addWorksheet(workbook, "Party_Finances", state.Party_Finances, [
     "Date",
@@ -225,7 +226,7 @@ const addMainSheets = (workbook: ExcelJS.Workbook, state: CampaignState) => {
   }
 };
 
-const addPCSheets = (workbook: ExcelJS.Workbook, state: CampaignState) => {
+const addPCSheets = (workbook: ExcelJSTypes.Workbook, state: CampaignState) => {
   for (const pc of PC_NAMES) {
     const pcData = state.PCs[pc];
     // Use just the first name for worksheet names to avoid special character issues
@@ -283,6 +284,7 @@ const addPCSheets = (workbook: ExcelJS.Workbook, state: CampaignState) => {
 
 export async function exportXlsx(state: CampaignState) {
   try {
+    const ExcelJS = await import("exceljs");
     const workbook = new ExcelJS.Workbook();
 
     // Set workbook properties for better compatibility
