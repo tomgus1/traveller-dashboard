@@ -25,6 +25,8 @@ interface TabContentProps {
   onAddCharacterAmmo: (pc: string, ammo: AmmoRow) => void;
   onAddCharacterWeapon: (pc: string, weapon: WeaponRow) => void;
   onAddCharacterArmour: (pc: string, armour: ArmourRow) => void;
+  onFireRound: (pc: string, ammoIndex: number) => void;
+  onReloadWeapon: (pc: string, ammoIndex: number) => void;
 }
 
 export default function TabContent({
@@ -41,6 +43,8 @@ export default function TabContent({
   onAddCharacterAmmo,
   onAddCharacterWeapon,
   onAddCharacterArmour,
+  onFireRound,
+  onReloadWeapon,
 }: TabContentProps) {
   return (
     <div
@@ -89,6 +93,8 @@ export default function TabContent({
           onAddAmmo={onAddCharacterAmmo}
           onAddWeapon={onAddCharacterWeapon}
           onAddArmour={onAddCharacterArmour}
+          onFireRound={onFireRound}
+          onReloadWeapon={onReloadWeapon}
         />
       )}
     </div>

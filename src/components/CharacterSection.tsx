@@ -29,6 +29,8 @@ interface CharacterSectionProps {
   onAddAmmo: (pc: string, ammo: AmmoRow) => void;
   onAddWeapon: (pc: string, weapon: WeaponRow) => void;
   onAddArmour: (pc: string, armour: ArmourRow) => void;
+  onFireRound?: (pc: string, ammoIndex: number) => void;
+  onReloadWeapon?: (pc: string, ammoIndex: number) => void;
 }
 
 /**
@@ -50,6 +52,8 @@ export default function CharacterSection({
   onAddAmmo,
   onAddWeapon,
   onAddArmour,
+  onFireRound,
+  onReloadWeapon,
 }: CharacterSectionProps) {
   const [charTab, setCharTab] = useState<
     "ledger" | "inventory" | "weapons" | "armour" | "ammo"
@@ -135,7 +139,10 @@ export default function CharacterSection({
       {charTab === "ammo" && (
         <Ammo
           rows={characterAmmo}
+          weapons={characterWeapons}
           onAdd={(ammo) => onAddAmmo(selectedPc, ammo)}
+          onFireRound={(ammoIndex) => onFireRound?.(selectedPc, ammoIndex)}
+          onReload={(ammoIndex) => onReloadWeapon?.(selectedPc, ammoIndex)}
         />
       )}
     </div>

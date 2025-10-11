@@ -1,3 +1,5 @@
+import * as React from "react";
+
 export default function Table({
   columns,
   rows,
@@ -5,6 +7,13 @@ export default function Table({
   columns: string[];
   rows: Record<string, unknown>[];
 }) {
+  const renderCellValue = (value: unknown): React.ReactNode => {
+    if (React.isValidElement(value)) {
+      return value;
+    }
+    return String(value ?? "");
+  };
+
   return (
     <div className="overflow-auto border rounded-2xl">
       <table className="table">
@@ -26,7 +35,7 @@ export default function Table({
             rows.map((r, i) => (
               <tr key={i}>
                 {columns.map((c) => (
-                  <td key={c}>{String(r[c] ?? "")}</td>
+                  <td key={c}>{renderCellValue(r[c])}</td>
                 ))}
               </tr>
             ))

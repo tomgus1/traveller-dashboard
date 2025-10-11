@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { loadState, saveState } from "../utils/storage";
+import { useAmmoActions } from "./useAmmoActions";
 import type {
   CampaignState,
   FinanceRow,
@@ -107,6 +108,8 @@ export function useAppState() {
     }));
   }, []);
 
+  const ammoActions = useAmmoActions(setState);
+
   return {
     state,
     setState,
@@ -118,5 +121,6 @@ export function useAppState() {
     addCharacterAmmo,
     addCharacterWeapon,
     addCharacterArmour,
+    ...ammoActions,
   };
 }

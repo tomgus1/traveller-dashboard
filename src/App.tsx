@@ -27,6 +27,8 @@ export default function App() {
     addCharacterAmmo,
     addCharacterWeapon,
     addCharacterArmour,
+    fireRound,
+    reloadWeapon,
     setState,
   } = useAppState();
 
@@ -70,6 +72,8 @@ export default function App() {
         onAddCharacterAmmo={addCharacterAmmo}
         onAddCharacterWeapon={addCharacterWeapon}
         onAddCharacterArmour={addCharacterArmour}
+        onFireRound={fireRound}
+        onReloadWeapon={reloadWeapon}
       />
     </div>
   );
