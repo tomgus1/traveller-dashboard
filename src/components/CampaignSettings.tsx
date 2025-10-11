@@ -171,13 +171,13 @@ export default function CampaignSettings({
       {/* Edit Campaign Modal */}
       {showEditForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md border dark:border-zinc-700">
+          <div className="card w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-zinc-50">
               Edit Campaign
             </h3>
 
-            <form onSubmit={handleEditSubmit}>
-              <div className="mb-4">
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Campaign Name *
                 </label>
@@ -185,20 +185,20 @@ export default function CampaignSettings({
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-50 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input w-full"
                   placeholder="Enter campaign name"
                   required
                 />
               </div>
 
-              <div className="mb-6">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Description (optional)
                 </label>
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-50 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input w-full"
                   rows={3}
                   placeholder="Describe your campaign"
                 />
@@ -208,14 +208,14 @@ export default function CampaignSettings({
                 <button
                   type="button"
                   onClick={() => setShowEditForm(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 rounded-lg transition-colors"
+                  className="btn flex-1 justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updating || !editName.trim()}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-800 text-white rounded-lg transition-colors"
+                  className="btn flex-1 justify-center bg-blue-600 hover:bg-blue-700 text-white border-blue-600 disabled:opacity-50"
                 >
                   {updating ? "Updating..." : "Update"}
                 </button>
@@ -228,7 +228,7 @@ export default function CampaignSettings({
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md border dark:border-zinc-700">
+          <div className="card w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-zinc-50">
               Delete Campaign
             </h3>
@@ -241,14 +241,14 @@ export default function CampaignSettings({
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={deleting}
-                className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 rounded-lg transition-colors disabled:opacity-50"
+                className="btn flex-1 justify-center disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-300 dark:disabled:bg-red-800 text-white rounded-lg transition-colors"
+                className="btn flex-1 justify-center bg-red-600 hover:bg-red-700 text-white border-red-600 disabled:opacity-50"
               >
                 {deleting ? "Deleting..." : "Delete"}
               </button>
@@ -260,15 +260,12 @@ export default function CampaignSettings({
       {/* Members Management Modal */}
       {showMembers && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-lg border dark:border-zinc-700">
+          <div className="card w-full max-w-lg">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50">
                 Campaign Members
               </h3>
-              <button
-                onClick={() => setShowMembers(false)}
-                className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-              >
+              <button onClick={() => setShowMembers(false)} className="btn p-2">
                 <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
@@ -277,7 +274,7 @@ export default function CampaignSettings({
               {members.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg"
+                  className="card flex items-center justify-between"
                 >
                   <div>
                     <p className="font-medium text-gray-900 dark:text-zinc-50">
@@ -305,7 +302,7 @@ export default function CampaignSettings({
                   {member.role !== "admin" && (
                     <button
                       onClick={() => handleRemoveMember(member.user_id)}
-                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      className="btn p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                       title="Remove member"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -323,7 +320,7 @@ export default function CampaignSettings({
 
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-700">
               <button
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                className="btn w-full justify-center bg-blue-600 hover:bg-blue-700 text-white border-blue-600 disabled:opacity-50"
                 disabled
                 title="Feature coming soon"
               >
