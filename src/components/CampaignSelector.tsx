@@ -37,11 +37,15 @@ export default function CampaignSelector({
 
   const getRoleBadge = (role: string) => {
     const colors = {
-      admin: "bg-red-100 text-red-800",
-      gm: "bg-purple-100 text-purple-800",
-      player: "bg-blue-100 text-blue-800",
+      admin: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400",
+      gm: "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400",
+      player:
+        "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400",
     };
-    return colors[role as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    return (
+      colors[role as keyof typeof colors] ||
+      "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400"
+    );
   };
 
   if (loading) {
@@ -56,16 +60,21 @@ export default function CampaignSelector({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Your Campaigns</h1>
-            <p className="text-gray-600 mt-2">Select a campaign to manage</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-zinc-50">
+              Campaign Selection
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Choose a campaign to manage or create a new one
+            </p>
           </div>
           <button
             onClick={signOut}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors border border-gray-300 dark:border-zinc-600 rounded-md hover:border-gray-400 dark:hover:border-zinc-500"
           >
             Sign Out
           </button>
@@ -73,7 +82,7 @@ export default function CampaignSelector({
 
         {campaigns.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
+            <div className="text-gray-400 dark:text-gray-500 mb-4">
               <svg
                 className="w-16 h-16 mx-auto"
                 fill="none"
@@ -88,10 +97,10 @@ export default function CampaignSelector({
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-zinc-50 mb-2">
               No campaigns yet
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
               Create your first campaign to get started
             </p>
             <button
@@ -107,11 +116,11 @@ export default function CampaignSelector({
               {campaigns.map((campaign) => (
                 <div
                   key={campaign.id}
-                  className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6 cursor-pointer border border-gray-200"
+                  className="bg-white dark:bg-zinc-900 rounded-lg shadow hover:shadow-md transition-shadow p-6 cursor-pointer border border-gray-200 dark:border-zinc-700"
                   onClick={() => onCampaignSelect(campaign.id)}
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 truncate">
                       {campaign.name}
                     </h3>
                     {campaign.role && (
@@ -124,12 +133,12 @@ export default function CampaignSelector({
                   </div>
 
                   {campaign.description && (
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
                       {campaign.description}
                     </p>
                   )}
 
-                  <div className="flex justify-between items-center text-sm text-gray-500">
+                  <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                     <span>{campaign.member_count || 0} member(s)</span>
                     <span>
                       Created{" "}
@@ -153,34 +162,34 @@ export default function CampaignSelector({
 
         {showCreateForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-semibold mb-4">
+            <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-md border dark:border-zinc-700">
+              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-zinc-50">
                 Create New Campaign
               </h2>
 
               <form onSubmit={handleCreateCampaign}>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Campaign Name *
                   </label>
                   <input
                     type="text"
                     value={newCampaignName}
                     onChange={(e) => setNewCampaignName(e.target.value)}
-                    className="input w-full"
+                    className="input w-full bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-zinc-50 placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Enter campaign name"
                     required
                   />
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Description (optional)
                   </label>
                   <textarea
                     value={newCampaignDescription}
                     onChange={(e) => setNewCampaignDescription(e.target.value)}
-                    className="input w-full"
+                    className="input w-full bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-600 text-gray-900 dark:text-zinc-50 placeholder-gray-500 dark:placeholder-gray-400"
                     rows={3}
                     placeholder="Describe your campaign"
                   />
@@ -190,14 +199,14 @@ export default function CampaignSelector({
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(false)}
-                    className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={creating || !newCampaignName.trim()}
-                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg transition-colors"
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-800 text-white rounded-lg transition-colors"
                   >
                     {creating ? "Creating..." : "Create"}
                   </button>

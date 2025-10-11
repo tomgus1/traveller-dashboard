@@ -15,9 +15,11 @@ export const useCampaigns = () => {
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      
+
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       // First, get all campaigns where user is a member or creator
@@ -29,11 +31,11 @@ export const useCampaigns = () => {
 
       // For each campaign, get the user's role and member count
       const campaignsWithRole: Campaign[] = [];
-      
+
       for (const campaign of campaignData || []) {
         // Check if user is creator (automatic admin)
         const isCreator = campaign.created_by === user.id;
-        
+
         // Get user's role from campaign_members
         const { data: memberData } = await supabase
           .from("campaign_members")

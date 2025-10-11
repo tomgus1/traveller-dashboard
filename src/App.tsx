@@ -38,9 +38,9 @@ export default function App() {
   }
 
   return (
-    <Dashboard 
-      campaignId={selectedCampaignId} 
-      onBackToCampaigns={() => setSelectedCampaignId(null)} 
+    <Dashboard
+      campaignId={selectedCampaignId}
+      onBackToCampaigns={() => setSelectedCampaignId(null)}
     />
   );
 }
