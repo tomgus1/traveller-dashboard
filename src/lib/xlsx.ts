@@ -163,7 +163,10 @@ const addWorksheet = (
   );
 };
 
-const addMainSheets = (workbook: ExcelJSTypes.Workbook, state: CampaignState) => {
+const addMainSheets = (
+  workbook: ExcelJSTypes.Workbook,
+  state: CampaignState
+) => {
   // Only add sheets that have data or meaningful headers
   addWorksheet(workbook, "Party_Finances", state.Party_Finances, [
     "Date",

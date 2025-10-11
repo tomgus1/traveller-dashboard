@@ -13,11 +13,6 @@ interface FormFieldProps {
   required?: boolean;
 }
 
-/**
- * Reusable form field component
- * Eliminates repetitive input element code across forms
- * Follows DRY principle
- */
 export default function FormField({
   label,
   type = "text",
@@ -28,7 +23,6 @@ export default function FormField({
   className,
   required = false,
 }: FormFieldProps) {
-  // Use appropriate default className based on element type
   const defaultClassName = type === "select" ? "select" : "input";
   const elementClassName = className || defaultClassName;
 

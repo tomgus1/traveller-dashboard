@@ -19,6 +19,7 @@
     "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
     "exceljs": "^4.4.0",
     "lucide-react": "^0.545.0",
     "react": "^19.1.1",

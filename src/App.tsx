@@ -1,80 +1,46 @@
 import { useState } from "react";
-
-import { PC_NAMES } from "./constants";
-import { TabsBar } from "./components/Tabs";
-import { useAppState } from "./hooks/useAppState";
-import { useBalanceCalculations } from "./hooks/useBalanceCalculations";
-import { useImportExport } from "./hooks/useImportExport";
-
-import AppHeader from "./components/AppHeader";
-import StatsDashboard from "./components/StatsDashboard";
-import TabContent from "./components/TabContent";
+import { useAuth } from "./hooks/useAuth";
+import AuthForm from "./components/AuthForm";
+import CampaignSelector from "./components/CampaignSelector";
+import Dashboard from "./components/Dashboard";
+import DebugPanel from "./components/DebugPanel";
 
 export default function App() {
-  const [pc, setPc] = useState<string>(PC_NAMES[0]);
-  const [tab, setTab] = useState<"party" | "ship" | "cargo" | "characters">(
-    "party"
+  const { user, loading } = useAuth();
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
+    null
   );
 
-  // Custom hooks for separation of concerns
-  const {
-    state,
-    updatePartyFinances,
-    updateShipAccounts,
-    addCargoLeg,
-    updateCharacterFinance,
-    addCharacterInventory,
-    addCharacterAmmo,
-    addCharacterWeapon,
-    addCharacterArmour,
-    fireRound,
-    reloadWeapon,
-    setState,
-  } = useAppState();
+  // Temporarily show debug panel to diagnose the issue
+  const isDebugMode = false;
 
-  const balances = useBalanceCalculations(state, pc);
-  const { handleImport, handleExport } = useImportExport(setState, state);
+  if (isDebugMode) {
+    return <DebugPanel />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthForm />;
+  }
+
+  if (!selectedCampaignId) {
+    return <CampaignSelector onCampaignSelect={setSelectedCampaignId} />;
+  }
 
   return (
-    <div className="p-6 space-y-6">
-      <AppHeader onImport={handleImport} onExport={handleExport} />
-
-      <StatsDashboard
-        partyBalance={balances.party}
-        shipBalance={balances.ship}
-        cargoLegsCount={state.Ship_Cargo.length}
-      />
-
-      <TabsBar
-        tabs={[
-          { id: "party", label: "Party" },
-          { id: "ship", label: "Ship" },
-          { id: "cargo", label: "Cargo" },
-          { id: "characters", label: "Characters" },
-        ]}
-        active={tab}
-        onChange={(id) =>
-          setTab(id as "party" | "ship" | "cargo" | "characters")
-        }
-      />
-
-      <TabContent
-        activeTab={tab}
-        state={state}
-        selectedPc={pc}
-        characterBalance={balances.character}
-        onPcChange={setPc}
-        onUpdatePartyFinances={updatePartyFinances}
-        onUpdateShipAccounts={updateShipAccounts}
-        onAddCargoLeg={addCargoLeg}
-        onUpdateCharacterFinance={updateCharacterFinance}
-        onAddCharacterInventory={addCharacterInventory}
-        onAddCharacterAmmo={addCharacterAmmo}
-        onAddCharacterWeapon={addCharacterWeapon}
-        onAddCharacterArmour={addCharacterArmour}
-        onFireRound={fireRound}
-        onReloadWeapon={reloadWeapon}
-      />
-    </div>
+    <Dashboard 
+      campaignId={selectedCampaignId} 
+      onBackToCampaigns={() => setSelectedCampaignId(null)} 
+    />
   );
 }
