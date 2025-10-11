@@ -133,6 +133,86 @@ export const useCampaigns = () => {
     }
   };
 
+  const updateCampaign = async (
+    campaignId: string,
+    updates: { name?: string; description?: string | null }
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("campaigns")
+        .update(updates)
+        .eq("id", campaignId);
+
+      if (error) throw error;
+      await fetchCampaigns();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to update campaign"
+      );
+      throw err;
+    }
+  };
+
+  const deleteCampaign = async (campaignId: string) => {
+    try {
+      // First delete all members
+      await supabase
+        .from("campaign_members")
+        .delete()
+        .eq("campaign_id", campaignId);
+
+      // Then delete the campaign
+      const { error } = await supabase
+        .from("campaigns")
+        .delete()
+        .eq("id", campaignId);
+
+      if (error) throw error;
+      await fetchCampaigns();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete campaign"
+      );
+      throw err;
+    }
+  };
+
+  const removeMember = async (campaignId: string, userId: string) => {
+    try {
+      const { error } = await supabase
+        .from("campaign_members")
+        .delete()
+        .eq("campaign_id", campaignId)
+        .eq("user_id", userId);
+
+      if (error) throw error;
+      await fetchCampaigns();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove member");
+      throw err;
+    }
+  };
+
+  const getCampaignMembers = async (campaignId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("campaign_members")
+        .select(
+          `
+          *,
+          user_profiles(email, display_name)
+        `
+        )
+        .eq("campaign_id", campaignId);
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch members");
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchCampaigns();
   }, []);
@@ -144,5 +224,9 @@ export const useCampaigns = () => {
     refetch: fetchCampaigns,
     createCampaign,
     addMember,
+    updateCampaign,
+    deleteCampaign,
+    removeMember,
+    getCampaignMembers,
   };
 };

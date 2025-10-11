@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCampaigns } from "../hooks/useCampaigns";
 import { useAuth } from "../hooks/useAuth";
+import CampaignSettings from "./CampaignSettings";
 
 interface CampaignSelectorProps {
   onCampaignSelect: (campaignId: string) => void;
@@ -10,7 +11,15 @@ interface CampaignSelectorProps {
 export default function CampaignSelector({
   onCampaignSelect,
 }: CampaignSelectorProps) {
-  const { campaigns, loading, createCampaign } = useCampaigns();
+  const {
+    campaigns,
+    loading,
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
+    getCampaignMembers,
+    removeMember,
+  } = useCampaigns();
   const { signOut } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCampaignName, setNewCampaignName] = useState("");
@@ -116,34 +125,52 @@ export default function CampaignSelector({
               {campaigns.map((campaign) => (
                 <div
                   key={campaign.id}
-                  className="bg-white dark:bg-zinc-900 rounded-lg shadow hover:shadow-md transition-shadow p-6 cursor-pointer border border-gray-200 dark:border-zinc-700"
-                  onClick={() => onCampaignSelect(campaign.id)}
+                  className="bg-white dark:bg-zinc-900 rounded-lg shadow hover:shadow-md transition-shadow p-6 border border-gray-200 dark:border-zinc-700 relative"
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 truncate">
-                      {campaign.name}
-                    </h3>
-                    {campaign.role && (
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadge(campaign.role)}`}
-                      >
-                        {campaign.role.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-
-                  {campaign.description && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
-                      {campaign.description}
-                    </p>
+                  {/* Settings button for admins */}
+                  {campaign.role === "admin" && (
+                    <div className="absolute top-4 right-4">
+                      <CampaignSettings
+                        campaign={campaign}
+                        onUpdateCampaign={updateCampaign}
+                        onDeleteCampaign={deleteCampaign}
+                        onGetMembers={getCampaignMembers}
+                        onRemoveMember={removeMember}
+                      />
+                    </div>
                   )}
 
-                  <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
-                    <span>{campaign.member_count || 0} member(s)</span>
-                    <span>
-                      Created{" "}
-                      {new Date(campaign.created_at).toLocaleDateString()}
-                    </span>
+                  {/* Campaign card content - clickable area */}
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => onCampaignSelect(campaign.id)}
+                  >
+                    <div className="flex justify-between items-start mb-3 pr-8">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 truncate">
+                        {campaign.name}
+                      </h3>
+                      {campaign.role && (
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadge(campaign.role)}`}
+                        >
+                          {campaign.role.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+
+                    {campaign.description && (
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                        {campaign.description}
+                      </p>
+                    )}
+
+                    <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                      <span>{campaign.member_count || 0} member(s)</span>
+                      <span>
+                        Created{" "}
+                        {new Date(campaign.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
