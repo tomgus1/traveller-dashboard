@@ -18,7 +18,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Role-based access control helpers
+// Role-based access control helpers for campaigns
 export const getUserCampaignRole = async (campaignId: string) => {
   const {
     data: { user },
@@ -34,33 +34,6 @@ export const getUserCampaignRole = async (campaignId: string) => {
 
   if (error) return null;
   return data.role;
-};
-
-export const canEditCharacter = async (characterId: string) => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
-
-  const { data: character } = await supabase
-    .from("characters")
-    .select("owner_id, campaign_id")
-    .eq("id", characterId)
-    .single();
-
-  if (!character) return false;
-
-  // Character owner can always edit
-  if (character.owner_id === user.id) return true;
-
-  // Admin can edit any character
-  const role = await getUserCampaignRole(character.campaign_id);
-  return role === "admin";
-};
-
-export const canEditSharedData = async (campaignId: string) => {
-  const role = await getUserCampaignRole(campaignId);
-  return role === "player" || role === "admin";
 };
 
 export const canViewCampaign = async (campaignId: string) => {
