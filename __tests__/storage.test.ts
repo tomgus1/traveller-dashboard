@@ -1,4 +1,8 @@
-import { loadState, saveState, DEFAULT_STATE } from "../src/infrastructure/storage/storage";
+import {
+  loadState,
+  saveState,
+  DEFAULT_STATE,
+} from "../src/infrastructure/storage/storage";
 import type { CampaignState } from "../src/types";
 
 // Mock localStorage with proper Jest mocks
@@ -54,24 +58,8 @@ describe("Storage Utilities", () => {
       expect(DEFAULT_STATE.Ammo_Tracker).toEqual([]);
     });
 
-    it("should initialize all PCs with empty arrays", () => {
-      const pcNames = [
-        "Andrew – Dr Vax Vanderpool",
-        "Nicole – Admiral Rosa Perre",
-        "Carol – Lt Colonel Zhana",
-        "Colin – Captain Travis Drevil",
-        "Tim – Special Agent Ferric Osmund",
-        "Dom – Dr Bilal ibn Hakim",
-      ];
-
-      pcNames.forEach((name) => {
-        expect(DEFAULT_STATE.PCs[name]).toBeDefined();
-        expect(DEFAULT_STATE.PCs[name].Finance).toEqual([]);
-        expect(DEFAULT_STATE.PCs[name].Inventory).toEqual([]);
-        expect(DEFAULT_STATE.PCs[name].Weapons).toEqual([]);
-        expect(DEFAULT_STATE.PCs[name].Armour).toEqual([]);
-        expect(DEFAULT_STATE.PCs[name].Ammo).toEqual([]);
-      });
+    it("should initialize with empty PCs object", () => {
+      expect(DEFAULT_STATE.PCs).toEqual({});
     });
   });
 
@@ -117,12 +105,17 @@ describe("Storage Utilities", () => {
       expect(result).toEqual(DEFAULT_STATE);
     });
 
-    it("should initialize missing PC data", () => {
+    it("should preserve existing character data and ensure complete structure", () => {
       const incompleteState = {
         ...DEFAULT_STATE,
         PCs: {
-          "Andrew – Dr Vax Vanderpool": { Finance: [], Inventory: [] }, // Missing properties
-          // Missing other PCs
+          "character-1": { Finance: [], Inventory: [] }, // Missing properties
+          "character-2": {
+            Finance: [],
+            Inventory: [],
+            Weapons: [],
+            Armour: [],
+          }, // Missing Ammo
         },
       };
 
@@ -130,23 +123,20 @@ describe("Storage Utilities", () => {
 
       const result = loadState();
 
-      // Should have all PCs with complete data
-      const pcNames = [
-        "Andrew – Dr Vax Vanderpool",
-        "Nicole – Admiral Rosa Perre",
-        "Carol – Lt Colonel Zhana",
-        "Colin – Captain Travis Drevil",
-        "Tim – Special Agent Ferric Osmund",
-        "Dom – Dr Bilal ibn Hakim",
-      ];
-      pcNames.forEach((name) => {
-        expect(result.PCs[name]).toBeDefined();
-        expect(result.PCs[name].Finance).toBeDefined();
-        expect(result.PCs[name].Inventory).toBeDefined();
-        expect(result.PCs[name].Weapons).toBeDefined();
-        expect(result.PCs[name].Armour).toBeDefined();
-        expect(result.PCs[name].Ammo).toBeDefined();
-      });
+      // Should preserve existing characters and ensure complete structure
+      expect(result.PCs["character-1"]).toBeDefined();
+      expect(result.PCs["character-1"].Finance).toEqual([]);
+      expect(result.PCs["character-1"].Inventory).toEqual([]);
+      expect(result.PCs["character-1"].Weapons).toEqual([]);
+      expect(result.PCs["character-1"].Armour).toEqual([]);
+      expect(result.PCs["character-1"].Ammo).toEqual([]);
+
+      expect(result.PCs["character-2"]).toBeDefined();
+      expect(result.PCs["character-2"].Finance).toEqual([]);
+      expect(result.PCs["character-2"].Inventory).toEqual([]);
+      expect(result.PCs["character-2"].Weapons).toEqual([]);
+      expect(result.PCs["character-2"].Armour).toEqual([]);
+      expect(result.PCs["character-2"].Ammo).toEqual([]);
     });
 
     it("should initialize missing Ammo arrays for existing PCs", () => {

@@ -1,16 +1,17 @@
 import { fmtCr } from "../../shared/utils/number";
-import { PC_NAMES } from "../../shared/constants/constants";
 
 interface StatsDashboardProps {
   partyBalance: number;
   shipBalance: number;
   cargoLegsCount: number;
+  characterCount: number;
 }
 
 export default function StatsDashboard({
   partyBalance,
   shipBalance,
   cargoLegsCount,
+  characterCount,
 }: StatsDashboardProps) {
   return (
     <div
@@ -49,9 +50,9 @@ export default function StatsDashboard({
         <div className="text-xs text-zinc-500">PCs Tracked</div>
         <div
           className="text-xl font-semibold"
-          aria-label={`Number of player characters tracked: ${PC_NAMES.length}`}
+          aria-label={`Number of player characters tracked: ${characterCount}`}
         >
-          {PC_NAMES.length}
+          {characterCount}
         </div>
       </div>
     </div>

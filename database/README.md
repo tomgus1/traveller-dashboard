@@ -10,7 +10,9 @@ This directory contains the clean, minimal database setup for the Traveller Dash
 
 ## Database Tables
 
-The application uses only 3 essential tables:
+The application uses 4 core tables plus character data tables:
+
+### Core Tables
 
 1. **`user_profiles`** - Additional user information beyond Supabase auth
    - Links to Supabase auth users
@@ -24,6 +26,33 @@ The application uses only 3 essential tables:
 3. **`campaign_members`** - User roles and membership in campaigns
    - Links users to campaigns with roles (admin, gm, player)
    - Unique constraint to prevent duplicate memberships
+
+4. **`characters`** - Player characters within campaigns
+   - Character names (both player name and character name)
+   - Linked to campaigns and owned by users
+   - Campaign-specific character management
+
+### Character Data Tables
+
+5. **`character_finance`** - Financial transactions per character per campaign
+6. **`character_inventory`** - Inventory items per character per campaign
+7. **`character_weapons`** - Weapons per character per campaign
+8. **`character_armour`** - Armour per character per campaign
+9. **`character_ammo`** - Ammunition per character per campaign
+
+## Role System
+
+### 🎭 Role Hierarchy
+
+- **ADMIN**: Can view and edit everything across all campaigns
+- **GM (Game Master/Referee)**: Can view all details and manage everything within their assigned campaigns
+- **PLAYER**: Can only edit their own characters, view campaign info they're members of
+
+### 🔐 Security Implementation
+
+- **Character Management**: Players can only edit their own characters; GMs can manage all characters in their campaigns; Admins have full access
+- **Campaign Access**: Players can view campaigns they're members of; GMs can fully manage their assigned campaigns; Admins have access to all campaigns
+- **Data Isolation**: Character data is campaign-specific and properly secured through Row Level Security policies
 
 ## Setup Instructions
 

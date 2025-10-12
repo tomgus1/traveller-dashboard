@@ -65,3 +65,83 @@ export interface MemberInfo {
   role: CampaignRole;
   joinedAt: Date;
 }
+
+// Character entities
+export interface Character {
+  id: string;
+  campaignId: string;
+  name: string;
+  playerName?: string; // Real player name
+  characterName?: string; // Character name
+  ownerId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CharacterFinance {
+  id: string;
+  characterId: string;
+  description: string;
+  amount: number;
+  transactionDate: Date;
+  createdAt: Date;
+}
+
+export interface CharacterInventory {
+  id: string;
+  characterId: string;
+  itemName: string;
+  quantity: number;
+  weight?: number;
+  value?: number;
+  description?: string;
+  createdAt: Date;
+}
+
+export interface CharacterWeapon {
+  id: string;
+  characterId: string;
+  name: string;
+  damage?: string;
+  range?: string;
+  weight?: number;
+  cost?: number;
+  notes?: string;
+  createdAt: Date;
+}
+
+export interface CharacterArmour {
+  id: string;
+  characterId: string;
+  name: string;
+  protection?: number;
+  weight?: number;
+  cost?: number;
+  notes?: string;
+  createdAt: Date;
+}
+
+export interface CharacterAmmo {
+  id: string;
+  characterId: string;
+  type: string;
+  quantity: number;
+  maxQuantity?: number;
+  weaponCompatibility?: string;
+  notes?: string;
+  createdAt: Date;
+}
+
+// Character operations
+export interface CreateCharacterRequest {
+  campaignId: string;
+  name: string;
+  playerName?: string;
+  characterName?: string;
+}
+
+export interface UpdateCharacterRequest {
+  name?: string;
+  playerName?: string;
+  characterName?: string;
+}

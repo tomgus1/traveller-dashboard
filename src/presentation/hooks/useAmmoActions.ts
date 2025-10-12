@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { initializeCharacterData } from "../../infrastructure/storage/storage";
 import type { AmmoRow, CampaignState } from "../../types";
 
 /**
@@ -9,27 +10,46 @@ export function useAmmoActions(
   setState: React.Dispatch<React.SetStateAction<CampaignState>>
 ) {
   const updateCharacterAmmo = useCallback(
-    (pc: string, ammoIndex: number, updatedAmmo: AmmoRow) => {
-      setState((prev) => ({
-        ...prev,
-        PCs: {
-          ...prev.PCs,
-          [pc]: {
-            ...prev.PCs[pc],
-            Ammo: (prev.PCs[pc].Ammo || []).map((ammo, index) =>
-              index === ammoIndex ? updatedAmmo : ammo
-            ),
+    (characterDisplayName: string, ammoIndex: number, updatedAmmo: AmmoRow) => {
+      setState((prev) => {
+        // Initialize character data if it does not exist
+        if (!prev.PCs[characterDisplayName]) {
+          initializeCharacterData(characterDisplayName);
+        }
+        const existingCharacter = prev.PCs[characterDisplayName] || {
+          Finance: [],
+          Inventory: [],
+          Weapons: [],
+          Armour: [],
+          Ammo: [],
+        };
+        return {
+          ...prev,
+          PCs: {
+            ...prev.PCs,
+            [characterDisplayName]: {
+              ...existingCharacter,
+              Ammo: (existingCharacter.Ammo || []).map((ammo, index) =>
+                index === ammoIndex ? updatedAmmo : ammo
+              ),
+            },
           },
-        },
-      }));
+        };
+      });
     },
     [setState]
   );
 
   const fireRound = useCallback(
-    (pc: string, ammoIndex: number) => {
+    (characterId: string, ammoIndex: number) => {
       setState((prev) => {
-        const currentAmmo = prev.PCs[pc]?.Ammo?.[ammoIndex];
+        // Initialize character data if it doesn't exist
+        if (!prev.PCs[characterId]) {
+          initializeCharacterData(characterId);
+          return prev;
+        }
+
+        const currentAmmo = prev.PCs[characterId]?.Ammo?.[ammoIndex];
         if (!currentAmmo) return prev;
 
         const roundsLoaded = Number(currentAmmo["Rounds Loaded"] || 0);
@@ -47,12 +67,12 @@ export function useAmmoActions(
         } else if (newSpareMagazines > 0) {
           // Reload from spare magazine
           newSpareMagazines -= 1;
-          newRoundsLoaded = magazineSize - 1; // Load new mag and fire one round
+          newRoundsLoaded = magazineSize - 1;
         } else if (newLooseRounds > 0 && magazineSize > 0) {
           // Load loose rounds into magazine
           const roundsToLoad = Math.min(newLooseRounds, magazineSize);
           newLooseRounds -= roundsToLoad;
-          newRoundsLoaded = roundsToLoad - 1; // Load and fire one round
+          newRoundsLoaded = roundsToLoad - 1;
         } else {
           // No ammo available
           return prev;
@@ -73,9 +93,9 @@ export function useAmmoActions(
           ...prev,
           PCs: {
             ...prev.PCs,
-            [pc]: {
-              ...prev.PCs[pc],
-              Ammo: (prev.PCs[pc].Ammo || []).map((ammo, index) =>
+            [characterId]: {
+              ...prev.PCs[characterId],
+              Ammo: (prev.PCs[characterId].Ammo || []).map((ammo, index) =>
                 index === ammoIndex ? updatedAmmo : ammo
               ),
             },
@@ -87,9 +107,15 @@ export function useAmmoActions(
   );
 
   const reloadWeapon = useCallback(
-    (pc: string, ammoIndex: number) => {
+    (characterId: string, ammoIndex: number) => {
       setState((prev) => {
-        const currentAmmo = prev.PCs[pc]?.Ammo?.[ammoIndex];
+        // Initialize character data if it doesn't exist
+        if (!prev.PCs[characterId]) {
+          initializeCharacterData(characterId);
+          return prev;
+        }
+
+        const currentAmmo = prev.PCs[characterId]?.Ammo?.[ammoIndex];
         if (!currentAmmo) return prev;
 
         const roundsLoaded = Number(currentAmmo["Rounds Loaded"] || 0);
@@ -128,9 +154,9 @@ export function useAmmoActions(
           ...prev,
           PCs: {
             ...prev.PCs,
-            [pc]: {
-              ...prev.PCs[pc],
-              Ammo: (prev.PCs[pc].Ammo || []).map((ammo, index) =>
+            [characterId]: {
+              ...prev.PCs[characterId],
+              Ammo: (prev.PCs[characterId].Ammo || []).map((ammo, index) =>
                 index === ammoIndex ? updatedAmmo : ammo
               ),
             },

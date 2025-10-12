@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { PC_NAMES } from "../../shared/constants/constants";
 import { fmtCr } from "../../shared/utils/number";
 import { TabsBar } from "../components/Tabs";
+import { useCampaignCharacters } from "../hooks/useCampaignCharacters";
 import Characters from "./Characters";
 import Inventory from "./Inventory";
 import Ammo from "./Ammo";
 import Weapons from "./Weapons";
 import Armour from "./Armour";
+import CharacterManagement from "./CharacterManagement";
 import type {
   FinanceRow,
   InventoryRow,
@@ -16,29 +17,31 @@ import type {
 } from "../../types";
 
 interface CharacterSectionProps {
-  selectedPc: string;
-  onPcChange: (pc: string) => void;
+  campaignId?: string; // Campaign context for character loading
+  selectedPc: string; // Display name of selected character
+  onPcChange: (displayName: string) => void;
   characterBalance: number;
   characterFinance: FinanceRow[];
   characterInventory: InventoryRow[];
   characterAmmo: AmmoRow[];
   characterWeapons: WeaponRow[];
   characterArmour: ArmourRow[];
-  onUpdateFinance: (pc: string, rows: FinanceRow[]) => void;
-  onAddInventory: (pc: string, item: InventoryRow) => void;
-  onAddAmmo: (pc: string, ammo: AmmoRow) => void;
-  onAddWeapon: (pc: string, weapon: WeaponRow) => void;
-  onAddArmour: (pc: string, armour: ArmourRow) => void;
-  onFireRound?: (pc: string, ammoIndex: number) => void;
-  onReloadWeapon?: (pc: string, ammoIndex: number) => void;
+  onUpdateFinance: (displayName: string, rows: FinanceRow[]) => void;
+  onAddInventory: (displayName: string, item: InventoryRow) => void;
+  onAddAmmo: (displayName: string, ammo: AmmoRow) => void;
+  onAddWeapon: (displayName: string, weapon: WeaponRow) => void;
+  onAddArmour: (displayName: string, armour: ArmourRow) => void;
+  onFireRound?: (displayName: string, ammoIndex: number) => void;
+  onReloadWeapon?: (displayName: string, ammoIndex: number) => void;
 }
 
 /**
  * Character management section component
- * Extracted from App.tsx to follow Single Responsibility Principle
+ * Now uses database-driven character management with fallback to legacy system
  * Handles all character-related UI and state management
  */
 export default function CharacterSection({
+  campaignId,
   selectedPc,
   onPcChange,
   characterBalance,
@@ -56,8 +59,17 @@ export default function CharacterSection({
   onReloadWeapon,
 }: CharacterSectionProps) {
   const [charTab, setCharTab] = useState<
-    "ledger" | "inventory" | "weapons" | "armour" | "ammo"
+    "ledger" | "inventory" | "weapons" | "armour" | "ammo" | "manage"
   >("ledger");
+
+  // Load characters for the current campaign
+  const { characters, loading, error, refreshCharacters } =
+    useCampaignCharacters(campaignId);
+
+  // Find the currently selected character
+  const selectedCharacter = characters.find(
+    (char) => char.displayName === selectedPc
+  );
 
   return (
     <div className="space-y-4">
@@ -69,13 +81,25 @@ export default function CharacterSection({
           onChange={(e) => onPcChange(e.target.value)}
           data-testid="character-select"
           aria-label="Select character to view and manage"
+          disabled={loading}
         >
-          {PC_NAMES.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
+          {loading ? (
+            <option>Loading characters...</option>
+          ) : (
+            characters.map((character) => (
+              <option key={character.id} value={character.displayName}>
+                {character.displayName}
+              </option>
+            ))
+          )}
         </select>
+
+        {error && (
+          <span className="text-xs text-yellow-600" title={error}>
+            ⚠️ Offline mode
+          </span>
+        )}
+
         <div className="text-sm">
           <span
             aria-label={`Current character balance: ${fmtCr(characterBalance)}`}
@@ -86,6 +110,14 @@ export default function CharacterSection({
         </div>
       </div>
 
+      {/* Show character info if we have database character */}
+      {selectedCharacter && selectedCharacter.id.startsWith("character-") && (
+        <div className="text-xs text-gray-600">
+          Player: {selectedCharacter.playerName} | Character:{" "}
+          {selectedCharacter.characterName}
+        </div>
+      )}
+
       {/* Character Tab Navigation */}
       <TabsBar
         tabs={[
@@ -94,11 +126,18 @@ export default function CharacterSection({
           { id: "weapons", label: "Weapons" },
           { id: "armour", label: "Armour" },
           { id: "ammo", label: "Ammo" },
+          { id: "manage", label: "Manage Characters" },
         ]}
         active={charTab}
         onChange={(id) =>
           setCharTab(
-            id as "ledger" | "inventory" | "weapons" | "armour" | "ammo"
+            id as
+              | "ledger"
+              | "inventory"
+              | "weapons"
+              | "armour"
+              | "ammo"
+              | "manage"
           )
         }
       />
@@ -140,6 +179,16 @@ export default function CharacterSection({
           onAdd={(ammo) => onAddAmmo(selectedPc, ammo)}
           onFireRound={(ammoIndex) => onFireRound?.(selectedPc, ammoIndex)}
           onReload={(ammoIndex) => onReloadWeapon?.(selectedPc, ammoIndex)}
+        />
+      )}
+
+      {charTab === "manage" && campaignId && (
+        <CharacterManagement
+          campaignId={campaignId}
+          onCharacterCreated={() => {
+            // Refresh the character list when a new character is created
+            refreshCharacters();
+          }}
         />
       )}
     </div>

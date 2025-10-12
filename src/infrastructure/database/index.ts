@@ -475,4 +475,53 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       return { success: false, error: "An unexpected error occurred" };
     }
   }
+
+  // Basic character management functions (not full repository yet)
+  async getCharactersByCampaign(campaignId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("characters")
+        .select("*")
+        .eq("campaign_id", campaignId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, data: data || [] };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async createCharacterForCampaign(
+    campaignId: string,
+    userId: string,
+    name: string,
+    playerName?: string,
+    characterName?: string
+  ) {
+    try {
+      const { data, error } = await supabase
+        .from("characters")
+        .insert({
+          campaign_id: campaignId,
+          name,
+          player_name: playerName,
+          character_name: characterName,
+          owner_id: userId,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, data };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
 }

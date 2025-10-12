@@ -9,7 +9,6 @@ import type {
   AmmoRow,
 } from "../../types";
 import { DEFAULT_STATE } from "../../infrastructure/storage/storage";
-import { PC_NAMES } from "../constants/constants";
 
 export async function importXlsx(
   file: File,
@@ -66,12 +65,37 @@ export async function importXlsx(
   next.Party_Inventory = getSheetData("Party_Inventory") as InventoryRow[];
   next.Ammo_Tracker = getSheetData("Ammo_Tracker") as AmmoRow[];
 
-  for (const pc of PC_NAMES) {
-    const financeRows = getSheetData(`${pc}_Finance`) as FinanceRow[];
-    const inventoryRows = getSheetData(`${pc}_Inventory`) as InventoryRow[];
+  // Import character data from available sheets
+  const worksheetNames = workbook.worksheets.map((ws) => ws.name);
 
-    next.PCs[pc].Finance = financeRows;
-    next.PCs[pc].Inventory = inventoryRows;
+  for (const sheetName of worksheetNames) {
+    if (sheetName.endsWith("_Finance")) {
+      const characterKey = sheetName.replace("_Finance", "");
+      const financeRows = getSheetData(
+        `${characterKey}_Finance`
+      ) as FinanceRow[];
+
+      // Initialize character if not exists
+      if (!next.PCs[characterKey]) {
+        next.PCs[characterKey] = {
+          Finance: [],
+          Inventory: [],
+          Weapons: [],
+          Armour: [],
+          Ammo: [],
+        };
+      }
+
+      next.PCs[characterKey].Finance = financeRows;
+
+      // Also try to import other data for this character
+      const inventoryRows = getSheetData(
+        `${characterKey}_Inventory`
+      ) as InventoryRow[];
+      if (inventoryRows.length > 0) {
+        next.PCs[characterKey].Inventory = inventoryRows;
+      }
+    }
   }
 
   setState(next);
@@ -230,10 +254,11 @@ const addMainSheets = (
 };
 
 const addPCSheets = (workbook: ExcelJSTypes.Workbook, state: CampaignState) => {
-  for (const pc of PC_NAMES) {
-    const pcData = state.PCs[pc];
-    // Use just the first name for worksheet names to avoid special character issues
-    const shortName = pc.split(" ")[0]; // "Andrew", "Nicole", etc.
+  // Get all character entries from state instead of relying on PC_NAMES
+  for (const [characterKey, pcData] of Object.entries(state.PCs)) {
+    // Use character key for worksheet names, truncated for Excel compatibility
+    const shortName =
+      characterKey.length > 20 ? characterKey.substring(0, 20) : characterKey;
 
     // Always add Finance sheet (most important)
     addWorksheet(workbook, `${shortName}_Finance`, pcData.Finance || [], [

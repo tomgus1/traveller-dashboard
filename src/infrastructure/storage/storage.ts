@@ -1,5 +1,4 @@
 import type { CampaignState } from "../../types";
-import { PC_NAMES } from "../../shared/constants/constants";
 
 const STORAGE_KEY = "traveller-ui-state-v1";
 
@@ -11,12 +10,7 @@ export const DEFAULT_STATE: CampaignState = {
   Loans_Mortgage: [],
   Party_Inventory: [],
   Ammo_Tracker: [],
-  PCs: Object.fromEntries(
-    PC_NAMES.map((n) => [
-      n,
-      { Finance: [], Inventory: [], Weapons: [], Armour: [], Ammo: [] },
-    ])
-  ),
+  PCs: {},
 };
 
 export function loadState(): CampaignState {
@@ -24,24 +18,25 @@ export function loadState(): CampaignState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw);
-    for (const name of PC_NAMES) {
-      if (!parsed.PCs[name]) {
-        parsed.PCs[name] = {
-          Finance: [],
-          Inventory: [],
-          Weapons: [],
-          Armour: [],
-          Ammo: [],
-        };
-      } else {
-        // Ensure all required properties exist
-        if (!parsed.PCs[name].Finance) parsed.PCs[name].Finance = [];
-        if (!parsed.PCs[name].Inventory) parsed.PCs[name].Inventory = [];
-        if (!parsed.PCs[name].Weapons) parsed.PCs[name].Weapons = [];
-        if (!parsed.PCs[name].Armour) parsed.PCs[name].Armour = [];
-        if (!parsed.PCs[name].Ammo) parsed.PCs[name].Ammo = [];
-      }
+
+    // Ensure PCs object exists and has proper structure
+    if (!parsed.PCs) {
+      parsed.PCs = {};
     }
+
+    // For existing character entries, ensure all required properties exist
+    Object.keys(parsed.PCs).forEach((characterKey) => {
+      if (!parsed.PCs[characterKey].Finance)
+        parsed.PCs[characterKey].Finance = [];
+      if (!parsed.PCs[characterKey].Inventory)
+        parsed.PCs[characterKey].Inventory = [];
+      if (!parsed.PCs[characterKey].Weapons)
+        parsed.PCs[characterKey].Weapons = [];
+      if (!parsed.PCs[characterKey].Armour)
+        parsed.PCs[characterKey].Armour = [];
+      if (!parsed.PCs[characterKey].Ammo) parsed.PCs[characterKey].Ammo = [];
+    });
+
     return parsed;
   } catch {
     return DEFAULT_STATE;
@@ -50,4 +45,18 @@ export function loadState(): CampaignState {
 
 export function saveState(state: CampaignState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+export function initializeCharacterData(characterDisplayName: string): void {
+  const state = loadState();
+  if (!state.PCs[characterDisplayName]) {
+    state.PCs[characterDisplayName] = {
+      Finance: [],
+      Inventory: [],
+      Weapons: [],
+      Armour: [],
+      Ammo: [],
+    };
+    saveState(state);
+  }
 }

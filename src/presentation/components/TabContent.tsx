@@ -12,29 +12,43 @@ import FinanceManager from "./FinanceManager";
 import CharacterSection from "./CharacterSection";
 
 interface TabContentProps {
+  campaignId: string; // Add campaign context
   activeTab: "party" | "ship" | "cargo" | "characters";
   state: CampaignState;
-  selectedPc: string;
+  selectedCharacterId: string;
   characterBalance: number;
-  onPcChange: (pc: string) => void;
+  onCharacterChange: (characterDisplayName: string) => void;
   onUpdatePartyFinances: (rows: FinanceRow[]) => void;
   onUpdateShipAccounts: (rows: FinanceRow[]) => void;
   onAddCargoLeg: (row: CargoRow) => void;
-  onUpdateCharacterFinance: (pc: string, rows: FinanceRow[]) => void;
-  onAddCharacterInventory: (pc: string, item: InventoryRow) => void;
-  onAddCharacterAmmo: (pc: string, ammo: AmmoRow) => void;
-  onAddCharacterWeapon: (pc: string, weapon: WeaponRow) => void;
-  onAddCharacterArmour: (pc: string, armour: ArmourRow) => void;
-  onFireRound: (pc: string, ammoIndex: number) => void;
-  onReloadWeapon: (pc: string, ammoIndex: number) => void;
+  onUpdateCharacterFinance: (
+    characterDisplayName: string,
+    rows: FinanceRow[]
+  ) => void;
+  onAddCharacterInventory: (
+    characterDisplayName: string,
+    item: InventoryRow
+  ) => void;
+  onAddCharacterAmmo: (characterDisplayName: string, ammo: AmmoRow) => void;
+  onAddCharacterWeapon: (
+    characterDisplayName: string,
+    weapon: WeaponRow
+  ) => void;
+  onAddCharacterArmour: (
+    characterDisplayName: string,
+    armour: ArmourRow
+  ) => void;
+  onFireRound: (characterDisplayName: string, ammoIndex: number) => void;
+  onReloadWeapon: (characterDisplayName: string, ammoIndex: number) => void;
 }
 
 export default function TabContent({
+  campaignId,
   activeTab,
   state,
-  selectedPc,
+  selectedCharacterId,
   characterBalance,
-  onPcChange,
+  onCharacterChange,
   onUpdatePartyFinances,
   onUpdateShipAccounts,
   onAddCargoLeg,
@@ -80,14 +94,15 @@ export default function TabContent({
 
       {activeTab === "characters" && (
         <CharacterSection
-          selectedPc={selectedPc}
-          onPcChange={onPcChange}
+          campaignId={campaignId}
+          selectedPc={selectedCharacterId}
+          onPcChange={onCharacterChange}
           characterBalance={characterBalance}
-          characterFinance={state.PCs[selectedPc].Finance}
-          characterInventory={state.PCs[selectedPc].Inventory}
-          characterAmmo={state.PCs[selectedPc].Ammo || []}
-          characterWeapons={state.PCs[selectedPc].Weapons || []}
-          characterArmour={state.PCs[selectedPc].Armour || []}
+          characterFinance={state.PCs[selectedCharacterId]?.Finance || []}
+          characterInventory={state.PCs[selectedCharacterId]?.Inventory || []}
+          characterAmmo={state.PCs[selectedCharacterId]?.Ammo || []}
+          characterWeapons={state.PCs[selectedCharacterId]?.Weapons || []}
+          characterArmour={state.PCs[selectedCharacterId]?.Armour || []}
           onUpdateFinance={onUpdateCharacterFinance}
           onAddInventory={onAddCharacterInventory}
           onAddAmmo={onAddCharacterAmmo}

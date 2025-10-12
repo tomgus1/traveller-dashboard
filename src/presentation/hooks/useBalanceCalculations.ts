@@ -9,16 +9,24 @@ import type { CampaignState } from "../../types";
  */
 export function useBalanceCalculations(
   state: CampaignState,
-  selectedPc: string
+  selectedCharacterDisplayName: string
 ) {
   // Memoize balance calculations to prevent unnecessary recalculations
   const balances = useMemo(() => {
     return {
       party: getCurrentBalance(state.Party_Finances, 0),
       ship: getCurrentBalance(state.Ship_Accounts, 0),
-      character: getCurrentBalance(state.PCs[selectedPc]?.Finance || [], 0),
+      character: getCurrentBalance(
+        state.PCs[selectedCharacterDisplayName]?.Finance || [],
+        0
+      ),
     };
-  }, [state.Party_Finances, state.Ship_Accounts, state.PCs, selectedPc]);
+  }, [
+    state.Party_Finances,
+    state.Ship_Accounts,
+    state.PCs,
+    selectedCharacterDisplayName,
+  ]);
 
   return balances;
 }

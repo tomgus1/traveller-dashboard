@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppState } from "../hooks/useAppState";
 import { useBalanceCalculations } from "../hooks/useBalanceCalculations";
 import { useImportExport } from "../hooks/useImportExport";
-import { PC_NAMES } from "../../shared/constants/constants";
+import { useCampaignCharacters } from "../hooks/useCampaignCharacters";
 import AppHeader from "./AppHeader";
 import StatsDashboard from "./StatsDashboard";
 import { TabsBar } from "./Tabs";
@@ -20,7 +20,16 @@ export default function Dashboard({
   const [tab, setTab] = useState<"party" | "ship" | "cargo" | "characters">(
     "party"
   );
-  const [pc, setPc] = useState<string>(PC_NAMES[0]);
+
+  // Get characters for this campaign
+  const { characters } = useCampaignCharacters(campaignId);
+
+  // Use character display name as selected character (simpler than ID)
+  const [selectedCharacter, setSelectedCharacter] = useState<string>("");
+
+  // Auto-select first character if none selected
+  const actualSelectedCharacter =
+    selectedCharacter || characters[0]?.displayName || "";
 
   const {
     state,
@@ -37,7 +46,7 @@ export default function Dashboard({
     reloadWeapon,
   } = useAppState();
 
-  const balances = useBalanceCalculations(state, pc);
+  const balances = useBalanceCalculations(state, actualSelectedCharacter);
   const { handleImport, handleExport } = useImportExport(setState, state);
 
   return (
@@ -72,6 +81,7 @@ export default function Dashboard({
           partyBalance={balances.party}
           shipBalance={balances.ship}
           cargoLegsCount={state.Ship_Cargo.length}
+          characterCount={characters.length}
         />
 
         <TabsBar
@@ -88,11 +98,12 @@ export default function Dashboard({
         />
 
         <TabContent
+          campaignId={campaignId}
           activeTab={tab}
           state={state}
-          selectedPc={pc}
+          selectedCharacterId={actualSelectedCharacter}
           characterBalance={balances.character}
-          onPcChange={setPc}
+          onCharacterChange={setSelectedCharacter}
           onUpdatePartyFinances={updatePartyFinances}
           onUpdateShipAccounts={updateShipAccounts}
           onAddCargoLeg={addCargoLeg}

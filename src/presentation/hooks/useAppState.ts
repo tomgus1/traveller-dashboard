@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { loadState, saveState } from "../../infrastructure/storage/storage";
+import {
+  loadState,
+  saveState,
+  initializeCharacterData,
+} from "../../infrastructure/storage/storage";
 import { useAmmoActions } from "./useAmmoActions";
 import type {
   CampaignState,
@@ -41,72 +45,148 @@ export function useAppState() {
   }, []);
 
   const updateCharacterFinance = useCallback(
-    (pc: string, rows: FinanceRow[]) => {
-      setState((prev) => ({
-        ...prev,
-        PCs: {
-          ...prev.PCs,
-          [pc]: { ...prev.PCs[pc], Finance: rows },
-        },
-      }));
+    (characterDisplayName: string, rows: FinanceRow[]) => {
+      setState((prev) => {
+        // Initialize character data if it doesn't exist
+        if (!prev.PCs[characterDisplayName]) {
+          initializeCharacterData(characterDisplayName);
+        }
+        return {
+          ...prev,
+          PCs: {
+            ...prev.PCs,
+            [characterDisplayName]: {
+              ...(prev.PCs[characterDisplayName] || {
+                Finance: [],
+                Inventory: [],
+                Weapons: [],
+                Armour: [],
+                Ammo: [],
+              }),
+              Finance: rows,
+            },
+          },
+        };
+      });
     },
     []
   );
 
   const addCharacterInventory = useCallback(
-    (pc: string, item: InventoryRow) => {
-      setState((prev) => ({
-        ...prev,
-        PCs: {
-          ...prev.PCs,
-          [pc]: {
-            ...prev.PCs[pc],
-            Inventory: [...prev.PCs[pc].Inventory, item],
+    (characterDisplayName: string, item: InventoryRow) => {
+      setState((prev) => {
+        // Initialize character data if it doesn't exist
+        if (!prev.PCs[characterDisplayName]) {
+          initializeCharacterData(characterDisplayName);
+        }
+        const existingCharacter = prev.PCs[characterDisplayName] || {
+          Finance: [],
+          Inventory: [],
+          Weapons: [],
+          Armour: [],
+          Ammo: [],
+        };
+        return {
+          ...prev,
+          PCs: {
+            ...prev.PCs,
+            [characterDisplayName]: {
+              ...existingCharacter,
+              Inventory: [...existingCharacter.Inventory, item],
+            },
           },
-        },
-      }));
+        };
+      });
     },
     []
   );
 
-  const addCharacterAmmo = useCallback((pc: string, ammo: AmmoRow) => {
-    setState((prev) => ({
-      ...prev,
-      PCs: {
-        ...prev.PCs,
-        [pc]: {
-          ...prev.PCs[pc],
-          Ammo: [...(prev.PCs[pc].Ammo || []), ammo],
-        },
-      },
-    }));
-  }, []);
+  const addCharacterAmmo = useCallback(
+    (characterDisplayName: string, ammo: AmmoRow) => {
+      setState((prev) => {
+        // Initialize character data if it doesn't exist
+        if (!prev.PCs[characterDisplayName]) {
+          initializeCharacterData(characterDisplayName);
+        }
+        const existingCharacter = prev.PCs[characterDisplayName] || {
+          Finance: [],
+          Inventory: [],
+          Weapons: [],
+          Armour: [],
+          Ammo: [],
+        };
+        return {
+          ...prev,
+          PCs: {
+            ...prev.PCs,
+            [characterDisplayName]: {
+              ...existingCharacter,
+              Ammo: [...(existingCharacter.Ammo || []), ammo],
+            },
+          },
+        };
+      });
+    },
+    []
+  );
 
-  const addCharacterWeapon = useCallback((pc: string, weapon: WeaponRow) => {
-    setState((prev) => ({
-      ...prev,
-      PCs: {
-        ...prev.PCs,
-        [pc]: {
-          ...prev.PCs[pc],
-          Weapons: [...(prev.PCs[pc].Weapons || []), weapon],
-        },
-      },
-    }));
-  }, []);
+  const addCharacterWeapon = useCallback(
+    (characterDisplayName: string, weapon: WeaponRow) => {
+      setState((prev) => {
+        // Initialize character data if it doesn't exist
+        if (!prev.PCs[characterDisplayName]) {
+          initializeCharacterData(characterDisplayName);
+        }
+        const existingCharacter = prev.PCs[characterDisplayName] || {
+          Finance: [],
+          Inventory: [],
+          Weapons: [],
+          Armour: [],
+          Ammo: [],
+        };
+        return {
+          ...prev,
+          PCs: {
+            ...prev.PCs,
+            [characterDisplayName]: {
+              ...existingCharacter,
+              Weapons: [...(existingCharacter.Weapons || []), weapon],
+            },
+          },
+        };
+      });
+    },
+    []
+  );
 
-  const addCharacterArmour = useCallback((pc: string, armour: ArmourRow) => {
-    setState((prev) => ({
-      ...prev,
-      PCs: {
-        ...prev.PCs,
-        [pc]: {
-          ...prev.PCs[pc],
-          Armour: [...(prev.PCs[pc].Armour || []), armour],
-        },
-      },
-    }));
-  }, []);
+  const addCharacterArmour = useCallback(
+    (characterDisplayName: string, armour: ArmourRow) => {
+      setState((prev) => {
+        // Initialize character data if it doesn't exist
+        if (!prev.PCs[characterDisplayName]) {
+          initializeCharacterData(characterDisplayName);
+        }
+        const existingCharacter = prev.PCs[characterDisplayName] || {
+          Finance: [],
+          Inventory: [],
+          Weapons: [],
+          Armour: [],
+          Ammo: [],
+        };
+        return {
+          ...prev,
+          PCs: {
+            ...prev.PCs,
+            [characterDisplayName]: {
+              ...existingCharacter,
+              Armour: [...(existingCharacter.Armour || []), armour],
+            },
+          },
+        };
+      });
+    },
+    []
+  );
 
   const ammoActions = useAmmoActions(setState);
 
