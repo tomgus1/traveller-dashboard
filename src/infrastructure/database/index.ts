@@ -86,6 +86,9 @@ export class SupabaseAuthRepository implements AuthRepository {
         return { success: false, error: "Failed to create user account" };
       }
 
+      // Note: User profile creation is now handled automatically by database trigger
+      // The trigger in the database will create the user_profiles entry
+
       const user: User = {
         id: data.user.id,
         email: data.user.email || "",
@@ -225,7 +228,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .single();
 
       if (error) {
-        return { success: false, error: "Failed to create campaign" };
+        return {
+          success: false,
+          error: `Failed to create campaign: ${error.message}`,
+        };
       }
 
       // Add creator as admin member
@@ -242,7 +248,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         await supabase.from("campaigns").delete().eq("id", data.id);
         return {
           success: false,
-          error: "Failed to set up campaign membership",
+          error: `Failed to set up campaign membership: ${memberError.message}`,
         };
       }
 

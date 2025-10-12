@@ -124,12 +124,44 @@ ALTER TABLE character_weapons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE character_armour ENABLE ROW LEVEL SECURITY;
 ALTER TABLE character_ammo ENABLE ROW LEVEL SECURITY;
 
+-- ===== AUTO USER PROFILE CREATION =====
+-- Create function to automatically create user profile on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.user_profiles (id, email, display_name)
+  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email));
+  RETURN NEW;
+EXCEPTION
+  WHEN unique_violation THEN
+    -- Profile already exists, just return
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger to call function on user signup (safe to run multiple times)
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Ensure existing users have profiles (migration-safe)
+INSERT INTO user_profiles (id, email, display_name)
+SELECT 
+  id, 
+  email, 
+  COALESCE(raw_user_meta_data->>'display_name', email) as display_name
+FROM auth.users 
+WHERE id NOT IN (SELECT id FROM user_profiles)
+ON CONFLICT (id) DO NOTHING;
+
 -- ===== POLICIES =====
 -- 
--- ROLE HIERARCHY:
--- ADMIN: Can view and edit everything across all campaigns
--- GM (Game Master/Referee): Can view all details and manage everything within their assigned campaigns
--- PLAYER: Can only edit their own characters, view campaign info they're members of
+-- ULTRA-SIMPLE ROLE SYSTEM (NO CIRCULAR DEPENDENCIES):
+-- CAMPAIGN CREATOR: Can create and manage their own campaigns
+-- USERS: Can only see and manage their own data (characters, items, etc.)
+-- SHARING: Campaign membership will be handled at the application level for now
+-- ACCESS CONTROL: Owner-based - users can only access what they own
 --
 
 -- Drop existing policies if they exist (for clean setup)
@@ -139,16 +171,30 @@ DROP POLICY IF EXISTS "Users can insert own profile" ON user_profiles;
 
 DROP POLICY IF EXISTS "Campaign members can view campaigns" ON campaigns;
 DROP POLICY IF EXISTS "Campaign creators can create campaigns" ON campaigns;
+DROP POLICY IF EXISTS "Admins and GMs can create campaigns" ON campaigns;
+DROP POLICY IF EXISTS "Authenticated users can create campaigns" ON campaigns;
 DROP POLICY IF EXISTS "Campaign creators can update campaigns" ON campaigns;
+DROP POLICY IF EXISTS "Admins and GMs can update campaigns" ON campaigns;
 DROP POLICY IF EXISTS "Campaign creators can delete campaigns" ON campaigns;
+DROP POLICY IF EXISTS "Admins can delete campaigns" ON campaigns;
 
 DROP POLICY IF EXISTS "Campaign members can view membership" ON campaign_members;
+DROP POLICY IF EXISTS "View campaign membership" ON campaign_members;
 DROP POLICY IF EXISTS "Campaign creators can manage membership" ON campaign_members;
+DROP POLICY IF EXISTS "GMs and Admins manage membership" ON campaign_members;
+DROP POLICY IF EXISTS "Campaign creators and admins manage membership" ON campaign_members;
+DROP POLICY IF EXISTS "GMs and Admins update membership" ON campaign_members;
+DROP POLICY IF EXISTS "GMs and Admins remove membership" ON campaign_members;
 DROP POLICY IF EXISTS "Admins can manage membership" ON campaign_members;
 
 DROP POLICY IF EXISTS "Campaign members can view characters" ON characters;
+DROP POLICY IF EXISTS "Players can view own characters" ON characters;
 DROP POLICY IF EXISTS "Character owners can manage characters" ON characters;
+DROP POLICY IF EXISTS "Players can edit own characters" ON characters;
+DROP POLICY IF EXISTS "Players can create characters" ON characters;
+DROP POLICY IF EXISTS "Players can delete own characters" ON characters;
 DROP POLICY IF EXISTS "Campaign creators can manage characters" ON characters;
+DROP POLICY IF EXISTS "GMs and Admins can manage campaign characters" ON characters;
 
 -- User profiles policies
 CREATE POLICY "Users can view all profiles" ON user_profiles
@@ -160,280 +206,157 @@ CREATE POLICY "Users can update own profile" ON user_profiles
 CREATE POLICY "Users can insert own profile" ON user_profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
--- Campaign policies - Role-based access control
--- All campaign members can view campaigns they belong to
-CREATE POLICY "Campaign members can view campaigns" ON campaigns
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM campaign_members 
-      WHERE campaign_id = campaigns.id AND user_id = auth.uid()
-    )
-  );
+-- Campaign policies - Simple and direct
+-- Campaign creators can see their own campaigns
+CREATE POLICY "Campaign creators can view their campaigns" ON campaigns
+  FOR SELECT USING (created_by = auth.uid());
 
--- Only Admins and GMs can create campaigns
-CREATE POLICY "Admins and GMs can create campaigns" ON campaigns
+-- Any authenticated user can create campaigns
+CREATE POLICY "Authenticated users can create campaigns" ON campaigns
   FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE id = auth.uid()
-    )
+    auth.uid() IS NOT NULL AND created_by = auth.uid()
   );
 
--- Only Admins and GMs can update campaigns they manage
-CREATE POLICY "Admins and GMs can update campaigns" ON campaigns
-  FOR UPDATE USING (
-    created_by = auth.uid() OR
-    EXISTS (
-      SELECT 1 FROM campaign_members 
-      WHERE campaign_id = campaigns.id 
-        AND user_id = auth.uid() 
-        AND role IN ('admin', 'gm')
-    )
-  );
+-- Only campaign creators can update their campaigns
+CREATE POLICY "Campaign creators can update campaigns" ON campaigns
+  FOR UPDATE USING (created_by = auth.uid());
 
--- Only Admins and campaign creators can delete campaigns
-CREATE POLICY "Admins can delete campaigns" ON campaigns
-  FOR DELETE USING (
-    created_by = auth.uid() OR
-    EXISTS (
-      SELECT 1 FROM campaign_members 
-      WHERE user_id = auth.uid() AND role = 'admin'
-    )
-  );
+-- Only campaign creators can delete their campaigns
+CREATE POLICY "Campaign creators can delete campaigns" ON campaigns
+  FOR DELETE USING (created_by = auth.uid());
 
--- Campaign members policies - Role-based membership management
--- Users can view their own membership and GMs/Admins can view all campaign membership
-CREATE POLICY "View campaign membership" ON campaign_members
-  FOR SELECT USING (
-    user_id = auth.uid() OR 
-    EXISTS (
-      SELECT 1 FROM campaign_members cm
-      WHERE cm.campaign_id = campaign_members.campaign_id 
-        AND cm.user_id = auth.uid() 
-        AND cm.role IN ('gm', 'admin')
-    )
-  );
+-- Campaign members policies - Simple and direct  
+-- Users can view their own membership
+CREATE POLICY "Users can view their own membership" ON campaign_members
+  FOR SELECT USING (user_id = auth.uid());
 
--- Only Admins and GMs can manage campaign membership
-CREATE POLICY "GMs and Admins manage membership" ON campaign_members
+-- Campaign creators can add members to their campaigns
+CREATE POLICY "Campaign creators can add members" ON campaign_members
   FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM campaigns 
-      WHERE id = campaign_id AND created_by = auth.uid()
-    ) OR
-    EXISTS (
-      SELECT 1 FROM campaign_members 
-      WHERE campaign_id = campaign_members.campaign_id 
-        AND user_id = auth.uid() 
-        AND role IN ('gm', 'admin')
+    campaign_id IN (
+      SELECT id FROM campaigns WHERE created_by = auth.uid()
     )
   );
 
-CREATE POLICY "GMs and Admins update membership" ON campaign_members
+-- Campaign creators can update roles in their campaigns
+CREATE POLICY "Campaign creators can update roles" ON campaign_members
   FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM campaigns 
-      WHERE id = campaign_id AND created_by = auth.uid()
-    ) OR
-    EXISTS (
-      SELECT 1 FROM campaign_members cm
-      WHERE cm.campaign_id = campaign_members.campaign_id 
-        AND cm.user_id = auth.uid() 
-        AND cm.role IN ('gm', 'admin')
+    campaign_id IN (
+      SELECT id FROM campaigns WHERE created_by = auth.uid()
     )
   );
 
-CREATE POLICY "GMs and Admins remove membership" ON campaign_members
+-- Campaign creators can remove members from their campaigns
+CREATE POLICY "Campaign creators can remove members" ON campaign_members
   FOR DELETE USING (
-    EXISTS (
-      SELECT 1 FROM campaigns 
-      WHERE id = campaign_id AND created_by = auth.uid()
+    campaign_id IN (
+      SELECT id FROM campaigns WHERE created_by = auth.uid()
     ) OR
-    EXISTS (
-      SELECT 1 FROM campaign_members cm
-      WHERE cm.campaign_id = campaign_members.campaign_id 
-        AND cm.user_id = auth.uid() 
-        AND cm.role IN ('gm', 'admin')
-    ) OR
-    user_id = auth.uid() -- Users can leave campaigns themselves
+    user_id = auth.uid()
   );
 
--- Character policies - Proper role-based access control
--- Players can only view and edit their own characters
-CREATE POLICY "Players can view own characters" ON characters
-  FOR SELECT USING (
-    owner_id = auth.uid() OR
-    -- Game Masters can view all characters in their campaigns
-    EXISTS (
-      SELECT 1 FROM campaign_members 
-      WHERE campaign_id = characters.campaign_id 
-        AND user_id = auth.uid() 
-        AND role IN ('gm', 'admin')
-    ) OR
-    -- Admins can view all characters
-    EXISTS (
-      SELECT 1 FROM campaign_members 
-      WHERE user_id = auth.uid() AND role = 'admin'
-    )
-  );
+-- Character policies - Simple and direct
+-- Users can view their own characters
+CREATE POLICY "Users can view their own characters" ON characters
+  FOR SELECT USING (owner_id = auth.uid());
 
-CREATE POLICY "Players can edit own characters" ON characters
+-- Users can edit their own characters
+CREATE POLICY "Users can edit their own characters" ON characters
   FOR UPDATE USING (owner_id = auth.uid());
 
-CREATE POLICY "Players can create characters" ON characters
-  FOR INSERT WITH CHECK (
-    owner_id = auth.uid() AND
-    -- Must be a member of the campaign
-    EXISTS (
-      SELECT 1 FROM campaign_members 
-      WHERE campaign_id = characters.campaign_id AND user_id = auth.uid()
-    )
-  );
+-- Users can create characters if they own them
+CREATE POLICY "Users can create their own characters" ON characters
+  FOR INSERT WITH CHECK (owner_id = auth.uid());
 
-CREATE POLICY "Players can delete own characters" ON characters
+-- Users can delete their own characters
+CREATE POLICY "Users can delete their own characters" ON characters
   FOR DELETE USING (owner_id = auth.uid());
 
--- Game Masters and Admins can manage all characters in their campaigns
-CREATE POLICY "GMs and Admins can manage campaign characters" ON characters
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM campaign_members 
-      WHERE campaign_id = characters.campaign_id 
-        AND user_id = auth.uid() 
-        AND role IN ('gm', 'admin')
-    )
-  );
-
--- Character data policies - Finance, Inventory, Weapons, Armour, Ammo
--- Players can manage their own character data, GMs can manage all character data in their campaigns
+-- Character data policies - Simple owner-based access
+-- Users can access data for their own characters
 
 -- Character Finance policies
-CREATE POLICY "Character finance access" ON character_finance
+CREATE POLICY "Users can access their character finance" ON character_finance
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM characters c
-      JOIN campaign_members cm ON c.campaign_id = cm.campaign_id
-      WHERE c.id = character_finance.character_id 
-        AND (c.owner_id = auth.uid() OR cm.user_id = auth.uid() AND cm.role IN ('gm', 'admin'))
+      WHERE c.id = character_finance.character_id AND c.owner_id = auth.uid()
     )
   );
 
-CREATE POLICY "Character finance management" ON character_finance
+CREATE POLICY "Users can manage their character finance" ON character_finance
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM characters c
-      WHERE c.id = character_finance.character_id 
-        AND (c.owner_id = auth.uid() OR 
-             EXISTS (
-               SELECT 1 FROM campaign_members cm 
-               WHERE cm.campaign_id = c.campaign_id 
-                 AND cm.user_id = auth.uid() 
-                 AND cm.role IN ('gm', 'admin')
-             ))
+      WHERE c.id = character_finance.character_id AND c.owner_id = auth.uid()
     )
   );
 
 -- Character Inventory policies
-CREATE POLICY "Character inventory access" ON character_inventory
+CREATE POLICY "Users can access their character inventory" ON character_inventory
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM characters c
-      JOIN campaign_members cm ON c.campaign_id = cm.campaign_id
-      WHERE c.id = character_inventory.character_id 
-        AND (c.owner_id = auth.uid() OR cm.user_id = auth.uid() AND cm.role IN ('gm', 'admin'))
+      WHERE c.id = character_inventory.character_id AND c.owner_id = auth.uid()
     )
   );
 
-CREATE POLICY "Character inventory management" ON character_inventory
+CREATE POLICY "Users can manage their character inventory" ON character_inventory
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM characters c
-      WHERE c.id = character_inventory.character_id 
-        AND (c.owner_id = auth.uid() OR 
-             EXISTS (
-               SELECT 1 FROM campaign_members cm 
-               WHERE cm.campaign_id = c.campaign_id 
-                 AND cm.user_id = auth.uid() 
-                 AND cm.role IN ('gm', 'admin')
-             ))
+      WHERE c.id = character_inventory.character_id AND c.owner_id = auth.uid()
     )
   );
 
 -- Character Weapons policies
-CREATE POLICY "Character weapons access" ON character_weapons
+CREATE POLICY "Users can access their character weapons" ON character_weapons
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM characters c
-      JOIN campaign_members cm ON c.campaign_id = cm.campaign_id
-      WHERE c.id = character_weapons.character_id 
-        AND (c.owner_id = auth.uid() OR cm.user_id = auth.uid() AND cm.role IN ('gm', 'admin'))
+      WHERE c.id = character_weapons.character_id AND c.owner_id = auth.uid()
     )
   );
 
-CREATE POLICY "Character weapons management" ON character_weapons
+CREATE POLICY "Users can manage their character weapons" ON character_weapons
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM characters c
-      WHERE c.id = character_weapons.character_id 
-        AND (c.owner_id = auth.uid() OR 
-             EXISTS (
-               SELECT 1 FROM campaign_members cm 
-               WHERE cm.campaign_id = c.campaign_id 
-                 AND cm.user_id = auth.uid() 
-                 AND cm.role IN ('gm', 'admin')
-             ))
+      WHERE c.id = character_weapons.character_id AND c.owner_id = auth.uid()
     )
   );
 
 -- Character Armour policies
-CREATE POLICY "Character armour access" ON character_armour
+CREATE POLICY "Users can access their character armour" ON character_armour
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM characters c
-      JOIN campaign_members cm ON c.campaign_id = cm.campaign_id
-      WHERE c.id = character_armour.character_id 
-        AND (c.owner_id = auth.uid() OR cm.user_id = auth.uid() AND cm.role IN ('gm', 'admin'))
+      WHERE c.id = character_armour.character_id AND c.owner_id = auth.uid()
     )
   );
 
-CREATE POLICY "Character armour management" ON character_armour
+CREATE POLICY "Users can manage their character armour" ON character_armour
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM characters c
-      WHERE c.id = character_armour.character_id 
-        AND (c.owner_id = auth.uid() OR 
-             EXISTS (
-               SELECT 1 FROM campaign_members cm 
-               WHERE cm.campaign_id = c.campaign_id 
-                 AND cm.user_id = auth.uid() 
-                 AND cm.role IN ('gm', 'admin')
-             ))
+      WHERE c.id = character_armour.character_id AND c.owner_id = auth.uid()
     )
   );
 
 -- Character Ammo policies
-CREATE POLICY "Character ammo access" ON character_ammo
+CREATE POLICY "Users can access their character ammo" ON character_ammo
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM characters c
-      JOIN campaign_members cm ON c.campaign_id = cm.campaign_id
-      WHERE c.id = character_ammo.character_id 
-        AND (c.owner_id = auth.uid() OR cm.user_id = auth.uid() AND cm.role IN ('gm', 'admin'))
+      WHERE c.id = character_ammo.character_id AND c.owner_id = auth.uid()
     )
   );
 
-CREATE POLICY "Character ammo management" ON character_ammo
+CREATE POLICY "Users can manage their character ammo" ON character_ammo
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM characters c
-      WHERE c.id = character_ammo.character_id 
-        AND (c.owner_id = auth.uid() OR 
-             EXISTS (
-               SELECT 1 FROM campaign_members cm 
-               WHERE cm.campaign_id = c.campaign_id 
-                 AND cm.user_id = auth.uid() 
-                 AND cm.role IN ('gm', 'admin')
-             ))
+      WHERE c.id = character_ammo.character_id AND c.owner_id = auth.uid()
     )
   );
 
@@ -451,5 +374,33 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Function to check campaign creation permissions for current user (debugging)
+CREATE OR REPLACE FUNCTION debug_campaign_permissions()
+RETURNS TABLE (
+  user_id UUID,
+  user_email TEXT,
+  has_profile BOOLEAN,
+  can_create_campaign BOOLEAN
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    auth.uid() as user_id,
+    (SELECT email FROM auth.users WHERE id = auth.uid()) as user_email,
+    EXISTS(SELECT 1 FROM user_profiles WHERE id = auth.uid()) as has_profile,
+    (auth.uid() IS NOT NULL) as can_create_campaign;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- ===== SETUP COMPLETE =====
 -- Your Traveller Dashboard database is now ready!
+-- You can run this script multiple times safely - it will handle migrations.
+-- 
+-- NEW SIMPLIFIED ROLE SYSTEM:
+-- • Anyone can create campaigns (becomes admin automatically)
+-- • Campaign creators control everything about their campaigns
+-- • Members are added with appropriate roles (gm, player)
+-- • Campaign-based isolation with creator having full administrative control
+-- 
+-- To verify the setup worked, you can run:
+-- SELECT * FROM debug_campaign_permissions();

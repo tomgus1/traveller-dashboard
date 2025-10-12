@@ -117,9 +117,9 @@ export function ModalFooter({
           {cancelText}
         </Button>
       )}
-      {onConfirm && (
+      {(onConfirm || confirmType === "submit") && (
         <Button
-          onClick={onConfirm}
+          onClick={confirmType === "submit" ? undefined : onConfirm}
           variant={confirmVariant}
           className="flex-1 justify-center"
           disabled={isLoading || confirmDisabled}

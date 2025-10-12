@@ -101,7 +101,7 @@ export default function Dashboard({
           campaignId={campaignId}
           activeTab={tab}
           state={state}
-          selectedCharacterId={actualSelectedCharacter}
+          selectedCharacterDisplayName={actualSelectedCharacter}
           characterBalance={balances.character}
           onCharacterChange={setSelectedCharacter}
           onUpdatePartyFinances={updatePartyFinances}

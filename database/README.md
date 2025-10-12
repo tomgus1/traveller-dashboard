@@ -42,26 +42,54 @@ The application uses 4 core tables plus character data tables:
 
 ## Role System
 
-### 🎭 Role Hierarchy
+### 🎭 Simplified Role Hierarchy
 
-- **ADMIN**: Can view and edit everything across all campaigns
-- **GM (Game Master/Referee)**: Can view all details and manage everything within their assigned campaigns
-- **PLAYER**: Can only edit their own characters, view campaign info they're members of
+**CAMPAIGN CREATOR (Auto-Admin)**
+
+- Automatically becomes admin when creating a campaign
+- Can add/remove members with any role
+- Can change member roles (admin, gm, player)
+- Can edit/delete the campaign
+- Can manage all characters in the campaign
+- Full administrative control over their campaigns
+
+**CAMPAIGN MEMBERS**
+
+- **admin**: Same permissions as campaign creator (rarely used)
+- **gm**: Game Master - can assist with campaign management
+- **player**: Regular player - can manage their own characters
 
 ### 🔐 Security Implementation
 
-- **Character Management**: Players can only edit their own characters; GMs can manage all characters in their campaigns; Admins have full access
-- **Campaign Access**: Players can view campaigns they're members of; GMs can fully manage their assigned campaigns; Admins have access to all campaigns
-- **Data Isolation**: Character data is campaign-specific and properly secured through Row Level Security policies
+- **Campaign Isolation**: Each campaign is completely isolated with creator having full control
+- **Character Management**: Players manage their own characters; creators manage all characters in their campaigns
+- **Membership Control**: Only campaign creators can add/remove members and assign roles
+- **Data Access**: Campaign members can view campaign data; creators can modify everything
 
 ## Setup Instructions
 
-### For New Supabase Project
+### For New Supabase Project OR Migration
 
 1. Copy the contents of `setup.sql`
 2. Paste into your Supabase SQL Editor
 3. Run the query
 4. Done! ✅
+
+**🔄 Migration Safe**: This script can be run multiple times safely. It will:
+
+- Create tables if they don't exist
+- Update policies to the latest version
+- Add any missing user profiles for existing users
+- Set up automatic user profile creation for new signups
+
+### For Existing Projects
+
+Simply run `setup.sql` again - it will:
+
+- Skip creating tables that already exist
+- Update security policies to fix any issues
+- Ensure all existing users have proper profiles
+- Add the user profile creation trigger
 
 ### Row Level Security
 
@@ -74,7 +102,11 @@ The setup includes comprehensive RLS policies that:
 
 ## Why This Approach?
 
+✅ **Simplified Role System** - Campaign creators are auto-admins with full control  
+✅ **Campaign Isolation** - Each campaign is independently managed by its creator  
 ✅ **Single File Setup** - Everything in one place  
+✅ **Migration Safe** - Can be run multiple times without issues  
+✅ **Auto User Profiles** - Automatically creates profiles for new users  
 ✅ **Clean and Simple** - Only what the app actually uses  
 ✅ **No Legacy Code** - Removed all unused tables and complex migrations  
 ✅ **Proven Working** - Based on actual application usage analysis  

@@ -15,7 +15,7 @@ interface TabContentProps {
   campaignId: string; // Add campaign context
   activeTab: "party" | "ship" | "cargo" | "characters";
   state: CampaignState;
-  selectedCharacterId: string;
+  selectedCharacterDisplayName: string;
   characterBalance: number;
   onCharacterChange: (characterDisplayName: string) => void;
   onUpdatePartyFinances: (rows: FinanceRow[]) => void;
@@ -46,7 +46,7 @@ export default function TabContent({
   campaignId,
   activeTab,
   state,
-  selectedCharacterId,
+  selectedCharacterDisplayName,
   characterBalance,
   onCharacterChange,
   onUpdatePartyFinances,
@@ -95,14 +95,22 @@ export default function TabContent({
       {activeTab === "characters" && (
         <CharacterSection
           campaignId={campaignId}
-          selectedPc={selectedCharacterId}
+          selectedPc={selectedCharacterDisplayName}
           onPcChange={onCharacterChange}
           characterBalance={characterBalance}
-          characterFinance={state.PCs[selectedCharacterId]?.Finance || []}
-          characterInventory={state.PCs[selectedCharacterId]?.Inventory || []}
-          characterAmmo={state.PCs[selectedCharacterId]?.Ammo || []}
-          characterWeapons={state.PCs[selectedCharacterId]?.Weapons || []}
-          characterArmour={state.PCs[selectedCharacterId]?.Armour || []}
+          characterFinance={
+            state.PCs[selectedCharacterDisplayName]?.Finance || []
+          }
+          characterInventory={
+            state.PCs[selectedCharacterDisplayName]?.Inventory || []
+          }
+          characterAmmo={state.PCs[selectedCharacterDisplayName]?.Ammo || []}
+          characterWeapons={
+            state.PCs[selectedCharacterDisplayName]?.Weapons || []
+          }
+          characterArmour={
+            state.PCs[selectedCharacterDisplayName]?.Armour || []
+          }
           onUpdateFinance={onUpdateCharacterFinance}
           onAddInventory={onAddCharacterInventory}
           onAddAmmo={onAddCharacterAmmo}

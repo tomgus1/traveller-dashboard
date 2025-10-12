@@ -34,8 +34,14 @@ interface CampaignSelectorProps {
 export default function CampaignSelector({
   onCampaignSelect,
 }: CampaignSelectorProps) {
-  const { campaigns, loading, createCampaign, updateCampaign, deleteCampaign } =
-    useCampaigns();
+  const {
+    campaigns,
+    loading,
+    error,
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
+  } = useCampaigns();
   const { fetchMembers, removeMember } = useCampaignMembers();
   const { signOut } = useAuth();
 
@@ -86,13 +92,17 @@ export default function CampaignSelector({
 
     try {
       setCreating(true);
-      await createCampaign({
+      const result = await createCampaign({
         name: newCampaignName,
         description: newCampaignDescription || undefined,
       });
-      setNewCampaignName("");
-      setNewCampaignDescription("");
-      setShowCreateForm(false);
+
+      if (result.success) {
+        setNewCampaignName("");
+        setNewCampaignDescription("");
+        setShowCreateForm(false);
+      }
+      // Error will be handled by the useCampaigns hook and displayed in the form
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Failed to create campaign:", error);
@@ -245,6 +255,12 @@ export default function CampaignSelector({
         title="Create New Campaign"
       >
         <form onSubmit={handleCreateCampaign} className="space-y-4">
+          {error && (
+            <div className="p-3 text-sm text-red-800 bg-red-100 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-md">
+              {error}
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Campaign Name *
