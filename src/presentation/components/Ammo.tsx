@@ -67,7 +67,6 @@ function AmmoActions({
   );
 }
 
-// eslint-disable-next-line max-lines-per-function
 export default function Ammo({
   rows,
   weapons = [],

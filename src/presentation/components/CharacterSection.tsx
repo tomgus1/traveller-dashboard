@@ -7,7 +7,6 @@ import Inventory from "./Inventory";
 import Ammo from "./Ammo";
 import Weapons from "./Weapons";
 import Armour from "./Armour";
-import CharacterManagement from "./CharacterManagement";
 import type {
   FinanceRow,
   InventoryRow,
@@ -59,12 +58,11 @@ export default function CharacterSection({
   onReloadWeapon,
 }: CharacterSectionProps) {
   const [charTab, setCharTab] = useState<
-    "ledger" | "inventory" | "weapons" | "armour" | "ammo" | "manage"
+    "ledger" | "inventory" | "weapons" | "armour" | "ammo"
   >("ledger");
 
   // Load characters for the current campaign
-  const { characters, loading, error, refreshCharacters } =
-    useCampaignCharacters(campaignId);
+  const { characters, loading, error } = useCampaignCharacters(campaignId);
 
   // Find the currently selected character
   const selectedCharacter = characters.find(
@@ -126,18 +124,11 @@ export default function CharacterSection({
           { id: "weapons", label: "Weapons" },
           { id: "armour", label: "Armour" },
           { id: "ammo", label: "Ammo" },
-          { id: "manage", label: "Manage Characters" },
         ]}
         active={charTab}
         onChange={(id) =>
           setCharTab(
-            id as
-              | "ledger"
-              | "inventory"
-              | "weapons"
-              | "armour"
-              | "ammo"
-              | "manage"
+            id as "ledger" | "inventory" | "weapons" | "armour" | "ammo"
           )
         }
       />
@@ -179,16 +170,6 @@ export default function CharacterSection({
           onAdd={(ammo) => onAddAmmo(selectedPc, ammo)}
           onFireRound={(ammoIndex) => onFireRound?.(selectedPc, ammoIndex)}
           onReload={(ammoIndex) => onReloadWeapon?.(selectedPc, ammoIndex)}
-        />
-      )}
-
-      {charTab === "manage" && campaignId && (
-        <CharacterManagement
-          campaignId={campaignId}
-          onCharacterCreated={() => {
-            // Refresh the character list when a new character is created
-            refreshCharacters();
-          }}
         />
       )}
     </div>

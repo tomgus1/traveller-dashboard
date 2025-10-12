@@ -10,7 +10,7 @@ export default function Characters({
   rows: FinanceRow[];
   onAdd: (rows: FinanceRow[]) => void;
 }) {
-  const characterName = pc.split(" – ")[0]; // Extract first name before any " – " separator
+  const characterName = pc.includes(" – ") ? pc.split(" – ")[1] : pc; // Extract character name after " – " separator
 
   return (
     <div className="space-y-4">

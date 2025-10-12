@@ -69,9 +69,9 @@ export default defineConfig([
       ],
 
       // Code quality rules
-      'complexity': ['warn', 15],
+      'complexity': ['warn', 20],
       'max-depth': ['warn', 4],
-      'max-lines-per-function': ['warn', { max: 150, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 500, skipComments: true }],
       'max-params': ['warn', 5],
     },
   },

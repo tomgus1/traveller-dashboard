@@ -30,7 +30,6 @@ interface CampaignSelectorProps {
   onCampaignSelect: (campaignId: string) => void;
 }
 
-// eslint-disable-next-line max-lines-per-function
 export default function CampaignSelector({
   onCampaignSelect,
 }: CampaignSelectorProps) {

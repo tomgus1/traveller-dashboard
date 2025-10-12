@@ -530,4 +530,43 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       return { success: false, error: "An unexpected error occurred" };
     }
   }
+
+  async deleteCharacter(characterId: string, userId: string) {
+    try {
+      // First check if the user owns this character or has permission to delete it
+      const { data: character, error: fetchError } = await supabase
+        .from("characters")
+        .select("*, campaigns!inner(created_by)")
+        .eq("id", characterId)
+        .single();
+
+      if (fetchError) {
+        return { success: false, error: "Character not found" };
+      }
+
+      // Check if user owns the character or is the campaign owner
+      if (
+        character.owner_id !== userId &&
+        character.campaigns.created_by !== userId
+      ) {
+        return {
+          success: false,
+          error: "You don't have permission to delete this character",
+        };
+      }
+
+      const { error } = await supabase
+        .from("characters")
+        .delete()
+        .eq("id", characterId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
 }

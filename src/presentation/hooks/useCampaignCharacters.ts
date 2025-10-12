@@ -100,6 +100,34 @@ export function useCampaignCharacters(campaignId?: string) {
     [campaignId, campaignRepo]
   );
 
+  // Delete a character
+  const deleteCharacter = useCallback(
+    async (characterId: string, userId: string) => {
+      try {
+        const result = await campaignRepo.deleteCharacter(characterId, userId);
+
+        if (result.success) {
+          // Remove the character from the local state
+          setCharacters((prev) =>
+            prev.filter((char) => char.id !== characterId)
+          );
+          return { success: true };
+        }
+
+        return {
+          success: false,
+          error: result.error || "Failed to delete character",
+        };
+      } catch {
+        return {
+          success: false,
+          error: "An error occurred while deleting the character",
+        };
+      }
+    },
+    [campaignRepo]
+  );
+
   // Load characters when campaign changes
   useEffect(() => {
     if (campaignId) {
@@ -114,6 +142,7 @@ export function useCampaignCharacters(campaignId?: string) {
     loading,
     error,
     createCharacter,
+    deleteCharacter,
     refreshCharacters: () => campaignId && loadCharacters(campaignId),
   };
 }

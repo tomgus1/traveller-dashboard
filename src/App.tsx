@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "./presentation/hooks/useAuth";
 import AuthForm from "./presentation/components/AuthForm";
-import CampaignSelector from "./presentation/components/CampaignSelector";
+import MainDashboard from "./presentation/components/MainDashboard";
 import Dashboard from "./presentation/components/Dashboard";
 import DebugPanel from "./presentation/components/DebugPanel";
 
@@ -34,7 +34,7 @@ export default function App() {
   }
 
   if (!selectedCampaignId) {
-    return <CampaignSelector onCampaignSelect={setSelectedCampaignId} />;
+    return <MainDashboard onCampaignSelect={setSelectedCampaignId} />;
   }
 
   return (

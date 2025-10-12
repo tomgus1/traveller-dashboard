@@ -256,7 +256,7 @@ CREATE POLICY "Campaign creators can remove members" ON campaign_members
   );
 
 -- Character policies - Simple and direct
--- Users can view their own characters
+-- Users can view their own characters  
 CREATE POLICY "Users can view their own characters" ON characters
   FOR SELECT USING (owner_id = auth.uid());
 
@@ -264,8 +264,8 @@ CREATE POLICY "Users can view their own characters" ON characters
 CREATE POLICY "Users can edit their own characters" ON characters
   FOR UPDATE USING (owner_id = auth.uid());
 
--- Users can create characters if they own them
-CREATE POLICY "Users can create their own characters" ON characters
+-- Users can create characters in any campaign (will be restricted at app level)
+CREATE POLICY "Users can create characters" ON characters
   FOR INSERT WITH CHECK (owner_id = auth.uid());
 
 -- Users can delete their own characters
@@ -396,11 +396,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Your Traveller Dashboard database is now ready!
 -- You can run this script multiple times safely - it will handle migrations.
 -- 
--- NEW SIMPLIFIED ROLE SYSTEM:
--- • Anyone can create campaigns (becomes admin automatically)
--- • Campaign creators control everything about their campaigns
--- • Members are added with appropriate roles (gm, player)
--- • Campaign-based isolation with creator having full administrative control
+-- ULTRA-SIMPLE ACCESS CONTROL:
+-- • Anyone can create campaigns (they become the owner)
+-- • Users can only see and manage their own campaigns  
+-- • Users can create characters in any campaign (campaign sharing handled at app level)
+-- • Users can only see and manage their own characters
+-- • Owner-based access control - simple and predictable!
 -- 
 -- To verify the setup worked, you can run:
 -- SELECT * FROM debug_campaign_permissions();
