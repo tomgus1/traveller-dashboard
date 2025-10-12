@@ -1,4 +1,4 @@
-import { fmtCr, todayISO } from "../src/utils/number";
+import { fmtCr, todayISO } from "../src/shared/utils/number";
 
 describe("Number Utilities", () => {
   describe("fmtCr", () => {

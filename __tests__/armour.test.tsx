@@ -1,11 +1,11 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import Armour from "../src/features/pcs/Armour";
-import { useForm } from "../src/hooks/useForm";
+import Armour from "../src/presentation/components/Armour";
+import { useForm } from "../src/presentation/hooks/useForm";
 import type { ArmourRow } from "../src/types";
 
 // Mock the useForm hook
-jest.mock("../src/hooks/useForm");
+jest.mock("../src/presentation/hooks/useForm");
 const mockUseForm = useForm as jest.MockedFunction<typeof useForm>;
 
 // Setup the mock implementation

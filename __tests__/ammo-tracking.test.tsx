@@ -1,12 +1,12 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
-import Ammo from "../src/features/pcs/Ammo";
-import { useForm } from "../src/hooks/useForm";
+import Ammo from "../src/presentation/components/Ammo";
+import { useForm } from "../src/presentation/hooks/useForm";
 import type { AmmoRow, WeaponRow } from "../src/types";
 
 // Mock the useForm hook
-jest.mock("../src/hooks/useForm");
+jest.mock("../src/presentation/hooks/useForm");
 const mockUseForm = useForm as jest.MockedFunction<typeof useForm>;
 
 describe("Ammo Tracking Component", () => {

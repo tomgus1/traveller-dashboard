@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { getCampaignService } from "../core/container";
+import { getCampaignService } from "../../core/container";
 import type {
   CampaignWithMeta,
   CreateCampaignRequest,
   UpdateCampaignRequest,
-} from "../core/entities";
+} from "../../core/entities";
 
 export const useCampaigns = () => {
   const [campaigns, setCampaigns] = useState<CampaignWithMeta[]>([]);

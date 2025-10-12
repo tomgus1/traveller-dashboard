@@ -1,4 +1,4 @@
-import { loadState, saveState, DEFAULT_STATE } from "../src/utils/storage";
+import { loadState, saveState, DEFAULT_STATE } from "../src/infrastructure/storage/storage";
 import type { CampaignState } from "../src/types";
 
 // Mock localStorage with proper Jest mocks

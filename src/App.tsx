@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useAuth } from "./hooks/useAuth";
-import AuthForm from "./components/AuthForm";
-import CampaignSelector from "./components/CampaignSelector";
-import Dashboard from "./components/Dashboard";
-import DebugPanel from "./components/DebugPanel";
+import { useAuth } from "./presentation/hooks/useAuth";
+import AuthForm from "./presentation/components/AuthForm";
+import CampaignSelector from "./presentation/components/CampaignSelector";
+import Dashboard from "./presentation/components/Dashboard";
+import DebugPanel from "./presentation/components/DebugPanel";
 
 export default function App() {
   const { user, loading } = useAuth();

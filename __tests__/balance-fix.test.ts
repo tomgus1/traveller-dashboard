@@ -1,4 +1,4 @@
-import { getCurrentBalance } from "../src/utils/finance";
+import { getCurrentBalance } from "../src/shared/utils/finance";
 import type { FinanceRow } from "../src/types";
 
 describe("Balance Fix Integration Test", () => {
