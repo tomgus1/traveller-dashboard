@@ -102,8 +102,8 @@ describe("Ammo Tracking Component", () => {
     // Check that the heading and info button are present
     expect(screen.getByText("Ammunition Tracking")).toBeInTheDocument();
 
-    // Find the info button (question mark icon)
-    const infoButton = screen.getByRole("button", { name: "" }); // The SVG button
+    // Find the info button (help circle icon)
+    const infoButton = screen.getByRole("button", { name: "HelpCircle" });
     expect(infoButton).toBeInTheDocument();
 
     // Hover over the button to show tooltip
