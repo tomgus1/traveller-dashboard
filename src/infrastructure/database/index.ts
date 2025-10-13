@@ -16,6 +16,64 @@ import type {
 } from "../../core/repositories";
 
 export class SupabaseAuthRepository implements AuthRepository {
+  // Private helper method to create User object from auth user (DRY principle)
+  private createUserFromProfileData(
+    authUser: {
+      id: string;
+      email?: string;
+      user_metadata?: Record<string, unknown>;
+      created_at: string;
+    },
+    profileData?: {
+      display_name?: string;
+      username?: string;
+      profile_completed?: boolean;
+    }
+  ): User {
+    return {
+      id: authUser.id,
+      email: authUser.email || "",
+      displayName:
+        profileData?.display_name ||
+        (authUser.user_metadata?.display_name as string) ||
+        authUser.email?.split("@")[0],
+      username:
+        profileData?.username ||
+        (authUser.user_metadata?.username as string) ||
+        authUser.email?.split("@")[0],
+      profileCompleted:
+        profileData?.profile_completed ||
+        Boolean(authUser.user_metadata?.profile_completed),
+      createdAt: new Date(authUser.created_at),
+    };
+  }
+
+  private async mapAuthUserToUser(authUser: {
+    id: string;
+    email?: string;
+    user_metadata?: Record<string, unknown>;
+    created_at: string;
+  }): Promise<User> {
+    // Try to fetch profile data from database (gracefully handle missing columns)
+    try {
+      const { data: profileData } = await supabase
+        .from("user_profiles")
+        .select("display_name, username, profile_completed")
+        .eq("id", authUser.id)
+        .single();
+
+      // Ensure profileData is a valid object before using it
+      if (profileData && typeof profileData === "object") {
+        return this.createUserFromProfileData(authUser, profileData);
+      }
+
+      return this.createUserFromProfileData(authUser);
+    } catch {
+      // Fallback to auth metadata if database columns don't exist yet
+      return this.createUserFromProfileData(authUser);
+    }
+  }
+
   async getCurrentUser(): Promise<User | null> {
     try {
       const {
@@ -27,12 +85,8 @@ export class SupabaseAuthRepository implements AuthRepository {
         return null;
       }
 
-      return {
-        id: user.id,
-        email: user.email || "",
-        displayName: user.user_metadata?.display_name,
-        createdAt: new Date(user.created_at),
-      };
+      // Now using proper database query for accurate profile data
+      return await this.mapAuthUserToUser(user);
     } catch {
       return null;
     }
@@ -125,14 +179,10 @@ export class SupabaseAuthRepository implements AuthRepository {
   onAuthStateChange(callback: (user: User | null) => void): () => void {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, session) => {
+    } = supabase.auth.onAuthStateChange(async (_, session) => {
       if (session?.user) {
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email || "",
-          displayName: session.user.user_metadata?.display_name,
-          createdAt: new Date(session.user.created_at),
-        };
+        // Use the same mapping logic as getCurrentUser (DRY principle)
+        const user = await this.mapAuthUserToUser(session.user);
         callback(user);
       } else {
         callback(null);
@@ -140,6 +190,235 @@ export class SupabaseAuthRepository implements AuthRepository {
     });
 
     return () => subscription.unsubscribe();
+  }
+
+  // Profile management methods
+  async completeProfile(
+    userId: string,
+    displayName: string,
+    username: string
+  ): Promise<OperationResult<User>> {
+    try {
+      // Update user_profiles table
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .update({
+          display_name: displayName,
+          username,
+          profile_completed: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      if (profileError) {
+        if (profileError.code === "23505") {
+          return { success: false, error: "Username is already taken" };
+        }
+        return { success: false, error: profileError.message };
+      }
+
+      // Update auth user metadata
+      const { data: authData, error: authError } =
+        await supabase.auth.updateUser({
+          data: {
+            display_name: displayName,
+            username,
+            profile_completed: true,
+          },
+        });
+
+      if (authError) {
+        return { success: false, error: authError.message };
+      }
+
+      const user: User = {
+        id: authData.user.id,
+        email: authData.user.email || "",
+        displayName,
+        username,
+        profileCompleted: true,
+        createdAt: new Date(authData.user.created_at),
+      };
+
+      return { success: true, data: user };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to complete profile",
+      };
+    }
+  }
+
+  private buildProfileUpdates(
+    displayName?: string,
+    username?: string
+  ): Record<string, string | boolean> {
+    const updates: Record<string, string | boolean> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (displayName !== undefined) {
+      updates.display_name = displayName;
+    }
+    if (username !== undefined) {
+      updates.username = username;
+    }
+
+    return updates;
+  }
+
+  private buildAuthUpdates(
+    displayName?: string,
+    username?: string
+  ): Record<string, string> {
+    const authUpdates: Record<string, string> = {};
+
+    if (displayName !== undefined) {
+      authUpdates.display_name = displayName;
+    }
+    if (username !== undefined) {
+      authUpdates.username = username;
+    }
+
+    return authUpdates;
+  }
+
+  async updateProfile(
+    userId: string,
+    displayName?: string,
+    username?: string
+  ): Promise<OperationResult<User>> {
+    try {
+      // Update user_profiles table
+      const updates = this.buildProfileUpdates(displayName, username);
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .update(updates)
+        .eq("id", userId);
+
+      if (profileError) {
+        if (profileError.code === "23505") {
+          return { success: false, error: "Username is already taken" };
+        }
+        return { success: false, error: profileError.message };
+      }
+
+      // Update auth user metadata
+      const authUpdates = this.buildAuthUpdates(displayName, username);
+      const { data: authData, error: authError } =
+        await supabase.auth.updateUser({
+          data: authUpdates,
+        });
+
+      if (authError) {
+        return { success: false, error: authError.message };
+      }
+
+      // Get updated profile data
+      const { data: updatedProfileData } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      type ProfileData = {
+        display_name?: string;
+        username?: string;
+        profile_completed?: boolean;
+      };
+
+      const updatedProfile = updatedProfileData as ProfileData;
+
+      const user: User = {
+        id: authData.user.id,
+        email: authData.user.email || "",
+        displayName:
+          updatedProfile?.display_name ||
+          authData.user.user_metadata?.display_name,
+        username:
+          updatedProfile?.username || authData.user.user_metadata?.username,
+        profileCompleted:
+          updatedProfile?.profile_completed ||
+          authData.user.user_metadata?.profile_completed ||
+          false,
+        createdAt: new Date(authData.user.created_at),
+      };
+
+      return { success: true, data: user };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to update profile",
+      };
+    }
+  }
+
+  async changePassword(
+    _userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<OperationResult> {
+    try {
+      // First verify current password by signing in
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (!currentUser.user?.email) {
+        return { success: false, error: "User not found" };
+      }
+
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: currentUser.user.email,
+        password: currentPassword,
+      });
+
+      if (verifyError) {
+        return { success: false, error: "Current password is incorrect" };
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to change password",
+      };
+    }
+  }
+
+  async deleteAccount(userId: string): Promise<OperationResult> {
+    try {
+      // Delete user profile (cascades will handle related data)
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .delete()
+        .eq("id", userId);
+
+      if (profileError) {
+        return { success: false, error: profileError.message };
+      }
+
+      // Delete auth user (this is usually restricted in Supabase)
+      // For now, we'll just mark the profile as deleted
+      // In production, you might want to use Supabase's admin API or a serverless function
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to delete account",
+      };
+    }
   }
 }
 

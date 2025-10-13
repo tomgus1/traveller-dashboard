@@ -16,9 +16,20 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT NOT NULL,
   display_name TEXT,
+  username TEXT UNIQUE,
+  profile_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add a unique constraint on username (case-insensitive)
+CREATE UNIQUE INDEX IF NOT EXISTS user_profiles_username_lower_idx 
+ON user_profiles (LOWER(username)) 
+WHERE username IS NOT NULL;
+
+-- Comments for documentation
+COMMENT ON COLUMN user_profiles.username IS 'Unique username for the user (3-30 characters, alphanumeric with hyphens/underscores)';
+COMMENT ON COLUMN user_profiles.profile_completed IS 'Whether the user has completed their initial profile setup';
 
 -- Campaigns - Core campaign management
 CREATE TABLE IF NOT EXISTS campaigns (
@@ -129,8 +140,9 @@ ALTER TABLE character_ammo ENABLE ROW LEVEL SECURITY;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.user_profiles (id, email, display_name)
-  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email));
+  INSERT INTO public.user_profiles (id, email, display_name, profile_completed)
+  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email), FALSE)
+  ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 EXCEPTION
   WHEN unique_violation THEN
@@ -146,11 +158,12 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Ensure existing users have profiles (migration-safe)
-INSERT INTO user_profiles (id, email, display_name)
+INSERT INTO user_profiles (id, email, display_name, profile_completed)
 SELECT 
   id, 
   email, 
-  COALESCE(raw_user_meta_data->>'display_name', email) as display_name
+  COALESCE(raw_user_meta_data->>'display_name', email) as display_name,
+  FALSE as profile_completed
 FROM auth.users 
 WHERE id NOT IN (SELECT id FROM user_profiles)
 ON CONFLICT (id) DO NOTHING;
@@ -389,6 +402,26 @@ BEGIN
     (SELECT email FROM auth.users WHERE id = auth.uid()) as user_email,
     EXISTS(SELECT 1 FROM user_profiles WHERE id = auth.uid()) as has_profile,
     (auth.uid() IS NOT NULL) as can_create_campaign;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get user profile data (works around TypeScript type issues)
+CREATE OR REPLACE FUNCTION public.get_user_profile_data(user_uuid UUID)
+RETURNS JSON AS $$
+BEGIN
+  RETURN (
+    SELECT json_build_object(
+      'id', id,
+      'email', email,
+      'display_name', display_name,
+      'username', username,
+      'profile_completed', COALESCE(profile_completed, false),
+      'created_at', created_at,
+      'updated_at', updated_at
+    )
+    FROM user_profiles
+    WHERE id = user_uuid
+  );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

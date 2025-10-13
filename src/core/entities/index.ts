@@ -4,6 +4,8 @@ export interface User {
   id: string;
   email: string;
   displayName?: string;
+  username?: string;
+  profileCompleted?: boolean;
   createdAt: Date;
 }
 
@@ -144,4 +146,26 @@ export interface UpdateCharacterRequest {
   name?: string;
   playerName?: string;
   characterName?: string;
+}
+
+// User profile operations
+export interface CompleteProfileRequest {
+  displayName: string;
+  username: string;
+}
+
+export interface UpdateProfileRequest {
+  displayName?: string;
+  username?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface PasswordValidation {
+  isValid: boolean;
+  errors: string[];
+  strength: "weak" | "medium" | "strong";
 }

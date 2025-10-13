@@ -8,6 +8,9 @@ import type {
   UpdateCampaignRequest,
   MemberInfo,
   OperationResult,
+  CompleteProfileRequest,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
 } from "../entities";
 import type { AuthRepository, CampaignRepository } from "../repositories";
 
@@ -67,6 +70,144 @@ export class AuthService {
 
   onAuthStateChange(callback: (user: User | null) => void): () => void {
     return this.authRepository.onAuthStateChange(callback);
+  }
+
+  // Profile management
+  async completeProfile(
+    request: CompleteProfileRequest
+  ): Promise<OperationResult<User>> {
+    const user = await this.authRepository.getCurrentUser();
+    if (!user) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    // Validate input
+    if (!request.displayName?.trim()) {
+      return { success: false, error: "Display name is required" };
+    }
+
+    if (!request.username?.trim()) {
+      return { success: false, error: "Username is required" };
+    }
+
+    if (request.username.length < 3 || request.username.length > 30) {
+      return {
+        success: false,
+        error: "Username must be between 3 and 30 characters",
+      };
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(request.username)) {
+      return {
+        success: false,
+        error:
+          "Username can only contain letters, numbers, hyphens, and underscores",
+      };
+    }
+
+    return this.authRepository.completeProfile(
+      user.id,
+      request.displayName.trim(),
+      request.username.trim()
+    );
+  }
+
+  async updateProfile(
+    request: UpdateProfileRequest
+  ): Promise<OperationResult<User>> {
+    const user = await this.authRepository.getCurrentUser();
+    if (!user) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    // Validate display name if provided
+    if (request.displayName !== undefined && !request.displayName?.trim()) {
+      return { success: false, error: "Display name cannot be empty" };
+    }
+
+    // Validate username if provided
+    if (request.username !== undefined) {
+      if (!request.username?.trim()) {
+        return { success: false, error: "Username cannot be empty" };
+      }
+
+      if (request.username.length < 3 || request.username.length > 30) {
+        return {
+          success: false,
+          error: "Username must be between 3 and 30 characters",
+        };
+      }
+
+      if (!/^[a-zA-Z0-9_-]+$/.test(request.username)) {
+        return {
+          success: false,
+          error:
+            "Username can only contain letters, numbers, hyphens, and underscores",
+        };
+      }
+    }
+
+    return this.authRepository.updateProfile(
+      user.id,
+      request.displayName?.trim(),
+      request.username?.trim()
+    );
+  }
+
+  async changePassword(
+    request: ChangePasswordRequest
+  ): Promise<OperationResult> {
+    const user = await this.authRepository.getCurrentUser();
+    if (!user) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    // Validate input
+    if (!request.currentPassword) {
+      return { success: false, error: "Current password is required" };
+    }
+
+    if (!request.newPassword) {
+      return { success: false, error: "New password is required" };
+    }
+
+    if (request.newPassword.length < 8) {
+      return {
+        success: false,
+        error: "New password must be at least 8 characters long",
+      };
+    }
+
+    // Check password strength requirements
+    const hasLowercase = /[a-z]/.test(request.newPassword);
+    const hasUppercase = /[A-Z]/.test(request.newPassword);
+    const hasNumber = /\d/.test(request.newPassword);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(
+      request.newPassword
+    );
+
+    if (!hasLowercase || !hasUppercase || !hasNumber || !hasSpecialChar) {
+      return {
+        success: false,
+        error:
+          "New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      };
+    }
+
+    return this.authRepository.changePassword(
+      user.id,
+      request.currentPassword,
+      request.newPassword
+    );
+  }
+
+  async deleteAccount(): Promise<OperationResult> {
+    const user = await this.authRepository.getCurrentUser();
+    if (!user) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    return this.authRepository.deleteAccount(user.id);
   }
 
   private isValidEmail(email: string): boolean {

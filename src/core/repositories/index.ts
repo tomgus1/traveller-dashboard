@@ -24,6 +24,24 @@ export interface AuthRepository {
   signUp(email: string, password: string): Promise<OperationResult<User>>;
   signOut(): Promise<OperationResult>;
   onAuthStateChange(callback: (user: User | null) => void): () => void;
+
+  // Profile management
+  completeProfile(
+    userId: string,
+    displayName: string,
+    username: string
+  ): Promise<OperationResult<User>>;
+  updateProfile(
+    userId: string,
+    displayName?: string,
+    username?: string
+  ): Promise<OperationResult<User>>;
+  changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<OperationResult>;
+  deleteAccount(userId: string): Promise<OperationResult>;
 }
 
 export interface CampaignRepository {

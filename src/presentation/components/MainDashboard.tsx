@@ -18,6 +18,8 @@ import { LoadingScreen } from "./Loading";
 import FormField from "./FormField";
 import CampaignSettingsContent from "./CampaignSettingsContent";
 import CharacterManagementContent from "./CharacterManagementContent";
+import UserProfileDropdown from "./UserProfileDropdown";
+import AccountSettings from "./AccountSettings";
 import type { CampaignWithMeta } from "../../core/entities";
 
 interface MainDashboardProps {
@@ -349,7 +351,8 @@ export default function MainDashboard({
     deleteCampaign,
   } = useCampaigns();
   const { fetchMembers, removeMember } = useCampaignMembers();
-  const { signOut, user } = useAuth();
+  const { signOut, user, updateProfile, changePassword, deleteAccount } =
+    useAuth();
 
   // State for campaign creation modal
   const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
@@ -379,6 +382,9 @@ export default function MainDashboard({
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [settingsCampaign, setSettingsCampaign] =
     useState<CampaignWithMeta | null>(null);
+
+  // State for account settings modal
+  const [showAccountSettings, setShowAccountSettings] = useState(false);
 
   // State for character management modal
   const [showCharacterManagementModal, setShowCharacterManagementModal] =
@@ -552,7 +558,13 @@ export default function MainDashboard({
               Welcome back! Manage your campaigns and characters.
             </p>
           </div>
-          <Button onClick={signOut}>Sign Out</Button>
+          {user && (
+            <UserProfileDropdown
+              user={user}
+              onSettings={() => setShowAccountSettings(true)}
+              onSignOut={() => signOut()}
+            />
+          )}
         </div>
       </div>
 
@@ -801,6 +813,32 @@ export default function MainDashboard({
           onViewCampaign={onCampaignSelect}
         />
       </Modal>
+
+      {/* Account Settings Modal */}
+      {user && (
+        <AccountSettings
+          isOpen={showAccountSettings}
+          onClose={() => setShowAccountSettings(false)}
+          user={user}
+          onUpdateProfile={async (data) => {
+            const result = await updateProfile(data);
+            if (!result.success && result.error) {
+              throw new Error(result.error);
+            }
+          }}
+          onChangePassword={async (data) => {
+            const result = await changePassword(data);
+            if (!result.success && result.error) {
+              throw new Error(result.error);
+            }
+          }}
+          onDeleteAccount={() => {
+            deleteAccount().then(() => {
+              setShowAccountSettings(false);
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

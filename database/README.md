@@ -14,9 +14,10 @@ The application uses 4 core tables plus character data tables:
 
 ### Core Tables
 
-1. **`user_profiles`** - Additional user information beyond Supabase auth
+1. **`user_profiles`** - User profile management and metadata
    - Links to Supabase auth users
-   - Stores display names and email
+   - Stores display names, usernames, and profile completion status
+   - Includes unique username constraints and validation
 
 2. **`campaigns`** - Campaign management and metadata
    - Campaign name and description
