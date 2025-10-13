@@ -6,7 +6,7 @@ import {
   formatCurrency,
   getTransactionSummary,
   TRANSACTION_EFFECTS,
-} from "../src/utils/finance";
+} from "../src/shared/utils/finance";
 import type { FinanceRow } from "../src/types";
 
 describe("Finance Utilities", () => {

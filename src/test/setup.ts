@@ -10,7 +10,7 @@ jest.mock("lucide-react", () => ({
 }));
 
 // Mock dynamic imports for ExcelJS
-jest.mock("../lib/xlsx", () => ({
+jest.mock("../shared/utils/xlsx", () => ({
   importXlsx: jest.fn(),
   exportXlsx: jest.fn(),
 }));
