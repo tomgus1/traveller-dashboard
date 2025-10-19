@@ -129,7 +129,7 @@ export class SupabaseAuthRepository implements AuthRepository {
     try {
       // Get the current full URL for the redirect (handles both localhost and GitHub Pages)
       const redirectTo = `${window.location.origin}${window.location.pathname}`;
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -499,7 +499,8 @@ export class SupabaseCampaignRepository implements CampaignRepository {
 
   async createCampaign(
     userId: string,
-    request: CreateCampaignRequest
+    request: CreateCampaignRequest,
+    creatorIsAlsoGM = false
   ): Promise<OperationResult<Campaign>> {
     try {
       const { data, error } = await supabase
@@ -519,8 +520,8 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         };
       }
 
-      // Add creator as admin member
-      const { error: memberError } = await supabase
+      // Add creator as admin (always)
+      const { error: adminError } = await supabase
         .from("campaign_members")
         .insert({
           campaign_id: data.id,
@@ -528,13 +529,30 @@ export class SupabaseCampaignRepository implements CampaignRepository {
           role: "admin",
         });
 
-      if (memberError) {
+      if (adminError) {
         // Try to clean up the campaign
         await supabase.from("campaigns").delete().eq("id", data.id);
         return {
           success: false,
-          error: `Failed to set up campaign membership: ${memberError.message}`,
+          error: `Failed to set up campaign admin: ${adminError.message}`,
         };
+      }
+
+      // If creator also wants to be GM, add a second membership record
+      if (creatorIsAlsoGM) {
+        const { error: gmError } = await supabase
+          .from("campaign_members")
+          .insert({
+            campaign_id: data.id,
+            user_id: userId,
+            role: "gm",
+          });
+
+        if (gmError) {
+          // Note: We don't fail the campaign creation if GM role fails
+          // The user will still be admin and can add GM role later
+          // Silent failure for optional GM role
+        }
       }
 
       const campaign: Campaign = {
@@ -608,16 +626,54 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         return { success: false, error: "Failed to fetch campaign members" };
       }
 
-      // For now, we'll create members with placeholder email (since we can't access auth.users)
-      // In a real application, you'd need to maintain email in user_profiles or use RLS policies
-      const members: MemberInfo[] = memberData.map((member) => ({
-        id: member.id,
-        userId: member.user_id,
-        email: `user_${member.user_id.slice(0, 8)}@example.com`, // Placeholder
-        displayName: undefined, // Could use user_profiles.full_name if available
-        role: member.role as CampaignRole,
-        joinedAt: new Date(member.created_at),
-      }));
+      // Get user profile data for each member
+      const members: MemberInfo[] = [];
+      for (const member of memberData) {
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from("user_profiles")
+            .select("email, display_name, username")
+            .eq("id", member.user_id)
+            .single();
+
+          let email: string;
+          let displayName: string | undefined;
+
+          if (!profileError && profile) {
+            // TypeScript workaround - cast to Record to access dynamic properties
+            const profileData = profile as unknown as Record<string, unknown>;
+            email =
+              (profileData.email as string) ||
+              `user_${member.user_id.slice(0, 8)}@example.com`;
+            displayName =
+              (profileData.display_name as string) ||
+              (profileData.username as string) ||
+              undefined;
+          } else {
+            email = `user_${member.user_id.slice(0, 8)}@example.com`;
+            displayName = undefined;
+          }
+
+          members.push({
+            id: member.id,
+            userId: member.user_id,
+            email,
+            displayName,
+            role: member.role as CampaignRole,
+            joinedAt: new Date(member.created_at),
+          });
+        } catch {
+          // If we can't get profile data, create member with fallback data
+          members.push({
+            id: member.id,
+            userId: member.user_id,
+            email: `user_${member.user_id.slice(0, 8)}@example.com`,
+            displayName: undefined,
+            role: member.role as CampaignRole,
+            joinedAt: new Date(member.created_at),
+          });
+        }
+      }
 
       return { success: true, data: members };
     } catch {

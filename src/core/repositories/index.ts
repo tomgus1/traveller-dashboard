@@ -49,7 +49,8 @@ export interface CampaignRepository {
   getCampaign(campaignId: string): Promise<OperationResult<Campaign>>;
   createCampaign(
     userId: string,
-    request: CreateCampaignRequest
+    request: CreateCampaignRequest,
+    creatorIsAlsoGM?: boolean
   ): Promise<OperationResult<Campaign>>;
   updateCampaign(
     campaignId: string,

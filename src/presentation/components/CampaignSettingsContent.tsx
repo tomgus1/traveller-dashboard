@@ -27,6 +27,11 @@ interface CampaignSettingsContentProps {
   ) => Promise<void>;
   onDeleteCampaign: (campaignId: string) => Promise<void>;
   onGetMembers: (campaignId: string) => Promise<CampaignMember[] | undefined>;
+  onAddMember: (
+    campaignId: string,
+    email: string,
+    role: string
+  ) => Promise<{ success: boolean; error?: string }>;
   onRemoveMember: (campaignId: string, userId: string) => Promise<void>;
   onClose?: () => void;
 }
@@ -36,14 +41,17 @@ export default function CampaignSettingsContent({
   onUpdateCampaign,
   onDeleteCampaign,
   onGetMembers,
+  onAddMember,
   onRemoveMember,
   onClose,
 }: CampaignSettingsContentProps) {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [showAddMember, setShowAddMember] = useState(false);
   const [members, setMembers] = useState<CampaignMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
+  const [addingMember, setAddingMember] = useState(false);
 
   const [editName, setEditName] = useState(campaign.name);
   const [editDescription, setEditDescription] = useState(
@@ -51,6 +59,13 @@ export default function CampaignSettingsContent({
   );
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Add member form state
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState<"admin" | "gm" | "player">(
+    "player"
+  );
+  const [addMemberError, setAddMemberError] = useState<string | null>(null);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +104,42 @@ export default function CampaignSettingsContent({
       setShowMembers(true);
     } finally {
       setLoadingMembers(false);
+    }
+  };
+
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMemberEmail.trim()) return;
+
+    setAddingMember(true);
+    setAddMemberError(null);
+
+    try {
+      const result = await onAddMember(
+        campaign.id,
+        newMemberEmail.trim(),
+        newMemberRole
+      );
+
+      if (result.success) {
+        // Refresh member list
+        const memberData = await onGetMembers(campaign.id);
+        if (memberData) {
+          setMembers(memberData);
+        }
+        // Reset form
+        setNewMemberEmail("");
+        setNewMemberRole("player");
+        setShowAddMember(false);
+      } else {
+        setAddMemberError(result.error || "Failed to add member");
+      }
+    } catch (error) {
+      setAddMemberError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
+    } finally {
+      setAddingMember(false);
     }
   };
 
@@ -287,14 +338,80 @@ export default function CampaignSettingsContent({
             <Button
               variant="primary"
               className="w-full justify-center"
-              disabled
-              title="Feature coming soon"
+              onClick={() => setShowAddMember(true)}
             >
               <UserPlus className="w-4 h-4" />
-              Add Member (Coming Soon)
+              Add Member
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Add Member Modal */}
+      <Modal
+        isOpen={showAddMember}
+        onClose={() => {
+          setShowAddMember(false);
+          setNewMemberEmail("");
+          setNewMemberRole("player");
+          setAddMemberError(null);
+        }}
+        title="Add Campaign Member"
+      >
+        <form onSubmit={handleAddMember} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={newMemberEmail}
+              onChange={(e) => setNewMemberEmail(e.target.value)}
+              className="input w-full"
+              placeholder="Enter member's email"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Role
+            </label>
+            <select
+              value={newMemberRole}
+              onChange={(e) =>
+                setNewMemberRole(e.target.value as "admin" | "gm" | "player")
+              }
+              className="input w-full"
+            >
+              <option value="player">Player</option>
+              <option value="gm">Game Master (GM)</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+
+          {addMemberError && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {addMemberError}
+              </p>
+            </div>
+          )}
+
+          <ModalFooter
+            onCancel={() => {
+              setShowAddMember(false);
+              setNewMemberEmail("");
+              setNewMemberRole("player");
+              setAddMemberError(null);
+            }}
+            cancelText="Cancel"
+            confirmText={addingMember ? "Adding..." : "Add Member"}
+            confirmDisabled={addingMember || !newMemberEmail.trim()}
+            confirmType="submit"
+            isLoading={addingMember}
+          />
+        </form>
       </Modal>
     </div>
   );

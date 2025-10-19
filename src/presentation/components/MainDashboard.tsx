@@ -20,7 +20,11 @@ import CampaignSettingsContent from "./CampaignSettingsContent";
 import CharacterManagementContent from "./CharacterManagementContent";
 import UserProfileDropdown from "./UserProfileDropdown";
 import AccountSettings from "./AccountSettings";
-import type { CampaignWithMeta } from "../../core/entities";
+import CreateCampaignModal from "./CreateCampaignModal";
+import type {
+  CampaignWithMeta,
+  CreateCampaignRequest,
+} from "../../core/entities";
 
 interface MainDashboardProps {
   onCampaignSelect: (campaignId: string) => void;
@@ -350,15 +354,12 @@ export default function MainDashboard({
     updateCampaign,
     deleteCampaign,
   } = useCampaigns();
-  const { fetchMembers, removeMember } = useCampaignMembers();
+  const { fetchMembers, addMemberByEmail, removeMember } = useCampaignMembers();
   const { signOut, user, updateProfile, changePassword, deleteAccount } =
     useAuth();
 
   // State for campaign creation modal
   const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
-  const [newCampaignName, setNewCampaignName] = useState("");
-  const [newCampaignDescription, setNewCampaignDescription] = useState("");
-  const [creatingCampaign, setCreatingCampaign] = useState(false);
 
   // State for character creation modal
   const [showCreateCharacterModal, setShowCreateCharacterModal] =
@@ -395,25 +396,12 @@ export default function MainDashboard({
     selectedCampaignForCharacter
   );
 
-  const handleCreateCampaign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCampaignName.trim()) return;
-
-    try {
-      setCreatingCampaign(true);
-      const result = await createCampaign({
-        name: newCampaignName,
-        description: newCampaignDescription || undefined,
-      });
-
-      if (result.success) {
-        setNewCampaignName("");
-        setNewCampaignDescription("");
-        setShowCreateCampaignModal(false);
-      }
-    } finally {
-      setCreatingCampaign(false);
+  const handleCreateCampaign = async (request: CreateCampaignRequest) => {
+    const result = await createCampaign(request);
+    if (result.success) {
+      setShowCreateCampaignModal(false);
     }
+    return result;
   };
 
   const handleCreateCharacter = async (e: React.FormEvent) => {
@@ -523,6 +511,19 @@ export default function MainDashboard({
       }));
     }
     return undefined;
+  };
+
+  const handleAddMember = async (
+    campaignId: string,
+    email: string,
+    role: string
+  ) => {
+    const result = await addMemberByEmail(
+      campaignId,
+      email,
+      role as "admin" | "gm" | "player"
+    );
+    return result;
   };
 
   const handleRemoveMember = async (campaignId: string, userId: string) => {
@@ -647,43 +648,11 @@ export default function MainDashboard({
       </div>
 
       {/* Create Campaign Modal */}
-      <Modal
+      <CreateCampaignModal
         isOpen={showCreateCampaignModal}
         onClose={() => setShowCreateCampaignModal(false)}
-        title="Create New Campaign"
-      >
-        <form onSubmit={handleCreateCampaign} className="space-y-4">
-          <FormField
-            label="Campaign Name"
-            value={newCampaignName}
-            onChange={(e) => setNewCampaignName(e.target.value)}
-            placeholder="Enter campaign name"
-            required
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Description (optional)
-            </label>
-            <textarea
-              value={newCampaignDescription}
-              onChange={(e) => setNewCampaignDescription(e.target.value)}
-              className="input w-full"
-              rows={3}
-              placeholder="Describe your campaign"
-            />
-          </div>
-
-          <ModalFooter
-            onCancel={() => setShowCreateCampaignModal(false)}
-            cancelText="Cancel"
-            confirmText={creatingCampaign ? "Creating..." : "Create"}
-            confirmDisabled={creatingCampaign || !newCampaignName.trim()}
-            confirmType="submit"
-            isLoading={creatingCampaign}
-          />
-        </form>
-      </Modal>
+        onCreateCampaign={handleCreateCampaign}
+      />
 
       {/* Create Character Modal */}
       <Modal
@@ -795,6 +764,7 @@ export default function MainDashboard({
             onUpdateCampaign={handleUpdateCampaignFromSettings}
             onDeleteCampaign={handleDeleteCampaignFromSettings}
             onGetMembers={handleGetMembers}
+            onAddMember={handleAddMember}
             onRemoveMember={handleRemoveMember}
             onClose={() => setShowSettingsModal(false)}
           />

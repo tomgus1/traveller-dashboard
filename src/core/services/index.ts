@@ -13,6 +13,19 @@ import type {
   ChangePasswordRequest,
 } from "../entities";
 import type { AuthRepository, CampaignRepository } from "../repositories";
+import {
+  isValidEmail,
+  validateUsername,
+  validatePassword,
+  validateCampaignName,
+  isValidCampaignRole,
+} from "../../shared/utils/validation";
+import {
+  canManageMembers,
+  canUpdateCampaign,
+  canDeleteCampaign,
+  getPermissionError,
+} from "../../shared/utils/permissions";
 
 export class AuthService {
   private authRepository: AuthRepository;
@@ -34,7 +47,7 @@ export class AuthService {
       return { success: false, error: "Email and password are required" };
     }
 
-    if (!this.isValidEmail(email)) {
+    if (!isValidEmail(email)) {
       return { success: false, error: "Invalid email format" };
     }
 
@@ -50,7 +63,7 @@ export class AuthService {
       return { success: false, error: "Email and password are required" };
     }
 
-    if (!this.isValidEmail(email)) {
+    if (!isValidEmail(email)) {
       return { success: false, error: "Invalid email format" };
     }
 
@@ -81,28 +94,15 @@ export class AuthService {
       return { success: false, error: "User not authenticated" };
     }
 
-    // Validate input
+    // Validate display name
     if (!request.displayName?.trim()) {
       return { success: false, error: "Display name is required" };
     }
 
-    if (!request.username?.trim()) {
-      return { success: false, error: "Username is required" };
-    }
-
-    if (request.username.length < 3 || request.username.length > 30) {
-      return {
-        success: false,
-        error: "Username must be between 3 and 30 characters",
-      };
-    }
-
-    if (!/^[a-zA-Z0-9_-]+$/.test(request.username)) {
-      return {
-        success: false,
-        error:
-          "Username can only contain letters, numbers, hyphens, and underscores",
-      };
+    // Validate username
+    const usernameValidation = validateUsername(request.username);
+    if (!usernameValidation.isValid) {
+      return { success: false, error: usernameValidation.error };
     }
 
     return this.authRepository.completeProfile(
@@ -127,23 +127,9 @@ export class AuthService {
 
     // Validate username if provided
     if (request.username !== undefined) {
-      if (!request.username?.trim()) {
-        return { success: false, error: "Username cannot be empty" };
-      }
-
-      if (request.username.length < 3 || request.username.length > 30) {
-        return {
-          success: false,
-          error: "Username must be between 3 and 30 characters",
-        };
-      }
-
-      if (!/^[a-zA-Z0-9_-]+$/.test(request.username)) {
-        return {
-          success: false,
-          error:
-            "Username can only contain letters, numbers, hyphens, and underscores",
-        };
+      const usernameValidation = validateUsername(request.username);
+      if (!usernameValidation.isValid) {
+        return { success: false, error: usernameValidation.error };
       }
     }
 
@@ -167,31 +153,10 @@ export class AuthService {
       return { success: false, error: "Current password is required" };
     }
 
-    if (!request.newPassword) {
-      return { success: false, error: "New password is required" };
-    }
-
-    if (request.newPassword.length < 8) {
-      return {
-        success: false,
-        error: "New password must be at least 8 characters long",
-      };
-    }
-
-    // Check password strength requirements
-    const hasLowercase = /[a-z]/.test(request.newPassword);
-    const hasUppercase = /[A-Z]/.test(request.newPassword);
-    const hasNumber = /\d/.test(request.newPassword);
-    const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(
-      request.newPassword
-    );
-
-    if (!hasLowercase || !hasUppercase || !hasNumber || !hasSpecialChar) {
-      return {
-        success: false,
-        error:
-          "New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-      };
+    // Validate new password
+    const passwordValidation = validatePassword(request.newPassword);
+    if (!passwordValidation.isValid) {
+      return { success: false, error: passwordValidation.error };
     }
 
     return this.authRepository.changePassword(
@@ -208,11 +173,6 @@ export class AuthService {
     }
 
     return this.authRepository.deleteAccount(user.id);
-  }
-
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   }
 }
 
@@ -263,22 +223,62 @@ export class CampaignService {
       return { success: false, error: "User not authenticated" };
     }
 
-    // Validate input
-    if (!request.name?.trim()) {
-      return { success: false, error: "Campaign name is required" };
+    // Validate campaign name
+    const nameValidation = validateCampaignName(request.name);
+    if (!nameValidation.isValid) {
+      return { success: false, error: nameValidation.error };
     }
 
-    if (request.name.length > 100) {
-      return {
-        success: false,
-        error: "Campaign name must be 100 characters or less",
-      };
+    // Creator is always admin, but can optionally also be GM
+    const creatorIsAlsoGM = request.creatorIsAlsoGM || false;
+
+    // Validate initial members
+    if (request.initialMembers) {
+      for (const member of request.initialMembers) {
+        if (!isValidEmail(member.email)) {
+          return {
+            success: false,
+            error: `Invalid email format: ${member.email}`,
+          };
+        }
+        if (!isValidCampaignRole(member.role)) {
+          return { success: false, error: `Invalid role: ${member.role}` };
+        }
+      }
     }
 
-    return this.campaignRepository.createCampaign(user.id, {
-      name: request.name.trim(),
-      description: request.description?.trim(),
-    });
+    // Create the campaign
+    const campaignResult = await this.campaignRepository.createCampaign(
+      user.id,
+      {
+        name: request.name.trim(),
+        description: request.description?.trim(),
+      },
+      creatorIsAlsoGM
+    );
+
+    if (!campaignResult.success) {
+      return campaignResult;
+    }
+
+    // Add initial members if provided
+    if (
+      request.initialMembers &&
+      request.initialMembers.length > 0 &&
+      campaignResult.data
+    ) {
+      for (const member of request.initialMembers) {
+        await this.campaignRepository.addMemberByEmail(
+          campaignResult.data.id,
+          member.email.trim(),
+          member.role
+        );
+        // Note: We don't fail the campaign creation if member addition fails
+        // This allows the campaign to be created even if some email addresses are invalid
+      }
+    }
+
+    return campaignResult;
   }
 
   async updateCampaign(
@@ -295,23 +295,23 @@ export class CampaignService {
       campaignId,
       user.id
     );
-    if (!roleResult.success || roleResult.data !== "admin") {
+    if (
+      !roleResult.success ||
+      !roleResult.data ||
+      !canUpdateCampaign(roleResult.data)
+    ) {
       return {
         success: false,
-        error: "Only administrators can update campaigns",
+        error: getPermissionError("update campaigns", ["admin"]),
       };
     }
 
-    // Validate input
-    if (request.name !== undefined && !request.name?.trim()) {
-      return { success: false, error: "Campaign name cannot be empty" };
-    }
-
-    if (request.name && request.name.length > 100) {
-      return {
-        success: false,
-        error: "Campaign name must be 100 characters or less",
-      };
+    // Validate campaign name if provided
+    if (request.name !== undefined) {
+      const nameValidation = validateCampaignName(request.name);
+      if (!nameValidation.isValid) {
+        return { success: false, error: nameValidation.error };
+      }
     }
 
     const updateData: UpdateCampaignRequest = {};
@@ -336,10 +336,14 @@ export class CampaignService {
       campaignId,
       user.id
     );
-    if (!roleResult.success || roleResult.data !== "admin") {
+    if (
+      !roleResult.success ||
+      !roleResult.data ||
+      !canDeleteCampaign(roleResult.data)
+    ) {
       return {
         success: false,
-        error: "Only administrators can delete campaigns",
+        error: getPermissionError("delete campaigns", ["admin"]),
       };
     }
 
@@ -377,13 +381,20 @@ export class CampaignService {
       return { success: false, error: "User not authenticated" };
     }
 
-    // Check admin permission
+    // Check admin or GM permission
     const roleResult = await this.campaignRepository.getUserRole(
       campaignId,
       user.id
     );
-    if (!roleResult.success || roleResult.data !== "admin") {
-      return { success: false, error: "Only administrators can add members" };
+    if (
+      !roleResult.success ||
+      !roleResult.data ||
+      !canManageMembers(roleResult.data)
+    ) {
+      return {
+        success: false,
+        error: getPermissionError("add members", ["admin", "gm"]),
+      };
     }
 
     // Validate input
@@ -391,11 +402,11 @@ export class CampaignService {
       return { success: false, error: "Email is required" };
     }
 
-    if (!this.isValidEmail(email)) {
+    if (!isValidEmail(email)) {
       return { success: false, error: "Invalid email format" };
     }
 
-    if (!["admin", "gm", "player"].includes(role)) {
+    if (!isValidCampaignRole(role)) {
       return { success: false, error: "Invalid role specified" };
     }
 
@@ -416,20 +427,24 @@ export class CampaignService {
       return { success: false, error: "User not authenticated" };
     }
 
-    // Check admin permission
+    // Check admin or GM permission
     const roleResult = await this.campaignRepository.getUserRole(
       campaignId,
       user.id
     );
-    if (!roleResult.success || roleResult.data !== "admin") {
+    if (
+      !roleResult.success ||
+      !roleResult.data ||
+      !canManageMembers(roleResult.data)
+    ) {
       return {
         success: false,
-        error: "Only administrators can update member roles",
+        error: getPermissionError("update member roles", ["admin", "gm"]),
       };
     }
 
     // Validate input
-    if (!["admin", "gm", "player"].includes(role)) {
+    if (!isValidCampaignRole(role)) {
       return { success: false, error: "Invalid role specified" };
     }
 
@@ -445,23 +460,22 @@ export class CampaignService {
       return { success: false, error: "User not authenticated" };
     }
 
-    // Check admin permission
+    // Check admin or GM permission
     const roleResult = await this.campaignRepository.getUserRole(
       campaignId,
       user.id
     );
-    if (!roleResult.success || roleResult.data !== "admin") {
+    if (
+      !roleResult.success ||
+      !roleResult.data ||
+      !canManageMembers(roleResult.data)
+    ) {
       return {
         success: false,
-        error: "Only administrators can remove members",
+        error: getPermissionError("remove members", ["admin", "gm"]),
       };
     }
 
     return this.campaignRepository.removeMember(campaignId, userId);
-  }
-
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   }
 }

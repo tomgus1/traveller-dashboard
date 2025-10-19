@@ -52,6 +52,8 @@ export interface OperationResult<T = void> {
 export interface CreateCampaignRequest {
   name: string;
   description?: string;
+  creatorIsAlsoGM?: boolean; // Creator is always admin, but can optionally also be GM
+  initialMembers?: Array<{ email: string; role: CampaignRole }>;
 }
 
 export interface UpdateCampaignRequest {
