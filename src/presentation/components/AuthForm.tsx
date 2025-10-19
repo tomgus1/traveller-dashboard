@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "../../infrastructure/database/supabase";
+import { useAuth } from "../hooks/useAuth";
 import { Button } from "./Button";
 import FormField from "./FormField";
 
@@ -10,25 +10,27 @@ export default function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const { signIn, signUp } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
+      let result;
       if (view === "sign_up") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (error) throw error;
-        setMessage("Check your email for the confirmation link!");
+        result = await signUp(email, password);
+        if (result.success) {
+          setMessage("Check your email for the confirmation link!");
+        } else {
+          setMessage(result.error || "Sign up failed");
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
+        result = await signIn(email, password);
+        if (!result.success) {
+          setMessage(result.error || "Sign in failed");
+        }
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "An error occurred");

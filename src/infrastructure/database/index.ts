@@ -127,9 +127,15 @@ export class SupabaseAuthRepository implements AuthRepository {
     password: string
   ): Promise<OperationResult<User>> {
     try {
+      // Get the current origin for the redirect URL (works for both localhost and production)
+      const redirectTo = `${window.location.origin}`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: redirectTo,
+        },
       });
 
       if (error) {
