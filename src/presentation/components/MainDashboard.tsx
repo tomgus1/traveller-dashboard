@@ -18,6 +18,7 @@ import { LoadingScreen } from "./Loading";
 import FormField from "./FormField";
 import CampaignSettingsContent from "./CampaignSettingsContent";
 import CharacterManagementContent from "./CharacterManagementContent";
+import StandaloneCharacterManagement from "./StandaloneCharacterManagement";
 import UserProfileDropdown from "./UserProfileDropdown";
 import AccountSettings from "./AccountSettings";
 import CreateCampaignModal from "./CreateCampaignModal";
@@ -372,16 +373,6 @@ export default function MainDashboard({
   // State for campaign creation modal
   const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
 
-  // State for character creation modal
-  const [showCreateCharacterModal, setShowCreateCharacterModal] =
-    useState(false);
-  const [selectedCampaignForCharacter, setSelectedCampaignForCharacter] =
-    useState<string>("");
-  const [playerName, setPlayerName] = useState("");
-  const [characterName, setCharacterName] = useState("");
-  const [creatingCharacter, setCreatingCharacter] = useState(false);
-  const [characterError, setCharacterError] = useState<string | null>(null);
-
   // State for campaign editing
   const [showEditCampaignModal, setShowEditCampaignModal] = useState(false);
   const [editingCampaign, setEditingCampaign] =
@@ -398,65 +389,21 @@ export default function MainDashboard({
   // State for account settings modal
   const [showAccountSettings, setShowAccountSettings] = useState(false);
 
+  // State for standalone character management modal
+  const [showStandaloneCharacterModal, setShowStandaloneCharacterModal] =
+    useState(false);
+
   // State for character management modal
   const [showCharacterManagementModal, setShowCharacterManagementModal] =
     useState(false);
 
   // Get characters hook for the selected campaign
-  const { createCharacter } = useCampaignCharacters(
-    selectedCampaignForCharacter
-  );
-
   const handleCreateCampaign = async (request: CreateCampaignRequest) => {
     const result = await createCampaign(request);
     if (result.success) {
       setShowCreateCampaignModal(false);
     }
     return result;
-  };
-
-  const handleCreateCharacter = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !user ||
-      !playerName.trim() ||
-      !characterName.trim() ||
-      !selectedCampaignForCharacter
-    ) {
-      return;
-    }
-
-    try {
-      setCreatingCharacter(true);
-      setCharacterError(null);
-      const result = await createCharacter(
-        playerName.trim(),
-        characterName.trim(),
-        user.id
-      );
-
-      if (result.success) {
-        setPlayerName("");
-        setCharacterName("");
-        setSelectedCampaignForCharacter("");
-        setShowCreateCharacterModal(false);
-      } else {
-        setCharacterError(result.error || "Failed to create character");
-      }
-    } finally {
-      setCreatingCharacter(false);
-    }
-  };
-
-  const handleCreateCharacterClick = () => {
-    if (campaigns.length === 0) {
-      setCharacterError(
-        "You need to create a campaign first before adding characters!"
-      );
-      setTimeout(() => setCharacterError(null), 5000);
-      return;
-    }
-    setShowCreateCharacterModal(true);
   };
 
   const handleEditCampaign = (campaign: CampaignWithMeta) => {
@@ -594,9 +541,9 @@ export default function MainDashboard({
       <div className="p-6 space-y-6">
         <div className="max-w-6xl mx-auto">
           {/* Error Display */}
-          {(error || characterError) && (
+          {error && (
             <div className="p-3 text-sm text-red-800 bg-red-100 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-md mb-6">
-              {error || characterError}
+              {error}
             </div>
           )}
 
@@ -622,11 +569,10 @@ export default function MainDashboard({
               />
 
               <QuickActionCard
-                title="Create Character"
-                description="Add a new character to one of your campaigns"
+                title="Your Characters"
+                description="Create and manage your standalone characters"
                 icon={<User className="w-8 h-8" />}
-                onClick={handleCreateCharacterClick}
-                disabled={campaigns.length === 0}
+                onClick={() => setShowStandaloneCharacterModal(true)}
               />
 
               <QuickActionCard
@@ -634,14 +580,12 @@ export default function MainDashboard({
                 description="View and manage all characters across campaigns"
                 icon={<Users className="w-8 h-8" />}
                 onClick={() => setShowCharacterManagementModal(true)}
-                disabled={campaigns.length === 0}
               />
             </div>
-            {campaigns.length === 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                Create a campaign first to enable character management features.
-              </p>
-            )}
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+              You can create standalone characters anytime, or create a campaign
+              to enable campaign-specific features.
+            </p>
           </div>
 
           {/* Campaign Management */}
@@ -674,64 +618,6 @@ export default function MainDashboard({
         onClose={() => setShowCreateCampaignModal(false)}
         onCreateCampaign={handleCreateCampaign}
       />
-
-      {/* Create Character Modal */}
-      <Modal
-        isOpen={showCreateCharacterModal}
-        onClose={() => setShowCreateCharacterModal(false)}
-        title="Create New Character"
-      >
-        <form onSubmit={handleCreateCharacter} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Campaign
-            </label>
-            <select
-              value={selectedCampaignForCharacter}
-              onChange={(e) => setSelectedCampaignForCharacter(e.target.value)}
-              className="input w-full"
-              required
-            >
-              <option value="">Select a campaign</option>
-              {campaigns.map((campaign) => (
-                <option key={campaign.id} value={campaign.id}>
-                  {campaign.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <FormField
-            label="Player Name"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="e.g. John Smith"
-            required
-          />
-
-          <FormField
-            label="Character Name"
-            value={characterName}
-            onChange={(e) => setCharacterName(e.target.value)}
-            placeholder="e.g. Lt. Sally Riddle"
-            required
-          />
-
-          <ModalFooter
-            onCancel={() => setShowCreateCharacterModal(false)}
-            cancelText="Cancel"
-            confirmText={creatingCharacter ? "Creating..." : "Create"}
-            confirmDisabled={
-              creatingCharacter ||
-              !playerName.trim() ||
-              !characterName.trim() ||
-              !selectedCampaignForCharacter
-            }
-            confirmType="submit"
-            isLoading={creatingCharacter}
-          />
-        </form>
-      </Modal>
 
       {/* Edit Campaign Modal */}
       <Modal
@@ -811,6 +697,16 @@ export default function MainDashboard({
           campaigns={campaigns}
           onViewCampaign={onCampaignSelect}
         />
+      </Modal>
+
+      {/* Standalone Character Management Modal */}
+      <Modal
+        isOpen={showStandaloneCharacterModal}
+        onClose={() => setShowStandaloneCharacterModal(false)}
+        title="Your Characters"
+        maxWidth="xl"
+      >
+        <StandaloneCharacterManagement />
       </Modal>
 
       {/* Account Settings Modal */}

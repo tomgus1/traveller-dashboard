@@ -110,24 +110,30 @@ export interface Database {
       characters: {
         Row: {
           id: string;
-          campaign_id: string;
+          campaign_id: string | null; // NULL for standalone characters
           name: string;
+          player_name: string | null;
+          character_name: string | null;
           owner_id: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          campaign_id: string;
+          campaign_id?: string | null; // NULL for standalone characters
           name: string;
+          player_name?: string | null;
+          character_name?: string | null;
           owner_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          campaign_id?: string;
+          campaign_id?: string | null;
           name?: string;
+          player_name?: string | null;
+          character_name?: string | null;
           owner_id?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -143,6 +149,69 @@ export interface Database {
           {
             foreignKeyName: "characters_owner_id_fkey";
             columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "user_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaign_invitations: {
+        Row: {
+          id: string;
+          campaign_id: string;
+          invited_email: string;
+          invited_by: string;
+          roles_offered: {
+            isAdmin: boolean;
+            isGm: boolean;
+            isPlayer: boolean;
+          };
+          status: "pending" | "accepted" | "declined" | "expired";
+          expires_at: string | null;
+          created_at: string;
+          accepted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          campaign_id: string;
+          invited_email: string;
+          invited_by: string;
+          roles_offered?: {
+            isAdmin: boolean;
+            isGm: boolean;
+            isPlayer: boolean;
+          };
+          status?: "pending" | "accepted" | "declined" | "expired";
+          expires_at?: string | null;
+          created_at?: string;
+          accepted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          campaign_id?: string;
+          invited_email?: string;
+          invited_by?: string;
+          roles_offered?: {
+            isAdmin: boolean;
+            isGm: boolean;
+            isPlayer: boolean;
+          };
+          status?: "pending" | "accepted" | "declined" | "expired";
+          expires_at?: string | null;
+          created_at?: string;
+          accepted_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_invitations_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_invitations_invited_by_fkey";
+            columns: ["invited_by"];
             isOneToOne: false;
             referencedRelation: "user_profiles";
             referencedColumns: ["id"];

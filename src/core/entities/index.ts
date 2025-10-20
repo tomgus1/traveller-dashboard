@@ -79,13 +79,34 @@ export interface MemberInfo {
 // Character entities
 export interface Character {
   id: string;
-  campaignId: string;
+  campaignId: string | null; // NULL for standalone characters
   name: string;
   playerName?: string; // Real player name
   characterName?: string; // Character name
   ownerId?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface CreateCharacterRequest {
+  campaignId?: string | null; // Optional for standalone characters
+  name: string;
+  playerName?: string;
+  characterName?: string;
+}
+
+export interface CampaignInvitation {
+  id: string;
+  campaignId: string;
+  campaignName?: string; // Filled when fetching
+  invitedEmail: string;
+  invitedBy: string;
+  invitedByName?: string; // Filled when fetching
+  rolesOffered: CampaignRoles;
+  status: "pending" | "accepted" | "declined" | "expired";
+  expiresAt: Date | null;
+  createdAt: Date;
+  acceptedAt: Date | null;
 }
 
 export interface CharacterFinance {
@@ -143,13 +164,6 @@ export interface CharacterAmmo {
 }
 
 // Character operations
-export interface CreateCharacterRequest {
-  campaignId: string;
-  name: string;
-  playerName?: string;
-  characterName?: string;
-}
-
 export interface UpdateCharacterRequest {
   name?: string;
   playerName?: string;

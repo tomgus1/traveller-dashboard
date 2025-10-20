@@ -62,10 +62,10 @@ CREATE TABLE IF NOT EXISTS campaign_members (
   )
 );
 
--- Characters - Campaign characters (PCs/NPCs)
+-- Characters - Both standalone and campaign characters (PCs/NPCs)
 CREATE TABLE IF NOT EXISTS characters (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE NOT NULL,
+  campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE, -- NULL for standalone characters
   name TEXT NOT NULL,
   player_name TEXT, -- The real player name (e.g., "Andrew", "Nicole")
   character_name TEXT, -- The character name (e.g., "Dr Vax Vanderpool", "Admiral Rosa Perre")
@@ -133,6 +133,20 @@ CREATE TABLE IF NOT EXISTS character_ammo (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Campaign Invitations - Track pending invitations to campaigns
+CREATE TABLE IF NOT EXISTS campaign_invitations (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE NOT NULL,
+  invited_email TEXT NOT NULL,
+  invited_by UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  roles_offered JSONB NOT NULL DEFAULT '{"isAdmin": false, "isGm": false, "isPlayer": true}',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'expired')),
+  expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '7 days'),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  accepted_at TIMESTAMPTZ,
+  UNIQUE(campaign_id, invited_email)
+);
+
 -- ===== ROW LEVEL SECURITY =====
 
 -- Enable RLS on all tables
@@ -145,6 +159,7 @@ ALTER TABLE character_inventory ENABLE ROW LEVEL SECURITY;
 ALTER TABLE character_weapons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE character_armour ENABLE ROW LEVEL SECURITY;
 ALTER TABLE character_ammo ENABLE ROW LEVEL SECURITY;
+ALTER TABLE campaign_invitations ENABLE ROW LEVEL SECURITY;
 
 -- ===== AUTO USER PROFILE CREATION =====
 -- Create function to automatically create user profile on signup
@@ -288,7 +303,7 @@ CREATE POLICY "Users can view their own characters" ON characters
 CREATE POLICY "Users can edit their own characters" ON characters
   FOR UPDATE USING (owner_id = auth.uid());
 
--- Users can create characters in any campaign (will be restricted at app level)
+-- Users can create characters (both standalone and campaign-specific)
 CREATE POLICY "Users can create characters" ON characters
   FOR INSERT WITH CHECK (owner_id = auth.uid());
 
@@ -384,6 +399,43 @@ CREATE POLICY "Users can manage their character ammo" ON character_ammo
     )
   );
 
+-- Campaign invitation policies
+-- Campaign creators can view invitations for their campaigns
+CREATE POLICY "Campaign creators can view invitations" ON campaign_invitations
+  FOR SELECT USING (
+    campaign_id IN (
+      SELECT id FROM campaigns WHERE created_by = auth.uid()
+    )
+  );
+
+-- Users can view invitations sent to their email
+CREATE POLICY "Users can view their invitations" ON campaign_invitations
+  FOR SELECT USING (
+    invited_email = (SELECT email FROM auth.users WHERE id = auth.uid())
+  );
+
+-- Campaign creators can create invitations for their campaigns
+CREATE POLICY "Campaign creators can create invitations" ON campaign_invitations
+  FOR INSERT WITH CHECK (
+    campaign_id IN (
+      SELECT id FROM campaigns WHERE created_by = auth.uid()
+    ) AND invited_by = auth.uid()
+  );
+
+-- Campaign creators can update invitations for their campaigns
+CREATE POLICY "Campaign creators can update invitations" ON campaign_invitations
+  FOR UPDATE USING (
+    campaign_id IN (
+      SELECT id FROM campaigns WHERE created_by = auth.uid()
+    )
+  );
+
+-- Users can update invitations sent to their email (to accept/decline)
+CREATE POLICY "Users can respond to invitations" ON campaign_invitations
+  FOR UPDATE USING (
+    invited_email = (SELECT email FROM auth.users WHERE id = auth.uid())
+  );
+
 -- ===== FUNCTIONS =====
 
 -- Function to get user's role in a campaign
@@ -433,6 +485,40 @@ BEGIN
     FROM user_profiles
     WHERE id = user_uuid
   );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to create standalone character (workaround for TypeScript types)
+CREATE OR REPLACE FUNCTION public.create_standalone_character(
+  user_id UUID,
+  char_name TEXT,
+  player_name TEXT DEFAULT NULL,
+  character_name TEXT DEFAULT NULL
+)
+RETURNS JSON AS $$
+DECLARE
+  new_character_id UUID;
+  result JSON;
+BEGIN
+  INSERT INTO characters (campaign_id, name, player_name, character_name, owner_id)
+  VALUES (NULL, char_name, player_name, character_name, user_id)
+  RETURNING id INTO new_character_id;
+  
+  SELECT json_build_object(
+    'id', id,
+    'campaign_id', campaign_id,
+    'name', name,
+    'player_name', player_name,
+    'character_name', character_name,
+    'owner_id', owner_id,
+    'created_at', created_at,
+    'updated_at', updated_at
+  )
+  INTO result
+  FROM characters
+  WHERE id = new_character_id;
+  
+  RETURN result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

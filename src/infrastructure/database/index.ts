@@ -959,6 +959,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     }
   }
 
+  // TODO: Implement standalone character creation once types are updated
+  // For now, we'll create standalone characters through the campaign flow
+  // with campaign_id = null handled at the application level
+
   async deleteCharacter(characterId: string, userId: string) {
     try {
       // First check if the user owns this character or has permission to delete it
