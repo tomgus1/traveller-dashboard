@@ -66,3 +66,7 @@ export function getAuthService(): AuthService {
 export function getCampaignService(): CampaignService {
   return ServiceContainer.getInstance().campaignService;
 }
+
+export function getCampaignRepository(): SupabaseCampaignRepository {
+  return ServiceContainer.getInstance().campaignRepository;
+}

@@ -6,6 +6,7 @@ import type {
   CampaignWithMeta,
   CampaignRole,
   CampaignRoles,
+  CampaignInvitation,
   CreateCampaignRequest,
   UpdateCampaignRequest,
   MemberInfo,
@@ -962,6 +963,143 @@ export class SupabaseCampaignRepository implements CampaignRepository {
   // TODO: Implement standalone character creation once types are updated
   // For now, we'll create standalone characters through the campaign flow
   // with campaign_id = null handled at the application level
+
+  // Campaign Invitation Management
+  async createCampaignInvitation(
+    campaignId: string,
+    invitedEmail: string,
+    invitedBy: string,
+    rolesOffered: CampaignRoles
+  ): Promise<OperationResult<string>> {
+    try {
+      const { invitationRPC } = await import("./invitation-rpc");
+      const { data, error } = await invitationRPC.createCampaignInvitation({
+        p_campaign_id: campaignId,
+        p_invited_email: invitedEmail,
+        p_invited_by: invitedBy,
+        p_roles_offered: JSON.stringify(rolesOffered),
+      });
+
+      if (error) {
+        return {
+          success: false,
+          error:
+            typeof error === "object" && error && "message" in error
+              ? (error as { message: string }).message
+              : "Failed to create invitation",
+        };
+      }
+
+      return { success: true, data: data as string };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async getUserInvitations(
+    userEmail: string
+  ): Promise<OperationResult<CampaignInvitation[]>> {
+    try {
+      const { invitationRPC } = await import("./invitation-rpc");
+      const { data, error } = await invitationRPC.getUserInvitations({
+        p_user_email: userEmail,
+      });
+
+      if (error) {
+        return {
+          success: false,
+          error:
+            typeof error === "object" && error && "message" in error
+              ? (error as { message: string }).message
+              : "Failed to get invitations",
+        };
+      }
+
+      // Transform the raw data to match our CampaignInvitation interface
+      const invitations = Array.isArray(data)
+        ? data.map((item: Record<string, unknown>) => ({
+            id: item.id as string,
+            campaignId: item.campaign_id as string,
+            campaignName: item.campaign_name as string,
+            invitedEmail: item.invited_email as string,
+            invitedBy: item.invited_by as string,
+            invitedByName: item.inviter_name as string,
+            rolesOffered:
+              typeof item.roles_offered === "string"
+                ? JSON.parse(item.roles_offered as string)
+                : (item.roles_offered as CampaignRoles),
+            status: item.status as
+              | "pending"
+              | "accepted"
+              | "declined"
+              | "expired",
+            expiresAt: item.expires_at
+              ? new Date(item.expires_at as string)
+              : null,
+            createdAt: new Date(item.created_at as string),
+            acceptedAt: item.accepted_at
+              ? new Date(item.accepted_at as string)
+              : null,
+          }))
+        : [];
+
+      return { success: true, data: invitations };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async acceptCampaignInvitation(
+    invitationId: string,
+    userId: string
+  ): Promise<OperationResult<boolean>> {
+    try {
+      const { invitationRPC } = await import("./invitation-rpc");
+      const { data, error } = await invitationRPC.acceptCampaignInvitation({
+        p_invitation_id: invitationId,
+        p_user_id: userId,
+      });
+
+      if (error) {
+        return {
+          success: false,
+          error:
+            typeof error === "object" && error && "message" in error
+              ? (error as { message: string }).message
+              : "Failed to accept invitation",
+        };
+      }
+
+      return { success: true, data: data as boolean };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async declineCampaignInvitation(
+    invitationId: string
+  ): Promise<OperationResult<boolean>> {
+    try {
+      const { invitationRPC } = await import("./invitation-rpc");
+      const { data, error } = await invitationRPC.declineCampaignInvitation({
+        p_invitation_id: invitationId,
+      });
+
+      if (error) {
+        return {
+          success: false,
+          error:
+            typeof error === "object" && error && "message" in error
+              ? (error as { message: string }).message
+              : "Failed to decline invitation",
+        };
+      }
+
+      return { success: true, data: data as boolean };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
 
   async deleteCharacter(characterId: string, userId: string) {
     try {

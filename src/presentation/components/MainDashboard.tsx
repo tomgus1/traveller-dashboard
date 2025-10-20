@@ -22,6 +22,7 @@ import StandaloneCharacterManagement from "./StandaloneCharacterManagement";
 import UserProfileDropdown from "./UserProfileDropdown";
 import AccountSettings from "./AccountSettings";
 import CreateCampaignModal from "./CreateCampaignModal";
+import { CampaignInvitations } from "./CampaignInvitations";
 import type {
   CampaignWithMeta,
   CreateCampaignRequest,
@@ -546,6 +547,16 @@ export default function MainDashboard({
               {error}
             </div>
           )}
+
+          {/* Campaign Invitations Section */}
+          <div className="mb-8">
+            <CampaignInvitations
+              onInvitationAccepted={() => {
+                // Refresh campaigns when an invitation is accepted
+                // The useCampaigns hook should automatically refetch
+              }}
+            />
+          </div>
 
           {/* Recent Activity Section */}
           <div className="mb-8">
