@@ -8,6 +8,7 @@ import type {
   CreateCampaignRequest,
   UpdateCampaignRequest,
   MemberInfo,
+  PendingInvitation,
   OperationResult,
   Character,
   CharacterFinance,
@@ -74,6 +75,26 @@ export interface CampaignRepository {
     roles: CampaignRoles
   ): Promise<OperationResult>;
   removeMember(campaignId: string, userId: string): Promise<OperationResult>;
+
+  // Pending invitations
+  createPendingInvitation(
+    campaignId: string,
+    email: string,
+    role: CampaignRole,
+    invitedBy: string
+  ): Promise<OperationResult<PendingInvitation>>;
+  getPendingInvitations(
+    campaignId: string
+  ): Promise<OperationResult<PendingInvitation[]>>;
+  getUserPendingInvitations(
+    email: string
+  ): Promise<OperationResult<PendingInvitation[]>>;
+  acceptPendingInvitation(
+    invitationId: string,
+    userId: string
+  ): Promise<OperationResult>;
+  declinePendingInvitation(invitationId: string): Promise<OperationResult>;
+  cancelPendingInvitation(invitationId: string): Promise<OperationResult>;
 
   // Permission checks
   getUserRole(

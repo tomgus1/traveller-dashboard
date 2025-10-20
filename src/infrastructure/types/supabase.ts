@@ -388,6 +388,47 @@ export type Database = {
           },
         ]
       }
+      pending_invitations: {
+        Row: {
+          accepted_at: string | null
+          campaign_id: string
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          invited_by: string
+          role: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          campaign_id: string
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          invited_by: string
+          role: string
+        }
+        Update: {
+          accepted_at?: string | null
+          campaign_id?: string
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          invited_by?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_invitations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           created_at: string | null
@@ -482,6 +523,16 @@ export type Database = {
       get_user_profile_data: {
         Args: { user_uuid: string }
         Returns: Json
+      }
+      send_campaign_invitation: {
+        Args: {
+          p_campaign_id: string
+          p_campaign_name: string
+          p_email: string
+          p_inviter_name: string
+          p_role: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

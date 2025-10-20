@@ -40,6 +40,19 @@ export interface CampaignWithMeta extends Campaign {
   isOwner: boolean;
 }
 
+export interface PendingInvitation {
+  id: string;
+  email: string;
+  campaignId: string;
+  campaignName?: string; // Populated when fetching with campaign details
+  invitedBy: string;
+  inviterName?: string; // Populated when fetching with inviter details
+  role: CampaignRole;
+  createdAt: Date;
+  expiresAt: Date;
+  acceptedAt?: Date;
+}
+
 // Authentication state
 export interface AuthState {
   user: User | null;

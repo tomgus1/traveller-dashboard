@@ -7,6 +7,7 @@ import type {
   CampaignRole,
   CampaignRoles,
   CampaignInvitation,
+  PendingInvitation,
   CreateCampaignRequest,
   UpdateCampaignRequest,
   MemberInfo,
@@ -16,6 +17,19 @@ import type {
   AuthRepository,
   CampaignRepository,
 } from "../../core/repositories";
+
+// Internal interface for Supabase pending invitation response
+interface SupabasePendingInvitationResponse {
+  id: string;
+  email: string;
+  campaign_id: string;
+  invited_by: string;
+  role: string;
+  created_at: string | null;
+  expires_at: string | null;
+  accepted_at: string | null;
+  campaigns: { name: string } | null;
+}
 
 export class SupabaseAuthRepository implements AuthRepository {
   // Private helper method to create User object from auth user (DRY principle)
@@ -736,9 +750,31 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .single();
 
       if (profileError || !profile) {
+        // User not found - create a pending invitation instead
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        if (!userId) {
+          return {
+            success: false,
+            error: "You must be logged in to send invitations",
+          };
+        }
+
+        const invitationResult = await this.createPendingInvitation(
+          campaignId,
+          email,
+          role,
+          userId
+        );
+
+        if (invitationResult.success) {
+          return {
+            success: true,
+          };
+        }
+
         return {
           success: false,
-          error: "User not found with that email address",
+          error: invitationResult.error || "Failed to send invitation",
         };
       }
 
@@ -813,6 +849,312 @@ export class SupabaseCampaignRepository implements CampaignRepository {
 
       if (error) {
         return { success: false, error: "Failed to remove member" };
+      }
+
+      return { success: true };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  // Pending invitation methods
+  async createPendingInvitation(
+    campaignId: string,
+    email: string,
+    role: CampaignRole,
+    invitedBy: string
+  ): Promise<OperationResult<PendingInvitation>> {
+    try {
+      // Check if there's already a pending invitation for this email and campaign
+      const { data: existingInvitation } = await supabase
+        .from("pending_invitations")
+        .select("id")
+        .eq("email", email)
+        .eq("campaign_id", campaignId)
+        .is("accepted_at", null)
+        .gte("expires_at", new Date().toISOString())
+        .single();
+
+      if (existingInvitation) {
+        return {
+          success: false,
+          error:
+            "An invitation has already been sent to this email address for this campaign",
+        };
+      }
+
+      // Get campaign name for the invitation
+      const { data: campaign } = await supabase
+        .from("campaigns")
+        .select("name")
+        .eq("id", campaignId)
+        .single();
+
+      // Get inviter name
+      const { data: inviter } = await supabase
+        .from("user_profiles")
+        .select("display_name, email")
+        .eq("id", invitedBy)
+        .single();
+
+      // Create the pending invitation
+      const { data: invitation, error } = await supabase
+        .from("pending_invitations")
+        .insert({
+          email,
+          campaign_id: campaignId,
+          invited_by: invitedBy,
+          role,
+        })
+        .select(
+          `
+          id,
+          email,
+          campaign_id,
+          invited_by,
+          role,
+          created_at,
+          expires_at,
+          accepted_at
+        `
+        )
+        .single();
+
+      if (error) {
+        return { success: false, error: "Failed to create invitation" };
+      }
+
+      // Call the email function (placeholder for now)
+      await supabase.rpc("send_campaign_invitation", {
+        p_email: email,
+        p_campaign_id: campaignId,
+        p_campaign_name: campaign?.name || "Unknown Campaign",
+        p_inviter_name:
+          inviter?.display_name || inviter?.email || "Unknown User",
+        p_role: role,
+      });
+
+      const pendingInvitation: PendingInvitation = {
+        id: invitation.id,
+        email: invitation.email,
+        campaignId: invitation.campaign_id,
+        campaignName: campaign?.name,
+        invitedBy: invitation.invited_by,
+        inviterName: inviter?.display_name || inviter?.email,
+        role: invitation.role as CampaignRole,
+        createdAt: new Date(invitation.created_at || ""),
+        expiresAt: new Date(invitation.expires_at || ""),
+        acceptedAt: invitation.accepted_at
+          ? new Date(invitation.accepted_at)
+          : undefined,
+      };
+
+      return { success: true, data: pendingInvitation };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async getPendingInvitations(
+    campaignId: string
+  ): Promise<OperationResult<PendingInvitation[]>> {
+    try {
+      const { data: invitations, error } = await supabase
+        .from("pending_invitations")
+        .select(
+          `
+          id,
+          email,
+          campaign_id,
+          invited_by,
+          role,
+          created_at,
+          expires_at,
+          accepted_at,
+          campaigns(name)
+        `
+        )
+        .eq("campaign_id", campaignId)
+        .is("accepted_at", null)
+        .gte("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        return { success: false, error: "Failed to fetch pending invitations" };
+      }
+
+      const pendingInvitations: PendingInvitation[] = (invitations || []).map(
+        (inv: SupabasePendingInvitationResponse) => ({
+          id: inv.id,
+          email: inv.email,
+          campaignId: inv.campaign_id,
+          campaignName: inv.campaigns?.name,
+          invitedBy: inv.invited_by,
+          inviterName: undefined, // TODO: Fetch inviter details separately if needed
+          role: inv.role as CampaignRole,
+          createdAt: new Date(inv.created_at || ""),
+          expiresAt: new Date(inv.expires_at || ""),
+          acceptedAt: inv.accepted_at ? new Date(inv.accepted_at) : undefined,
+        })
+      );
+
+      return { success: true, data: pendingInvitations };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async getUserPendingInvitations(
+    email: string
+  ): Promise<OperationResult<PendingInvitation[]>> {
+    try {
+      const { data: invitations, error } = await supabase
+        .from("pending_invitations")
+        .select(
+          `
+          id,
+          email,
+          campaign_id,
+          invited_by,
+          role,
+          created_at,
+          expires_at,
+          accepted_at,
+          campaigns(name)
+        `
+        )
+        .eq("email", email)
+        .is("accepted_at", null)
+        .gte("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        return { success: false, error: "Failed to fetch pending invitations" };
+      }
+
+      const pendingInvitations: PendingInvitation[] = (invitations || []).map(
+        (inv: SupabasePendingInvitationResponse) => ({
+          id: inv.id,
+          email: inv.email,
+          campaignId: inv.campaign_id,
+          campaignName: inv.campaigns?.name,
+          invitedBy: inv.invited_by,
+          inviterName: undefined, // TODO: Fetch inviter details separately if needed
+          role: inv.role as CampaignRole,
+          createdAt: new Date(inv.created_at || ""),
+          expiresAt: new Date(inv.expires_at || ""),
+          acceptedAt: inv.accepted_at ? new Date(inv.accepted_at) : undefined,
+        })
+      );
+
+      return { success: true, data: pendingInvitations };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async acceptPendingInvitation(
+    invitationId: string,
+    userId: string
+  ): Promise<OperationResult> {
+    try {
+      // Get the invitation details
+      const { data: invitation, error: getError } = await supabase
+        .from("pending_invitations")
+        .select("*")
+        .eq("id", invitationId)
+        .is("accepted_at", null)
+        .gte("expires_at", new Date().toISOString())
+        .single();
+
+      if (getError || !invitation) {
+        return { success: false, error: "Invitation not found or expired" };
+      }
+
+      // Check if user is already a member of the campaign
+      const { data: existingMember } = await supabase
+        .from("campaign_members")
+        .select("id")
+        .eq("campaign_id", invitation.campaign_id)
+        .eq("user_id", userId)
+        .single();
+
+      if (existingMember) {
+        // Mark invitation as accepted anyway
+        await supabase
+          .from("pending_invitations")
+          .update({ accepted_at: new Date().toISOString() })
+          .eq("id", invitationId);
+
+        return {
+          success: false,
+          error: "You are already a member of this campaign",
+        };
+      }
+
+      // Add user to campaign
+      const { error: addError } = await supabase
+        .from("campaign_members")
+        .insert({
+          campaign_id: invitation.campaign_id,
+          user_id: userId,
+          is_admin: invitation.role === "admin",
+          is_gm: invitation.role === "gm",
+          is_player: invitation.role === "player",
+        });
+
+      if (addError) {
+        return { success: false, error: "Failed to add you to the campaign" };
+      }
+
+      // Mark invitation as accepted
+      const { error: updateError } = await supabase
+        .from("pending_invitations")
+        .update({ accepted_at: new Date().toISOString() })
+        .eq("id", invitationId);
+
+      if (updateError) {
+        // The user was added but we couldn't mark the invitation as accepted
+        // This is not a critical error - we could log this to a proper logging system
+        // in production instead of using console
+      }
+
+      return { success: true };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async declinePendingInvitation(
+    invitationId: string
+  ): Promise<OperationResult> {
+    try {
+      const { error } = await supabase
+        .from("pending_invitations")
+        .delete()
+        .eq("id", invitationId);
+
+      if (error) {
+        return { success: false, error: "Failed to decline invitation" };
+      }
+
+      return { success: true };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async cancelPendingInvitation(
+    invitationId: string
+  ): Promise<OperationResult> {
+    try {
+      const { error } = await supabase
+        .from("pending_invitations")
+        .delete()
+        .eq("id", invitationId);
+
+      if (error) {
+        return { success: false, error: "Failed to cancel invitation" };
       }
 
       return { success: true };
