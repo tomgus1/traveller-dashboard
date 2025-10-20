@@ -27,9 +27,9 @@ export class SupabaseAuthRepository implements AuthRepository {
       created_at: string;
     },
     profileData?: {
-      display_name?: string;
-      username?: string;
-      profile_completed?: boolean;
+      display_name?: string | null;
+      username?: string | null;
+      profile_completed?: boolean | null;
     }
   ): User {
     return {
@@ -469,8 +469,8 @@ export class SupabaseCampaignRepository implements CampaignRepository {
           name: campaign.name,
           description: campaign.description || undefined,
           createdBy: campaign.created_by,
-          createdAt: new Date(campaign.created_at),
-          updatedAt: new Date(campaign.updated_at),
+          createdAt: new Date(campaign.created_at || Date.now()),
+          updatedAt: new Date(campaign.updated_at || Date.now()),
           userRoles: member
             ? {
                 isAdmin: member.is_admin || false,
@@ -510,8 +510,8 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         name: data.name,
         description: data.description || undefined,
         createdBy: data.created_by,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
+        createdAt: new Date(data.created_at || Date.now()),
+        updatedAt: new Date(data.updated_at || Date.now()),
       };
 
       return { success: true, data: campaign };
@@ -583,8 +583,8 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         name: data.name,
         description: data.description || undefined,
         createdBy: data.created_by,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
+        createdAt: new Date(data.created_at || Date.now()),
+        updatedAt: new Date(data.updated_at || Date.now()),
       };
 
       return { success: true, data: campaign };
@@ -972,8 +972,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     rolesOffered: CampaignRoles
   ): Promise<OperationResult<string>> {
     try {
-      const { invitationRPC } = await import("./invitation-rpc");
-      const { data, error } = await invitationRPC.createCampaignInvitation({
+      const { data, error } = await supabase.rpc("create_campaign_invitation", {
         p_campaign_id: campaignId,
         p_invited_email: invitedEmail,
         p_invited_by: invitedBy,
@@ -981,13 +980,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       });
 
       if (error) {
-        return {
-          success: false,
-          error:
-            typeof error === "object" && error && "message" in error
-              ? (error as { message: string }).message
-              : "Failed to create invitation",
-        };
+        return { success: false, error: error.message };
       }
 
       return { success: true, data: data as string };
@@ -1000,19 +993,12 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     userEmail: string
   ): Promise<OperationResult<CampaignInvitation[]>> {
     try {
-      const { invitationRPC } = await import("./invitation-rpc");
-      const { data, error } = await invitationRPC.getUserInvitations({
+      const { data, error } = await supabase.rpc("get_user_invitations", {
         p_user_email: userEmail,
       });
 
       if (error) {
-        return {
-          success: false,
-          error:
-            typeof error === "object" && error && "message" in error
-              ? (error as { message: string }).message
-              : "Failed to get invitations",
-        };
+        return { success: false, error: error.message };
       }
 
       // Transform the raw data to match our CampaignInvitation interface
@@ -1054,20 +1040,13 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     userId: string
   ): Promise<OperationResult<boolean>> {
     try {
-      const { invitationRPC } = await import("./invitation-rpc");
-      const { data, error } = await invitationRPC.acceptCampaignInvitation({
+      const { data, error } = await supabase.rpc("accept_campaign_invitation", {
         p_invitation_id: invitationId,
         p_user_id: userId,
       });
 
       if (error) {
-        return {
-          success: false,
-          error:
-            typeof error === "object" && error && "message" in error
-              ? (error as { message: string }).message
-              : "Failed to accept invitation",
-        };
+        return { success: false, error: error.message };
       }
 
       return { success: true, data: data as boolean };
@@ -1080,19 +1059,15 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     invitationId: string
   ): Promise<OperationResult<boolean>> {
     try {
-      const { invitationRPC } = await import("./invitation-rpc");
-      const { data, error } = await invitationRPC.declineCampaignInvitation({
-        p_invitation_id: invitationId,
-      });
+      const { data, error } = await supabase.rpc(
+        "decline_campaign_invitation",
+        {
+          p_invitation_id: invitationId,
+        }
+      );
 
       if (error) {
-        return {
-          success: false,
-          error:
-            typeof error === "object" && error && "message" in error
-              ? (error as { message: string }).message
-              : "Failed to decline invitation",
-        };
+        return { success: false, error: error.message };
       }
 
       return { success: true, data: data as boolean };

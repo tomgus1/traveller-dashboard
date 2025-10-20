@@ -27,18 +27,18 @@ export function useCampaignCharacters(campaignId?: string) {
           const dbCharacters: SimpleCharacter[] = result.data.map(
             (char: {
               id: string;
-              campaign_id: string;
+              campaign_id: string | null;
               name: string;
-              player_name?: string;
-              character_name?: string;
-              owner_id?: string;
+              player_name?: string | null;
+              character_name?: string | null;
+              owner_id?: string | null;
             }) => ({
               id: char.id,
-              campaignId: char.campaign_id,
+              campaignId: char.campaign_id || "",
               displayName: char.name,
               playerName: char.player_name || "",
               characterName: char.character_name || "",
-              ownerId: char.owner_id,
+              ownerId: char.owner_id || undefined,
             })
           );
           setCharacters(dbCharacters);
@@ -75,11 +75,11 @@ export function useCampaignCharacters(campaignId?: string) {
         if (result.success && result.data) {
           const newCharacter: SimpleCharacter = {
             id: result.data.id,
-            campaignId: result.data.campaign_id,
+            campaignId: result.data.campaign_id || "",
             displayName: result.data.name,
             playerName, // Use the passed parameter since DB might not have it yet
             characterName, // Use the passed parameter since DB might not have it yet
-            ownerId: result.data.owner_id,
+            ownerId: result.data.owner_id || undefined,
           };
 
           setCharacters((prev) => [...prev, newCharacter]);

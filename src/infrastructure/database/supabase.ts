@@ -27,13 +27,18 @@ export const getUserCampaignRole = async (campaignId: string) => {
 
   const { data, error } = await supabase
     .from("campaign_members")
-    .select("role")
+    .select("is_admin, is_gm, is_player")
     .eq("campaign_id", campaignId)
     .eq("user_id", user.id)
     .single();
 
   if (error) return null;
-  return data.role;
+
+  // Return the highest priority role
+  if (data.is_admin) return "admin";
+  if (data.is_gm) return "gm";
+  if (data.is_player) return "player";
+  return null;
 };
 
 export const canViewCampaign = async (campaignId: string) => {
