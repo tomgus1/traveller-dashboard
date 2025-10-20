@@ -4,6 +4,7 @@ import type {
   Campaign,
   CampaignWithMeta,
   CampaignRole,
+  CampaignRoles,
   CreateCampaignRequest,
   UpdateCampaignRequest,
   MemberInfo,
@@ -70,7 +71,7 @@ export interface CampaignRepository {
   updateMemberRole(
     campaignId: string,
     userId: string,
-    role: CampaignRole
+    roles: CampaignRoles
   ): Promise<OperationResult>;
   removeMember(campaignId: string, userId: string): Promise<OperationResult>;
 
@@ -79,6 +80,10 @@ export interface CampaignRepository {
     campaignId: string,
     userId: string
   ): Promise<OperationResult<CampaignRole>>;
+  getUserRoles(
+    campaignId: string,
+    userId: string
+  ): Promise<OperationResult<CampaignRoles>>;
   canUserAccessCampaign(
     campaignId: string,
     userId: string

@@ -22,14 +22,20 @@ export interface CampaignMember {
   id: string;
   campaignId: string;
   userId: string;
-  role: CampaignRole;
+  roles: CampaignRoles;
   joinedAt: Date;
 }
 
-export type CampaignRole = "admin" | "gm" | "player";
+export interface CampaignRoles {
+  isAdmin: boolean;
+  isGm: boolean;
+  isPlayer: boolean;
+}
+
+export type CampaignRole = "admin" | "gm" | "player"; // Keep for backward compatibility during transition
 
 export interface CampaignWithMeta extends Campaign {
-  userRole?: CampaignRole;
+  userRoles: CampaignRoles;
   memberCount: number;
   isOwner: boolean;
 }
@@ -66,7 +72,7 @@ export interface MemberInfo {
   userId: string;
   email: string;
   displayName?: string;
-  role: CampaignRole;
+  roles: CampaignRoles;
   joinedAt: Date;
 }
 

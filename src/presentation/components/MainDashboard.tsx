@@ -24,7 +24,17 @@ import CreateCampaignModal from "./CreateCampaignModal";
 import type {
   CampaignWithMeta,
   CreateCampaignRequest,
+  CampaignRoles,
 } from "../../core/entities";
+import type { Database } from "../../infrastructure/types/supabase";
+import { rolesToDisplayString } from "../../shared/utils/permissions";
+
+// Helper function to get primary role for styling (simple backward compatibility)
+const getPrimaryRole = (roles: CampaignRoles): string => {
+  if (roles.isAdmin) return "admin";
+  if (roles.isGm) return "gm";
+  return "player";
+};
 
 interface MainDashboardProps {
   onCampaignSelect: (campaignId: string) => void;
@@ -62,11 +72,11 @@ interface CampaignManagementGridProps {
   onSettings: (campaign: CampaignWithMeta) => void;
 }
 
-function getRoleBadgeClass(role: string): string {
-  if (role === "admin") {
+function getRoleBadgeClass(primaryRole: string): string {
+  if (primaryRole === "admin") {
     return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400";
   }
-  if (role === "gm") {
+  if (primaryRole === "gm") {
     return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400";
   }
   return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400";
@@ -144,11 +154,11 @@ function RecentActivityCard({
                   <h4 className="font-medium text-gray-900 dark:text-zinc-50">
                     {campaign.name}
                   </h4>
-                  {campaign.userRole && (
+                  {campaign.userRoles && (
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(campaign.userRole)}`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(getPrimaryRole(campaign.userRoles))}`}
                     >
-                      {campaign.userRole.toUpperCase()}
+                      {rolesToDisplayString(campaign.userRoles)}
                     </span>
                   )}
                 </div>
@@ -180,11 +190,11 @@ function CampaignCard({
         <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 truncate">
           {campaign.name}
         </h3>
-        {campaign.userRole && (
+        {campaign.userRoles && (
           <span
-            className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(campaign.userRole)}`}
+            className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(getPrimaryRole(campaign.userRoles))}`}
           >
-            {campaign.userRole.toUpperCase()}
+            {rolesToDisplayString(campaign.userRoles)}
           </span>
         )}
       </div>
@@ -354,7 +364,8 @@ export default function MainDashboard({
     updateCampaign,
     deleteCampaign,
   } = useCampaigns();
-  const { fetchMembers, addMemberByEmail, removeMember } = useCampaignMembers();
+  const { fetchMembers, addMemberByEmail, removeMember, updateMemberRole } =
+    useCampaignMembers();
   const { signOut, user, updateProfile, changePassword, deleteAccount } =
     useAuth();
 
@@ -499,11 +510,11 @@ export default function MainDashboard({
   const handleGetMembers = async (campaignId: string) => {
     const result = await fetchMembers(campaignId);
     if (result.success && result.data) {
-      // Transform the data to match CampaignSettings expected format
+      // Transform the data to match CampaignSettingsContent new format
       return result.data.map((member) => ({
         id: member.id,
         user_id: member.userId,
-        role: member.role,
+        roles: member.roles, // Use the new roles structure
         user_profiles: {
           email: member.email,
           display_name: member.displayName || null,
@@ -516,18 +527,28 @@ export default function MainDashboard({
   const handleAddMember = async (
     campaignId: string,
     email: string,
-    role: string
+    roles: CampaignRoles
   ) => {
+    const primaryRole = getPrimaryRole(roles);
     const result = await addMemberByEmail(
       campaignId,
       email,
-      role as "admin" | "gm" | "player"
+      primaryRole as "admin" | "gm" | "player"
     );
     return result;
   };
 
   const handleRemoveMember = async (campaignId: string, userId: string) => {
     await removeMember(campaignId, userId);
+  };
+
+  const handleUpdateMemberRole = async (
+    campaignId: string,
+    userId: string,
+    newRoles: CampaignRoles
+  ) => {
+    const result = await updateMemberRole(campaignId, userId, newRoles);
+    return result;
   };
 
   // Transform CampaignWithMeta to Campaign type for CampaignSettings
@@ -538,7 +559,7 @@ export default function MainDashboard({
     created_at: campaign.createdAt.toISOString(),
     created_by: campaign.createdBy,
     updated_at: campaign.updatedAt.toISOString(),
-    role: campaign.userRole,
+    userRoles: campaign.userRoles,
     member_count: campaign.memberCount,
   });
 
@@ -760,11 +781,19 @@ export default function MainDashboard({
           maxWidth="xl"
         >
           <CampaignSettingsContent
-            campaign={transformCampaignForSettings(settingsCampaign)}
+            campaign={
+              transformCampaignForSettings(
+                settingsCampaign
+              ) as unknown as Database["public"]["Tables"]["campaigns"]["Row"] & {
+                role?: string;
+                member_count?: number;
+              }
+            }
             onUpdateCampaign={handleUpdateCampaignFromSettings}
             onDeleteCampaign={handleDeleteCampaignFromSettings}
             onGetMembers={handleGetMembers}
             onAddMember={handleAddMember}
+            onUpdateMemberRole={handleUpdateMemberRole}
             onRemoveMember={handleRemoveMember}
             onClose={() => setShowSettingsModal(false)}
           />

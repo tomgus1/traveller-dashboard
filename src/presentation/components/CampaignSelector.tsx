@@ -7,14 +7,14 @@ import CampaignSettings from "./CampaignSettings";
 import { Button } from "./Button";
 import { Modal, ModalFooter } from "./Modal";
 import { LoadingScreen } from "./Loading";
-import type { CampaignWithMeta } from "../../core/entities";
+import type { CampaignWithMeta, CampaignRoles } from "../../core/entities";
 import type { Database } from "../../infrastructure/types/supabase";
 
 // Convert our new entity to legacy interface for CampaignSettings
 const convertToLegacyCampaign = (
   campaign: CampaignWithMeta
 ): Database["public"]["Tables"]["campaigns"]["Row"] & {
-  role?: string;
+  userRoles?: CampaignRoles;
   member_count?: number;
 } => ({
   id: campaign.id,
@@ -23,7 +23,7 @@ const convertToLegacyCampaign = (
   created_by: campaign.createdBy,
   created_at: campaign.createdAt.toISOString(),
   updated_at: campaign.updatedAt.toISOString(),
-  role: campaign.userRole,
+  userRoles: campaign.userRoles,
   member_count: campaign.memberCount,
 });
 
@@ -68,7 +68,7 @@ export default function CampaignSelector({
       return result.data.map((member) => ({
         id: member.id,
         user_id: member.userId,
-        role: member.role,
+        roles: member.roles,
         user_profiles: {
           email: member.email,
           display_name: member.displayName || null,
@@ -111,7 +111,25 @@ export default function CampaignSelector({
     }
   };
 
-  const getRoleBadge = (role: string) => {
+  // Helper function to get primary role for display purposes
+  const getPrimaryRole = (roles: CampaignRoles): string => {
+    if (roles.isAdmin) return "admin";
+    if (roles.isGm) return "gm";
+    if (roles.isPlayer) return "player";
+    return "unknown";
+  };
+
+  // Helper function to convert roles to display string
+  const rolesToDisplayString = (roles: CampaignRoles): string => {
+    const roleList = [];
+    if (roles.isAdmin) roleList.push("ADMIN");
+    if (roles.isGm) roleList.push("GM");
+    if (roles.isPlayer) roleList.push("PLAYER");
+    return roleList.join(" + ");
+  };
+
+  const getRoleBadge = (roles: CampaignRoles) => {
+    const primaryRole = getPrimaryRole(roles);
     const colors = {
       admin: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400",
       gm: "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400",
@@ -119,7 +137,7 @@ export default function CampaignSelector({
         "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400",
     };
     return (
-      colors[role as keyof typeof colors] ||
+      colors[primaryRole as keyof typeof colors] ||
       "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400"
     );
   };
@@ -184,7 +202,7 @@ export default function CampaignSelector({
                 {campaigns.map((campaign) => (
                   <div key={campaign.id} className="card relative">
                     {/* Settings button for admins */}
-                    {campaign.userRole === "admin" && (
+                    {campaign.userRoles?.isAdmin && (
                       <div className="absolute top-4 right-4">
                         <CampaignSettings
                           campaign={convertToLegacyCampaign(campaign)}
@@ -205,11 +223,11 @@ export default function CampaignSelector({
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 truncate">
                           {campaign.name}
                         </h3>
-                        {campaign.userRole && (
+                        {campaign.userRoles && (
                           <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadge(campaign.userRole)}`}
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadge(campaign.userRoles)}`}
                           >
-                            {campaign.userRole.toUpperCase()}
+                            {rolesToDisplayString(campaign.userRoles)}
                           </span>
                         )}
                       </div>

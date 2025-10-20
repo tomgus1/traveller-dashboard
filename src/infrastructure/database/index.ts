@@ -5,6 +5,7 @@ import type {
   Campaign,
   CampaignWithMeta,
   CampaignRole,
+  CampaignRoles,
   CreateCampaignRequest,
   UpdateCampaignRequest,
   MemberInfo,
@@ -439,7 +440,9 @@ export class SupabaseCampaignRepository implements CampaignRepository {
           `
           *,
           campaign_members!inner(
-            role,
+            is_admin,
+            is_gm,
+            is_player,
             user_id
           ),
           member_count:campaign_members(count)
@@ -452,17 +455,36 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         return { success: false, error: "Failed to fetch campaigns" };
       }
 
-      const campaigns: CampaignWithMeta[] = data.map((campaign) => ({
-        id: campaign.id,
-        name: campaign.name,
-        description: campaign.description || undefined,
-        createdBy: campaign.created_by,
-        createdAt: new Date(campaign.created_at),
-        updatedAt: new Date(campaign.updated_at),
-        userRole: campaign.campaign_members[0]?.role as CampaignRole,
-        memberCount: campaign.member_count?.[0]?.count || 0,
-        isOwner: campaign.created_by === userId,
-      }));
+      const campaigns: CampaignWithMeta[] = data.map((campaign) => {
+        const member = campaign.campaign_members[0] as unknown as {
+          is_admin: boolean;
+          is_gm: boolean;
+          is_player: boolean;
+          user_id: string;
+        };
+
+        return {
+          id: campaign.id,
+          name: campaign.name,
+          description: campaign.description || undefined,
+          createdBy: campaign.created_by,
+          createdAt: new Date(campaign.created_at),
+          updatedAt: new Date(campaign.updated_at),
+          userRoles: member
+            ? {
+                isAdmin: member.is_admin || false,
+                isGm: member.is_gm || false,
+                isPlayer: member.is_player || false,
+              }
+            : {
+                isAdmin: false,
+                isGm: false,
+                isPlayer: false,
+              },
+          memberCount: campaign.member_count?.[0]?.count || 0,
+          isOwner: campaign.created_by === userId,
+        };
+      });
 
       return { success: true, data: campaigns };
     } catch {
@@ -618,7 +640,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       // Get member data first
       const { data: memberData, error: memberError } = await supabase
         .from("campaign_members")
-        .select("id, user_id, role, created_at")
+        .select("id, user_id, is_admin, is_gm, is_player, created_at")
         .eq("campaign_id", campaignId)
         .order("created_at", { ascending: true });
 
@@ -628,7 +650,17 @@ export class SupabaseCampaignRepository implements CampaignRepository {
 
       // Get user profile data for each member
       const members: MemberInfo[] = [];
-      for (const member of memberData) {
+      for (const memberRow of memberData) {
+        // Type assertion for new columns until Supabase types are regenerated
+        const member = memberRow as unknown as {
+          id: string;
+          user_id: string;
+          is_admin: boolean;
+          is_gm: boolean;
+          is_player: boolean;
+          created_at: string;
+        };
+
         try {
           const { data: profile, error: profileError } = await supabase
             .from("user_profiles")
@@ -659,7 +691,11 @@ export class SupabaseCampaignRepository implements CampaignRepository {
             userId: member.user_id,
             email,
             displayName,
-            role: member.role as CampaignRole,
+            roles: {
+              isAdmin: member.is_admin || false,
+              isGm: member.is_gm || false,
+              isPlayer: member.is_player || false,
+            },
             joinedAt: new Date(member.created_at),
           });
         } catch {
@@ -669,7 +705,11 @@ export class SupabaseCampaignRepository implements CampaignRepository {
             userId: member.user_id,
             email: `user_${member.user_id.slice(0, 8)}@example.com`,
             displayName: undefined,
-            role: member.role as CampaignRole,
+            roles: {
+              isAdmin: member.is_admin || false,
+              isGm: member.is_gm || false,
+              isPlayer: member.is_player || false,
+            },
             joinedAt: new Date(member.created_at),
           });
         }
@@ -736,12 +776,16 @@ export class SupabaseCampaignRepository implements CampaignRepository {
   async updateMemberRole(
     campaignId: string,
     userId: string,
-    role: CampaignRole
+    roles: CampaignRoles
   ): Promise<OperationResult> {
     try {
       const { error } = await supabase
         .from("campaign_members")
-        .update({ role })
+        .update({
+          is_admin: roles.isAdmin,
+          is_gm: roles.isGm,
+          is_player: roles.isPlayer,
+        } as Record<string, boolean>)
         .eq("campaign_id", campaignId)
         .eq("user_id", userId);
 
@@ -781,9 +825,39 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     userId: string
   ): Promise<OperationResult<CampaignRole>> {
     try {
+      const rolesResult = await this.getUserRoles(campaignId, userId);
+      if (!rolesResult.success || !rolesResult.data) {
+        return {
+          success: false,
+          error: rolesResult.error || "User is not a member of this campaign",
+        };
+      }
+
+      const roles = rolesResult.data;
+      // Return the highest role for backward compatibility
+      let primaryRole: CampaignRole;
+      if (roles.isAdmin) {
+        primaryRole = "admin";
+      } else if (roles.isGm) {
+        primaryRole = "gm";
+      } else {
+        primaryRole = "player";
+      }
+
+      return { success: true, data: primaryRole };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async getUserRoles(
+    campaignId: string,
+    userId: string
+  ): Promise<OperationResult<CampaignRoles>> {
+    try {
       const { data, error } = await supabase
         .from("campaign_members")
-        .select("role")
+        .select("is_admin, is_gm, is_player")
         .eq("campaign_id", campaignId)
         .eq("user_id", userId)
         .single();
@@ -795,7 +869,20 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         };
       }
 
-      return { success: true, data: data.role as CampaignRole };
+      const memberData = data as unknown as {
+        is_admin: boolean;
+        is_gm: boolean;
+        is_player: boolean;
+      };
+
+      return {
+        success: true,
+        data: {
+          isAdmin: memberData.is_admin || false,
+          isGm: memberData.is_gm || false,
+          isPlayer: memberData.is_player || false,
+        },
+      };
     } catch {
       return { success: false, error: "An unexpected error occurred" };
     }

@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { Edit3, Trash2, Users, UserPlus } from "lucide-react";
 import type { Database } from "../../infrastructure/types/supabase";
+import type { CampaignRoles } from "../../core/entities";
 import { Button } from "./Button";
 import { Modal, ModalFooter } from "./Modal";
+import RoleSelector from "./RoleSelector";
+import { rolesToDisplayString } from "../../shared/utils/permissions";
 
 type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
-  role?: string;
+  userRoles?: CampaignRoles;
   member_count?: number;
 };
 
 interface CampaignMember {
   id: string;
   user_id: string;
-  role: string;
+  roles: CampaignRoles;
   user_profiles: {
     email: string;
     display_name: string | null;
@@ -30,7 +33,12 @@ interface CampaignSettingsContentProps {
   onAddMember: (
     campaignId: string,
     email: string,
-    role: string
+    roles: CampaignRoles
+  ) => Promise<{ success: boolean; error?: string }>;
+  onUpdateMemberRole: (
+    campaignId: string,
+    userId: string,
+    roles: CampaignRoles
   ) => Promise<{ success: boolean; error?: string }>;
   onRemoveMember: (campaignId: string, userId: string) => Promise<void>;
   onClose?: () => void;
@@ -42,6 +50,7 @@ export default function CampaignSettingsContent({
   onDeleteCampaign,
   onGetMembers,
   onAddMember,
+  onUpdateMemberRole,
   onRemoveMember,
   onClose,
 }: CampaignSettingsContentProps) {
@@ -52,6 +61,9 @@ export default function CampaignSettingsContent({
   const [members, setMembers] = useState<CampaignMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
+  const [updatingMemberRole, setUpdatingMemberRole] = useState<string | null>(
+    null
+  );
 
   const [editName, setEditName] = useState(campaign.name);
   const [editDescription, setEditDescription] = useState(
@@ -62,9 +74,11 @@ export default function CampaignSettingsContent({
 
   // Add member form state
   const [newMemberEmail, setNewMemberEmail] = useState("");
-  const [newMemberRole, setNewMemberRole] = useState<"admin" | "gm" | "player">(
-    "player"
-  );
+  const [newMemberRoles, setNewMemberRoles] = useState<CampaignRoles>({
+    isAdmin: false,
+    isGm: false,
+    isPlayer: true, // Default to player
+  });
   const [addMemberError, setAddMemberError] = useState<string | null>(null);
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -94,7 +108,24 @@ export default function CampaignSettingsContent({
     }
   };
 
+  const refreshMembers = async () => {
+    try {
+      const memberData = await onGetMembers(campaign.id);
+      if (memberData) {
+        setMembers(memberData);
+      }
+    } catch {
+      // Silently handle refresh errors
+    }
+  };
+
   const handleShowMembers = async () => {
+    // If we already have member data and modal is opening, just show it
+    if (members.length > 0 && !showMembers) {
+      setShowMembers(true);
+      return;
+    }
+
     try {
       setLoadingMembers(true);
       const memberData = await onGetMembers(campaign.id);
@@ -117,30 +148,71 @@ export default function CampaignSettingsContent({
     try {
       const result = await onAddMember(
         campaign.id,
-        newMemberEmail.trim(),
-        newMemberRole
+        newMemberEmail,
+        newMemberRoles
       );
 
       if (result.success) {
-        // Refresh member list
-        const memberData = await onGetMembers(campaign.id);
-        if (memberData) {
-          setMembers(memberData);
-        }
         // Reset form
         setNewMemberEmail("");
-        setNewMemberRole("player");
+        setNewMemberRoles({
+          isAdmin: false,
+          isGm: false,
+          isPlayer: true,
+        });
         setShowAddMember(false);
+        // Refresh members list
+        refreshMembers();
       } else {
         setAddMemberError(result.error || "Failed to add member");
       }
     } catch (error) {
       setAddMemberError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
+        error instanceof Error ? error.message : "Failed to add member"
       );
     } finally {
       setAddingMember(false);
     }
+  };
+
+  // Member role editing state
+  const [editingMember, setEditingMember] = useState<CampaignMember | null>(
+    null
+  );
+  const [editingRoles, setEditingRoles] = useState<CampaignRoles>({
+    isAdmin: false,
+    isGm: false,
+    isPlayer: true,
+  });
+
+  const handleUpdateMemberRole = async (newRoles: CampaignRoles) => {
+    if (!editingMember) return;
+
+    setUpdatingMemberRole(editingMember.user_id);
+    try {
+      const result = await onUpdateMemberRole(
+        campaign.id,
+        editingMember.user_id,
+        newRoles
+      );
+
+      if (result.success) {
+        // Refresh member list to show updated role
+        const memberData = await onGetMembers(campaign.id);
+        if (memberData) {
+          setMembers(memberData);
+        }
+        // Close the editing modal
+        setEditingMember(null);
+      }
+    } finally {
+      setUpdatingMemberRole(null);
+    }
+  };
+
+  const openEditMember = (member: CampaignMember) => {
+    setEditingMember(member);
+    setEditingRoles(member.roles);
   };
 
   return (
@@ -314,10 +386,23 @@ export default function CampaignSettingsContent({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-full">
-                      {member.role}
-                    </span>
-                    {member.role !== "admin" && (
+                    <div className="flex flex-wrap gap-1">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
+                        {rolesToDisplayString(member.roles)}
+                      </span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => openEditMember(member)}
+                      disabled={updatingMemberRole === member.user_id}
+                    >
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                    {updatingMemberRole === member.user_id && (
+                      <span className="text-xs text-gray-500">Updating...</span>
+                    )}
+                    {!member.roles.isAdmin && (
                       <Button
                         size="sm"
                         variant="danger"
@@ -325,7 +410,7 @@ export default function CampaignSettingsContent({
                           onRemoveMember(campaign.id, member.user_id)
                         }
                       >
-                        Remove
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     )}
                   </div>
@@ -353,7 +438,11 @@ export default function CampaignSettingsContent({
         onClose={() => {
           setShowAddMember(false);
           setNewMemberEmail("");
-          setNewMemberRole("player");
+          setNewMemberRoles({
+            isAdmin: false,
+            isGm: false,
+            isPlayer: true,
+          });
           setAddMemberError(null);
         }}
         title="Add Campaign Member"
@@ -375,19 +464,9 @@ export default function CampaignSettingsContent({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Role
+              Roles
             </label>
-            <select
-              value={newMemberRole}
-              onChange={(e) =>
-                setNewMemberRole(e.target.value as "admin" | "gm" | "player")
-              }
-              className="input w-full"
-            >
-              <option value="player">Player</option>
-              <option value="gm">Game Master (GM)</option>
-              <option value="admin">Administrator</option>
-            </select>
+            <RoleSelector roles={newMemberRoles} onChange={setNewMemberRoles} />
           </div>
 
           {addMemberError && (
@@ -402,7 +481,11 @@ export default function CampaignSettingsContent({
             onCancel={() => {
               setShowAddMember(false);
               setNewMemberEmail("");
-              setNewMemberRole("player");
+              setNewMemberRoles({
+                isAdmin: false,
+                isGm: false,
+                isPlayer: true,
+              });
               setAddMemberError(null);
             }}
             cancelText="Cancel"
@@ -413,6 +496,41 @@ export default function CampaignSettingsContent({
           />
         </form>
       </Modal>
+
+      {/* Edit Member Roles Modal */}
+      {editingMember && (
+        <Modal
+          isOpen={!!editingMember}
+          onClose={() => setEditingMember(null)}
+          title={`Edit Roles - ${editingMember.user_profiles.display_name || editingMember.user_profiles.email}`}
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Member Roles
+              </label>
+              <RoleSelector
+                roles={editingRoles}
+                onChange={setEditingRoles}
+                disabled={updatingMemberRole === editingMember.user_id}
+              />
+            </div>
+
+            <ModalFooter
+              onCancel={() => setEditingMember(null)}
+              cancelText="Cancel"
+              confirmText={
+                updatingMemberRole === editingMember.user_id
+                  ? "Updating..."
+                  : "Update Roles"
+              }
+              confirmDisabled={updatingMemberRole === editingMember.user_id}
+              onConfirm={() => handleUpdateMemberRole(editingRoles)}
+              isLoading={updatingMemberRole === editingMember.user_id}
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import type {
   Campaign,
   CampaignWithMeta,
   CampaignRole,
+  CampaignRoles,
   CreateCampaignRequest,
   UpdateCampaignRequest,
   MemberInfo,
@@ -25,6 +26,7 @@ import {
   canUpdateCampaign,
   canDeleteCampaign,
   getPermissionError,
+  isValidRoleCombination,
 } from "../../shared/utils/permissions";
 
 export class AuthService {
@@ -420,7 +422,7 @@ export class CampaignService {
   async updateMemberRole(
     campaignId: string,
     userId: string,
-    role: CampaignRole
+    roles: CampaignRoles
   ): Promise<OperationResult> {
     const user = await this.authRepository.getCurrentUser();
     if (!user) {
@@ -443,12 +445,16 @@ export class CampaignService {
       };
     }
 
-    // Validate input
-    if (!isValidCampaignRole(role)) {
-      return { success: false, error: "Invalid role specified" };
+    // Validate role combination
+    if (!isValidRoleCombination(roles)) {
+      return {
+        success: false,
+        error:
+          "Invalid role combination. Must have at least one role and cannot be GM+Player without Admin.",
+      };
     }
 
-    return this.campaignRepository.updateMemberRole(campaignId, userId, role);
+    return this.campaignRepository.updateMemberRole(campaignId, userId, roles);
   }
 
   async removeMember(

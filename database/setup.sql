@@ -47,8 +47,19 @@ CREATE TABLE IF NOT EXISTS campaign_members (
   campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   role user_role NOT NULL DEFAULT 'player',
+  -- New multiple role columns
+  is_admin BOOLEAN DEFAULT FALSE,
+  is_gm BOOLEAN DEFAULT FALSE,
+  is_player BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(campaign_id, user_id)
+  UNIQUE(campaign_id, user_id),
+  -- Constraint to ensure valid role combinations
+  CONSTRAINT valid_role_combination CHECK (
+    -- Must have at least one role
+    (is_admin = TRUE OR is_gm = TRUE OR is_player = TRUE) AND
+    -- Cannot be both GM and Player without being Admin
+    NOT (is_gm = TRUE AND is_player = TRUE AND is_admin = FALSE)
+  )
 );
 
 -- Characters - Campaign characters (PCs/NPCs)
@@ -425,8 +436,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- ===== DATA MIGRATION FOR MULTIPLE ROLES =====
+-- Populate new role columns from existing single role column
+-- This ensures existing data works with the new multiple role system
+
+-- Migrate existing role data to new structure (safe to run multiple times)
+UPDATE campaign_members 
+SET 
+  is_admin = (role = 'admin'),
+  is_gm = (role = 'gm'),
+  is_player = (role = 'player')
+WHERE 
+  (is_admin IS NULL OR is_gm IS NULL OR is_player IS NULL OR
+   (is_admin = FALSE AND is_gm = FALSE AND is_player = FALSE));
+
+-- Add helpful comments for the new columns
+COMMENT ON COLUMN campaign_members.is_admin IS 'Can manage campaign settings, members, and has all permissions';
+COMMENT ON COLUMN campaign_members.is_gm IS 'Can run game sessions and manage campaign content';
+COMMENT ON COLUMN campaign_members.is_player IS 'Can create and play characters in the campaign';
+COMMENT ON TABLE campaign_members IS 'Campaign membership with multiple role support. Members can be admin+gm, admin+player, gm-only, or player-only. GM+Player requires admin privileges.';
+
 -- ===== SETUP COMPLETE =====
--- Your Traveller Dashboard database is now ready!
+-- Your Traveller Dashboard database is now ready with multiple role support!
 -- You can run this script multiple times safely - it will handle migrations.
 -- 
 -- ULTRA-SIMPLE ACCESS CONTROL:

@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { Settings, Edit3, Trash2, UserPlus, Users, X } from "lucide-react";
 import type { Database } from "../../infrastructure/types/supabase";
+import type { CampaignRoles } from "../../core/entities";
 import { Button, IconButton } from "./Button";
 import { Modal, ModalFooter } from "./Modal";
 
 type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
-  role?: string;
+  userRoles?: CampaignRoles;
   member_count?: number;
 };
 
 interface CampaignMember {
   id: string;
   user_id: string;
-  role: string;
+  roles: CampaignRoles;
   user_profiles: {
     email: string;
     display_name: string | null;
@@ -37,6 +38,25 @@ export default function CampaignSettings({
   onGetMembers,
   onRemoveMember,
 }: CampaignSettingsProps) {
+  // Helper function to get role display for a member
+  const getRoleDisplay = (roles: CampaignRoles) => {
+    const roleList = [];
+    if (roles.isAdmin) roleList.push("ADMIN");
+    if (roles.isGm) roleList.push("GM");
+    if (roles.isPlayer) roleList.push("PLAYER");
+    return roleList.join(" + ");
+  };
+
+  // Helper function to get role styling
+  const getRoleStyles = (roles: CampaignRoles) => {
+    if (roles.isAdmin) {
+      return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400";
+    }
+    if (roles.isGm) {
+      return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400";
+    }
+    return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400";
+  };
   const [showSettings, setShowSettings] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -51,7 +71,7 @@ export default function CampaignSettings({
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const isAdmin = campaign.role === "admin";
+  const isAdmin = campaign.userRoles?.isAdmin;
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,21 +288,13 @@ export default function CampaignSettings({
                       {member.user_profiles.email}
                     </p>
                     <span
-                      className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${(() => {
-                        if (member.role === "admin") {
-                          return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400";
-                        }
-                        if (member.role === "gm") {
-                          return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400";
-                        }
-                        return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400";
-                      })()}`}
+                      className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${getRoleStyles(member.roles)}`}
                     >
-                      {member.role.toUpperCase()}
+                      {getRoleDisplay(member.roles)}
                     </span>
                   </div>
 
-                  {member.role !== "admin" && (
+                  {!member.roles.isAdmin && (
                     <IconButton
                       onClick={() => handleRemoveMember(member.user_id)}
                       icon={<Trash2 className="w-4 h-4" />}

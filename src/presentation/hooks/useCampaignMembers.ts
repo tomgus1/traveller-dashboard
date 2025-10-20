@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { getCampaignService } from "../../core/container";
-import type { MemberInfo, CampaignRole } from "../../core/entities";
+import type {
+  MemberInfo,
+  CampaignRole,
+  CampaignRoles,
+} from "../../core/entities";
 
 export const useCampaignMembers = () => {
   const [members, setMembers] = useState<MemberInfo[]>([]);
@@ -66,7 +70,7 @@ export const useCampaignMembers = () => {
   const updateMemberRole = async (
     campaignId: string,
     userId: string,
-    role: CampaignRole
+    roles: CampaignRoles
   ) => {
     try {
       setError(null);
@@ -74,7 +78,7 @@ export const useCampaignMembers = () => {
       const result = await campaignService.updateMemberRole(
         campaignId,
         userId,
-        role
+        roles
       );
 
       if (result.success) {

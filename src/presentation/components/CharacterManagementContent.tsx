@@ -5,7 +5,7 @@ import { Edit3, Trash2, Users, UserPlus } from "lucide-react";
 import { Button } from "./Button";
 import { Modal, ModalFooter } from "./Modal";
 import FormField from "./FormField";
-import type { CampaignWithMeta } from "../../core/entities";
+import type { CampaignWithMeta, CampaignRoles } from "../../core/entities";
 
 interface CharacterManagementContentProps {
   campaigns: CampaignWithMeta[];
@@ -22,11 +22,29 @@ interface CharacterListProps {
   ) => void;
 }
 
-function getRoleBadgeClass(role: string): string {
-  if (role === "admin") {
+// Helper function to get primary role for display purposes
+function getPrimaryRole(roles: CampaignRoles): string {
+  if (roles.isAdmin) return "admin";
+  if (roles.isGm) return "gm";
+  if (roles.isPlayer) return "player";
+  return "unknown";
+}
+
+// Helper function to convert roles to display string
+function rolesToDisplayString(roles: CampaignRoles): string {
+  const roleList = [];
+  if (roles.isAdmin) roleList.push("ADMIN");
+  if (roles.isGm) roleList.push("GM");
+  if (roles.isPlayer) roleList.push("PLAYER");
+  return roleList.join(" + ");
+}
+
+function getRoleBadgeClass(roles: CampaignRoles): string {
+  const primaryRole = getPrimaryRole(roles);
+  if (primaryRole === "admin") {
     return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400";
   }
-  if (role === "gm") {
+  if (primaryRole === "gm") {
     return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400";
   }
   return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400";
@@ -67,11 +85,11 @@ function CharacterList({
             {characters.length} character(s)
           </p>
         </div>
-        {campaign.userRole && (
+        {campaign.userRoles && (
           <span
-            className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(campaign.userRole)}`}
+            className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(campaign.userRoles)}`}
           >
-            {campaign.userRole.toUpperCase()}
+            {rolesToDisplayString(campaign.userRoles)}
           </span>
         )}
       </div>
