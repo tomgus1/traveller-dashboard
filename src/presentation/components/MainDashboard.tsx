@@ -362,7 +362,7 @@ export default function MainDashboard({
         title="Your Characters"
         maxWidth="xl"
       >
-        <StandaloneCharacterManagement />
+        <StandaloneCharacterManagement campaigns={campaigns} />
       </Modal>
 
       {/* Account Settings Modal */}

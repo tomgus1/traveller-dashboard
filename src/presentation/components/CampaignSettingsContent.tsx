@@ -14,9 +14,12 @@ type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
 
 interface CampaignMember {
   id: string;
-  user_id: string;
+  user_id?: string;
+  userId?: string; // Support both formats
   roles: CampaignRoles;
-  user_profiles: {
+  email: string;
+  displayName?: string;
+  user_profiles?: {
     email: string;
     display_name: string | null;
   };
@@ -188,13 +191,12 @@ export default function CampaignSettingsContent({
   const handleUpdateMemberRole = async (newRoles: CampaignRoles) => {
     if (!editingMember) return;
 
-    setUpdatingMemberRole(editingMember.user_id);
+    const userId = editingMember.user_id || editingMember.userId;
+    if (!userId) return;
+
+    setUpdatingMemberRole(userId);
     try {
-      const result = await onUpdateMemberRole(
-        campaign.id,
-        editingMember.user_id,
-        newRoles
-      );
+      const result = await onUpdateMemberRole(campaign.id, userId, newRoles);
 
       if (result.success) {
         // Refresh member list to show updated role
@@ -379,10 +381,12 @@ export default function CampaignSettingsContent({
                 >
                   <div>
                     <p className="font-medium text-gray-900 dark:text-zinc-50">
-                      {member.user_profiles.display_name || "No Name"}
+                      {member.user_profiles?.display_name ||
+                        member.displayName ||
+                        "No Name"}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {member.user_profiles.email}
+                      {member.user_profiles?.email || member.email}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -406,9 +410,12 @@ export default function CampaignSettingsContent({
                       <Button
                         size="sm"
                         variant="danger"
-                        onClick={() =>
-                          onRemoveMember(campaign.id, member.user_id)
-                        }
+                        onClick={() => {
+                          const userId = member.user_id || member.userId;
+                          if (userId) {
+                            onRemoveMember(campaign.id, userId);
+                          }
+                        }}
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -502,7 +509,7 @@ export default function CampaignSettingsContent({
         <Modal
           isOpen={!!editingMember}
           onClose={() => setEditingMember(null)}
-          title={`Edit Roles - ${editingMember.user_profiles.display_name || editingMember.user_profiles.email}`}
+          title={`Edit Roles - ${editingMember.user_profiles?.display_name || editingMember.displayName || editingMember.user_profiles?.email || editingMember.email}`}
         >
           <div className="space-y-4">
             <div>

@@ -88,6 +88,13 @@ export interface CampaignRepository {
     campaignId: string,
     userId: string
   ): Promise<OperationResult<boolean>>;
+
+  // Character assignment
+  assignCharacterToCampaign(
+    characterId: string,
+    campaignId: string,
+    userId: string
+  ): Promise<OperationResult<void>>;
 }
 
 export interface CharacterRepository {

@@ -1,12 +1,17 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import type { SimpleCharacter } from "../../shared/constants/constants";
 import { SupabaseCampaignRepository } from "../../infrastructure/database";
+import { useAsyncList } from "./useAsyncOperation";
 
 // For now, we'll use a simple in-memory approach that can be easily migrated to database
 export function useCampaignCharacters(campaignId?: string) {
-  const [characters, setCharacters] = useState<SimpleCharacter[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    items: characters,
+    loading,
+    error,
+    execute,
+    setItems: setCharacters,
+  } = useAsyncList<SimpleCharacter, [string]>();
 
   const campaignRepo = useMemo(() => new SupabaseCampaignRepository(), []);
 
@@ -15,12 +20,9 @@ export function useCampaignCharacters(campaignId?: string) {
     async (cId: string) => {
       if (!cId) return;
 
-      setLoading(true);
-      setError(null);
-
-      try {
+      const loadOperation = async (campaignId: string) => {
         // Try to load from database first
-        const result = await campaignRepo.getCharactersByCampaign(cId);
+        const result = await campaignRepo.getCharactersByCampaign(campaignId);
 
         if (result.success && result.data && result.data.length > 0) {
           // Convert database characters to SimpleCharacter format
@@ -41,20 +43,16 @@ export function useCampaignCharacters(campaignId?: string) {
               ownerId: char.owner_id || undefined,
             })
           );
-          setCharacters(dbCharacters);
-        } else {
-          // No characters in database yet
-          setCharacters([]);
+          return { success: true, data: dbCharacters };
         }
-      } catch {
-        // Fallback to empty array on error
-        setCharacters([]);
-        setError("Database connection failed - no characters available");
-      } finally {
-        setLoading(false);
-      }
+
+        // No characters in database yet
+        return { success: true, data: [] };
+      };
+
+      await execute(loadOperation, cId);
     },
-    [campaignRepo]
+    [campaignRepo, execute]
   );
 
   // Create a new character
@@ -97,7 +95,7 @@ export function useCampaignCharacters(campaignId?: string) {
         };
       }
     },
-    [campaignId, campaignRepo]
+    [campaignId, campaignRepo, setCharacters]
   );
 
   // Delete a character
@@ -125,7 +123,7 @@ export function useCampaignCharacters(campaignId?: string) {
         };
       }
     },
-    [campaignRepo]
+    [campaignRepo, setCharacters]
   );
 
   // Load characters when campaign changes
@@ -135,7 +133,7 @@ export function useCampaignCharacters(campaignId?: string) {
     } else {
       setCharacters([]);
     }
-  }, [campaignId, loadCharacters]);
+  }, [campaignId, loadCharacters, setCharacters]);
 
   return {
     characters,

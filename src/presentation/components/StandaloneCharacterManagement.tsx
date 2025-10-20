@@ -4,8 +4,10 @@ import { useStandaloneCharacters } from "../hooks/useStandaloneCharacters";
 import { Button } from "./Button";
 import { Modal } from "./Modal";
 import FormField from "./FormField";
-import { UserPlus, Users, Trash2 } from "lucide-react";
+import { UserPlus, Users, Trash2, ArrowRight } from "lucide-react";
 import type { SimpleCharacter } from "../../shared/constants/constants";
+import type { CampaignWithMeta } from "../../core/entities";
+import { CharacterCampaignAssignment } from "./CharacterCampaignAssignment";
 
 interface StandaloneCharacterListProps {
   characters: SimpleCharacter[];
@@ -75,7 +77,13 @@ function StandaloneCharacterList({
   );
 }
 
-export default function StandaloneCharacterManagement() {
+interface StandaloneCharacterManagementProps {
+  campaigns?: CampaignWithMeta[];
+}
+
+export default function StandaloneCharacterManagement({
+  campaigns = [],
+}: StandaloneCharacterManagementProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [playerName, setPlayerName] = useState("");
   const [characterName, setCharacterName] = useState("");
@@ -87,6 +95,8 @@ export default function StandaloneCharacterManagement() {
     id: string;
     name: string;
   } | null>(null);
+
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
   const { user } = useAuth();
   const {
@@ -193,10 +203,22 @@ export default function StandaloneCharacterManagement() {
             Create characters that can be used in any campaign when invited.
           </p>
         </div>
-        <Button onClick={handleOpenModal} className="flex items-center gap-2">
-          <UserPlus className="w-4 h-4" />
-          Create Character
-        </Button>
+        <div className="flex gap-3">
+          {campaigns.length > 0 && (
+            <Button
+              onClick={() => setShowAssignmentModal(true)}
+              variant="ghost"
+              className="flex items-center gap-2"
+            >
+              <ArrowRight className="w-4 h-4" />
+              Assign to Campaigns
+            </Button>
+          )}
+          <Button onClick={handleOpenModal} className="flex items-center gap-2">
+            <UserPlus className="w-4 h-4" />
+            Create Character
+          </Button>
+        </div>
       </div>
 
       {/* Character List */}
@@ -300,6 +322,17 @@ export default function StandaloneCharacterManagement() {
           </div>
         </div>
       </Modal>
+
+      {/* Character Campaign Assignment Modal */}
+      <CharacterCampaignAssignment
+        isOpen={showAssignmentModal}
+        onClose={() => setShowAssignmentModal(false)}
+        campaigns={campaigns}
+        onAssignmentComplete={() => {
+          // Refresh the character list after assignment
+          refreshCharacters();
+        }}
+      />
     </div>
   );
 }

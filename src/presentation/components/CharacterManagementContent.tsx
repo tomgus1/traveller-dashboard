@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useCampaignCharacters } from "../hooks/useCampaignCharacters";
 import { useAuth } from "../hooks/useAuth";
-import { Edit3, Trash2, Users, UserPlus } from "lucide-react";
+import { useStandaloneCharacters } from "../hooks/useStandaloneCharacters";
+import { Edit3, Trash2, Users, UserPlus, ArrowRight } from "lucide-react";
 import { Button } from "./Button";
 import { Modal, ModalFooter } from "./Modal";
 import FormField from "./FormField";
 import type { CampaignWithMeta, CampaignRoles } from "../../core/entities";
+import { CharacterCampaignAssignment } from "./CharacterCampaignAssignment";
 
 interface CharacterManagementContentProps {
   campaigns: CampaignWithMeta[];
@@ -157,6 +159,122 @@ function CharacterList({
   );
 }
 
+interface StandaloneCharactersSectionProps {
+  campaigns: CampaignWithMeta[];
+  onShowAssignment: () => void;
+}
+
+function StandaloneCharactersSection({
+  campaigns,
+  onShowAssignment,
+}: StandaloneCharactersSectionProps) {
+  const { user } = useAuth();
+  const { characters, loading, error, refreshCharacters } =
+    useStandaloneCharacters(user?.id);
+
+  // Filter campaigns where user can assign characters (admin or player)
+  const eligibleCampaigns = campaigns.filter(
+    (campaign) => campaign.userRoles.isAdmin || campaign.userRoles.isPlayer
+  );
+
+  if (loading) {
+    return (
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 mb-4">
+          Your Standalone Characters
+        </h3>
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-3/4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded w-1/2"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="card">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 mb-4">
+          Your Standalone Characters
+        </h3>
+        <div className="text-red-600 dark:text-red-400 text-sm">
+          Error loading characters: {error}
+          <Button
+            onClick={refreshCharacters}
+            variant="ghost"
+            size="sm"
+            className="ml-2"
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50">
+          Your Standalone Characters
+        </h3>
+        {characters.length > 0 && eligibleCampaigns.length > 0 && (
+          <Button
+            onClick={onShowAssignment}
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <ArrowRight className="w-4 h-4" />
+            Assign to Campaigns
+          </Button>
+        )}
+      </div>
+
+      {characters.length === 0 ? (
+        <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+          <Users className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+          <p className="text-sm">No standalone characters yet.</p>
+          <p className="text-xs mt-1">
+            Characters created outside of campaigns will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {characters.map((character) => (
+            <div
+              key={character.id}
+              className="border rounded-lg p-3 bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700"
+            >
+              <div className="font-medium text-gray-900 dark:text-zinc-50 text-sm mb-1">
+                {character.displayName}
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                Player: {character.playerName}
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                Character: {character.characterName}
+              </div>
+              <div className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                Available for assignment
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {characters.length > 0 && eligibleCampaigns.length === 0 && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-3">
+          <p className="text-amber-600 dark:text-amber-400 text-sm">
+            You have {characters.length} standalone character(s), but you're not
+            a member of any campaigns where you can assign them.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CharacterManagementContent({
   campaigns,
   onViewCampaign,
@@ -179,6 +297,9 @@ export default function CharacterManagementContent({
     campaignId: string;
   } | null>(null);
   const [deletingCharacter, setDeletingCharacter] = useState(false);
+
+  // Assignment modal state
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
   // Get characters hook for the selected campaign (only when needed)
   const { createCharacter } = useCampaignCharacters(
@@ -328,6 +449,12 @@ export default function CharacterManagementContent({
         )}
       </div>
 
+      {/* Standalone Characters */}
+      <StandaloneCharactersSection
+        campaigns={campaigns}
+        onShowAssignment={() => setShowAssignmentModal(true)}
+      />
+
       {/* Characters by Campaign */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 mb-4">
@@ -464,6 +591,17 @@ export default function CharacterManagementContent({
           />
         </div>
       </Modal>
+
+      {/* Character Campaign Assignment Modal */}
+      <CharacterCampaignAssignment
+        isOpen={showAssignmentModal}
+        onClose={() => setShowAssignmentModal(false)}
+        campaigns={campaigns}
+        onAssignmentComplete={() => {
+          // This will trigger a refresh of the standalone characters section
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }

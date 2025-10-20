@@ -1,50 +1,50 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "./useAuth";
 import { getCampaignRepository } from "../../core/container";
 import type { CampaignInvitation } from "../../core/entities";
+import { useAsyncList } from "./useAsyncOperation";
 
 export const useCampaignInvitations = () => {
   const { user } = useAuth();
-  const [invitations, setInvitations] = useState<CampaignInvitation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    items: invitations,
+    loading,
+    error,
+    execute,
+    setItems: setInvitations,
+  } = useAsyncList<CampaignInvitation, []>();
 
-  const campaignRepository = getCampaignRepository();
+  const campaignRepository = useMemo(() => getCampaignRepository(), []);
 
   const loadInvitations = useCallback(async () => {
     if (!user?.email) {
-      setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-
+    const loadOperation = async () => {
       // Use repository method with proper error handling for missing RPC functions
       const result = await campaignRepository.getUserInvitations(user.email);
 
       if (result.success) {
-        setInvitations(result.data || []);
-      } else {
-        // If the RPC function doesn't exist yet, show empty state without error
-        if (
-          result.error?.includes("function") &&
-          result.error?.includes("does not exist")
-        ) {
-          setInvitations([]);
-        } else {
-          setError(result.error || "Failed to load invitations");
-        }
+        return { success: true, data: result.data || [] };
       }
-    } catch {
-      // Handle case where RPC functions aren't available yet
-      setInvitations([]);
-      setError(null); // Don't show error for missing functions
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.email, campaignRepository]);
+
+      // If the RPC function doesn't exist yet, show empty state without error
+      if (
+        result.error?.includes("function") &&
+        result.error?.includes("does not exist")
+      ) {
+        return { success: true, data: [] };
+      }
+
+      return {
+        success: false,
+        error: result.error || "Failed to load invitations",
+      };
+    };
+
+    await execute(loadOperation);
+  }, [user?.email, campaignRepository, execute]);
 
   const acceptInvitation = useCallback(
     async (invitationId: string) => {
@@ -68,7 +68,7 @@ export const useCampaignInvitations = () => {
         return { success: false, error: "Failed to accept invitation" };
       }
     },
-    [user, campaignRepository]
+    [user, campaignRepository, setInvitations]
   );
 
   const declineInvitation = useCallback(
@@ -89,7 +89,7 @@ export const useCampaignInvitations = () => {
         return { success: false, error: "Failed to decline invitation" };
       }
     },
-    [campaignRepository]
+    [campaignRepository, setInvitations]
   );
 
   const assignCharacterAndAccept = useCallback(

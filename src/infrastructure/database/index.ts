@@ -1094,6 +1094,69 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     }
   }
 
+  async assignCharacterToCampaign(
+    characterId: string,
+    campaignId: string,
+    userId: string
+  ): Promise<OperationResult<void>> {
+    try {
+      // First check if the user owns this character
+      const { data: character, error: fetchError } = await supabase
+        .from("characters")
+        .select("owner_id, campaign_id")
+        .eq("id", characterId)
+        .single();
+
+      if (fetchError || !character) {
+        return { success: false, error: "Character not found" };
+      }
+
+      if (character.owner_id !== userId) {
+        return {
+          success: false,
+          error: "You don't have permission to move this character",
+        };
+      }
+
+      // Check if character is already in a campaign
+      if (character.campaign_id !== null) {
+        return {
+          success: false,
+          error: "Character is already assigned to a campaign",
+        };
+      }
+
+      // Verify user is a member of the target campaign
+      const { data: membership, error: membershipError } = await supabase
+        .from("campaign_members")
+        .select("id")
+        .eq("campaign_id", campaignId)
+        .eq("user_id", userId)
+        .single();
+
+      if (membershipError || !membership) {
+        return {
+          success: false,
+          error: "You are not a member of this campaign",
+        };
+      }
+
+      // Update the character to assign it to the campaign
+      const { error: updateError } = await supabase
+        .from("characters")
+        .update({ campaign_id: campaignId })
+        .eq("id", characterId);
+
+      if (updateError) {
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
   // Campaign Invitation Management
   async createCampaignInvitation(
     campaignId: string,
