@@ -505,18 +505,18 @@ BEGIN
   RETURNING id INTO new_character_id;
   
   SELECT json_build_object(
-    'id', id,
-    'campaign_id', campaign_id,
-    'name', name,
-    'player_name', player_name,
-    'character_name', character_name,
-    'owner_id', owner_id,
-    'created_at', created_at,
-    'updated_at', updated_at
+    'id', c.id,
+    'campaign_id', c.campaign_id,
+    'name', c.name,
+    'player_name', c.player_name,
+    'character_name', c.character_name,
+    'owner_id', c.owner_id,
+    'created_at', c.created_at,
+    'updated_at', c.updated_at
   )
   INTO result
-  FROM characters
-  WHERE id = new_character_id;
+  FROM characters c
+  WHERE c.id = new_character_id;
   
   RETURN result;
 END;

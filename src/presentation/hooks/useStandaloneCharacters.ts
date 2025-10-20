@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { SimpleCharacter } from "../../shared/constants/constants";
+import { getCampaignRepository } from "../../core/container";
 
 export function useStandaloneCharacters(userId?: string) {
   const [characters, setCharacters] = useState<SimpleCharacter[]>([]);
@@ -14,9 +15,33 @@ export function useStandaloneCharacters(userId?: string) {
     setError(null);
 
     try {
-      // TODO: Implement database loading once schema types are updated
-      // For now, return empty array
-      setCharacters([]);
+      const campaignRepo = getCampaignRepository();
+      const result = await campaignRepo.getStandaloneCharacters(uId);
+
+      if (result.success && result.data) {
+        // Transform database results to SimpleCharacter format
+        const transformedCharacters: SimpleCharacter[] = result.data.map(
+          (char: {
+            id: string;
+            name: string;
+            player_name?: string;
+            character_name?: string;
+            owner_id: string;
+          }) => ({
+            id: char.id,
+            campaignId: null, // Always null for standalone characters
+            displayName: char.name,
+            playerName: char.player_name || "",
+            characterName: char.character_name || "",
+            ownerId: char.owner_id,
+          })
+        );
+
+        setCharacters(transformedCharacters);
+      } else {
+        setError(result.error || "Failed to load characters");
+        setCharacters([]);
+      }
     } catch {
       setError("Database connection failed - no characters available");
       setCharacters([]);
@@ -29,18 +54,37 @@ export function useStandaloneCharacters(userId?: string) {
   const createStandaloneCharacter = useCallback(
     async (playerName: string, characterName: string, uId: string) => {
       try {
-        // TODO: Implement database call once schema types are updated
-        // For now, return success but don't actually create in database
-        const newCharacter = {
-          id: crypto.randomUUID(),
-          campaignId: null,
-          displayName: `${playerName} – ${characterName}`,
-          playerName,
-          characterName,
-          ownerId: uId,
-        };
+        const campaignRepo = getCampaignRepository();
+        const displayName = `${playerName} – ${characterName}`;
 
-        return { success: true, data: newCharacter };
+        const result = await campaignRepo.createStandaloneCharacter(
+          uId,
+          displayName,
+          playerName,
+          characterName
+        );
+
+        if (result.success && result.data) {
+          // Transform the result to SimpleCharacter format
+          const newCharacter: SimpleCharacter = {
+            id: result.data.id,
+            campaignId: null,
+            displayName: result.data.name,
+            playerName: result.data.player_name || playerName,
+            characterName: result.data.character_name || characterName,
+            ownerId: result.data.owner_id,
+          };
+
+          // Add to local state for immediate UI update
+          setCharacters((prev) => [newCharacter, ...prev]);
+
+          return { success: true, data: newCharacter };
+        }
+
+        return {
+          success: false,
+          error: result.error || "Failed to create character",
+        };
       } catch {
         return {
           success: false,
@@ -52,18 +96,36 @@ export function useStandaloneCharacters(userId?: string) {
   );
 
   // Delete a standalone character
-  const deleteStandaloneCharacter = useCallback(async () => {
-    try {
-      // TODO: Implement database deletion once schema types are updated
-      // For now, return success
-      return { success: true };
-    } catch {
-      return {
-        success: false,
-        error: "An error occurred while deleting the character",
-      };
-    }
-  }, []);
+  const deleteStandaloneCharacter = useCallback(
+    async (characterId: string, uId: string) => {
+      try {
+        const campaignRepo = getCampaignRepository();
+        const result = await campaignRepo.deleteStandaloneCharacter(
+          characterId,
+          uId
+        );
+
+        if (result.success) {
+          // Remove from local state for immediate UI update
+          setCharacters((prev) =>
+            prev.filter((char) => char.id !== characterId)
+          );
+          return { success: true };
+        }
+
+        return {
+          success: false,
+          error: result.error || "Failed to delete character",
+        };
+      } catch {
+        return {
+          success: false,
+          error: "An error occurred while deleting the character",
+        };
+      }
+    },
+    []
+  );
 
   // Load characters when userId changes
   useEffect(() => {

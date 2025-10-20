@@ -960,9 +960,139 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     }
   }
 
-  // TODO: Implement standalone character creation once types are updated
-  // For now, we'll create standalone characters through the campaign flow
-  // with campaign_id = null handled at the application level
+  // Standalone Character Management
+  async createStandaloneCharacter(
+    userId: string,
+    displayName: string,
+    playerName?: string,
+    characterName?: string
+  ): Promise<
+    OperationResult<{
+      id: string;
+      name: string;
+      player_name?: string;
+      character_name?: string;
+      owner_id: string;
+      created_at: string;
+      updated_at: string;
+    }>
+  > {
+    try {
+      const { data, error } = await supabase.rpc(
+        "create_standalone_character",
+        {
+          user_id: userId,
+          char_name: displayName,
+          player_name: playerName || undefined,
+          character_name: characterName || undefined,
+        }
+      );
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return {
+        success: true,
+        data: data as {
+          id: string;
+          name: string;
+          player_name?: string;
+          character_name?: string;
+          owner_id: string;
+          created_at: string;
+          updated_at: string;
+        },
+      };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async getStandaloneCharacters(userId: string): Promise<
+    OperationResult<
+      {
+        id: string;
+        name: string;
+        player_name?: string;
+        character_name?: string;
+        owner_id: string;
+        created_at: string;
+        updated_at: string;
+      }[]
+    >
+  > {
+    try {
+      const { data, error } = await supabase
+        .from("characters")
+        .select("*")
+        .eq("owner_id", userId)
+        .is("campaign_id", null)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Transform null values to undefined for type compatibility
+      const transformedData = (data || []).map((char) => ({
+        id: char.id,
+        name: char.name,
+        player_name: char.player_name || undefined,
+        character_name: char.character_name || undefined,
+        owner_id: char.owner_id || "",
+        created_at: char.created_at || "",
+        updated_at: char.updated_at || "",
+      }));
+
+      return { success: true, data: transformedData };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async deleteStandaloneCharacter(
+    characterId: string,
+    userId: string
+  ): Promise<OperationResult<void>> {
+    try {
+      // First check if the user owns this standalone character
+      const { data: character, error: fetchError } = await supabase
+        .from("characters")
+        .select("owner_id, campaign_id")
+        .eq("id", characterId)
+        .single();
+
+      if (fetchError || !character) {
+        return { success: false, error: "Character not found" };
+      }
+
+      // Check if it's a standalone character and user owns it
+      if (character.campaign_id !== null) {
+        return { success: false, error: "This is not a standalone character" };
+      }
+
+      if (character.owner_id !== userId) {
+        return {
+          success: false,
+          error: "You don't have permission to delete this character",
+        };
+      }
+
+      const { error: deleteError } = await supabase
+        .from("characters")
+        .delete()
+        .eq("id", characterId);
+
+      if (deleteError) {
+        return { success: false, error: deleteError.message };
+      }
+
+      return { success: true };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
 
   // Campaign Invitation Management
   async createCampaignInvitation(
@@ -1081,7 +1211,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       // First check if the user owns this character or has permission to delete it
       const { data: character, error: fetchError } = await supabase
         .from("characters")
-        .select("*, campaigns!inner(created_by)")
+        .select("owner_id, campaign_id, campaigns!inner(created_by)")
         .eq("id", characterId)
         .single();
 

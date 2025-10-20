@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useStandaloneCharacters } from "../hooks/useStandaloneCharacters";
 import { Button } from "./Button";
 import { Modal } from "./Modal";
 import FormField from "./FormField";
@@ -81,8 +82,6 @@ export default function StandaloneCharacterManagement() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock data for now until database is updated
-  const [characters, setCharacters] = useState<SimpleCharacter[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [characterToDelete, setCharacterToDelete] = useState<{
     id: string;
@@ -90,34 +89,55 @@ export default function StandaloneCharacterManagement() {
   } | null>(null);
 
   const { user } = useAuth();
+  const {
+    characters,
+    loading,
+    error: hookError,
+    createCharacter,
+    deleteCharacter,
+    refreshCharacters,
+  } = useStandaloneCharacters(user?.id);
 
   const handleCreateCharacter = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !playerName.trim() || !characterName.trim()) {
-      setError("Please fill in both player name and character name");
+
+    // Clear any existing errors first
+    setError(null);
+
+    // Validate user authentication
+    if (!user) {
+      setError("You must be logged in to create a character");
+      return;
+    }
+
+    // Validate required fields
+    if (!playerName.trim()) {
+      setError("Player name is required");
+      return;
+    }
+
+    if (!characterName.trim()) {
+      setError("Character name is required");
       return;
     }
 
     setCreating(true);
-    setError(null);
 
     try {
-      // For now, just add to local state - will implement database call later
-      const newCharacter: SimpleCharacter = {
-        id: crypto.randomUUID(),
-        campaignId: null, // Standalone character
-        displayName: `${playerName.trim()} – ${characterName.trim()}`,
-        playerName: playerName.trim(),
-        characterName: characterName.trim(),
-        ownerId: user.id,
-      };
+      const result = await createCharacter(
+        playerName.trim(),
+        characterName.trim(),
+        user.id
+      );
 
-      setCharacters((prev) => [...prev, newCharacter]);
-      setShowCreateModal(false);
-      setPlayerName("");
-      setCharacterName("");
-
-      // TODO: Implement actual database call once schema is updated
+      if (result.success) {
+        setShowCreateModal(false);
+        setPlayerName("");
+        setCharacterName("");
+        setError(null);
+      } else {
+        setError(result.error || "Failed to create character");
+      }
     } catch {
       setError("An unexpected error occurred");
     } finally {
@@ -130,20 +150,32 @@ export default function StandaloneCharacterManagement() {
     setShowDeleteModal(true);
   };
 
-  const handleDeleteConfirm = () => {
-    if (characterToDelete) {
-      setCharacters((prev) =>
-        prev.filter((char) => char.id !== characterToDelete.id)
-      );
-      setShowDeleteModal(false);
-      setCharacterToDelete(null);
+  const handleDeleteConfirm = async () => {
+    if (characterToDelete && user) {
+      try {
+        const result = await deleteCharacter(characterToDelete.id, user.id);
 
-      // TODO: Implement actual database call once schema is updated
+        if (result.success) {
+          setShowDeleteModal(false);
+          setCharacterToDelete(null);
+        } else {
+          setError(result.error || "Failed to delete character");
+        }
+      } catch {
+        setError("An unexpected error occurred while deleting character");
+      }
     }
   };
 
   const handleCloseModal = () => {
     setShowCreateModal(false);
+    setPlayerName("");
+    setCharacterName("");
+    setError(null);
+  };
+
+  const handleOpenModal = () => {
+    setShowCreateModal(true);
     setPlayerName("");
     setCharacterName("");
     setError(null);
@@ -161,10 +193,7 @@ export default function StandaloneCharacterManagement() {
             Create characters that can be used in any campaign when invited.
           </p>
         </div>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2"
-        >
+        <Button onClick={handleOpenModal} className="flex items-center gap-2">
           <UserPlus className="w-4 h-4" />
           Create Character
         </Button>
@@ -172,11 +201,33 @@ export default function StandaloneCharacterManagement() {
 
       {/* Character List */}
       <div className="card">
-        <StandaloneCharacterList
-          characters={characters}
-          currentUserId={user?.id}
-          onDeleteCharacter={handleDeleteRequest}
-        />
+        {loading && (
+          <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+            <p>Loading characters...</p>
+          </div>
+        )}
+
+        {!loading && hookError && (
+          <div className="text-center py-6 text-red-600 dark:text-red-400">
+            <p>Error: {hookError}</p>
+            <Button
+              onClick={refreshCharacters}
+              variant="ghost"
+              size="sm"
+              className="mt-2"
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {!loading && !hookError && (
+          <StandaloneCharacterList
+            characters={characters}
+            currentUserId={user?.id}
+            onDeleteCharacter={handleDeleteRequest}
+          />
+        )}
       </div>
 
       {/* Create Character Modal */}
