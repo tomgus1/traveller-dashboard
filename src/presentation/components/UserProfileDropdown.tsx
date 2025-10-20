@@ -51,7 +51,7 @@ export default function UserProfileDropdown({
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 hover:shadow-sm rounded-lg transition-all duration-200"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
@@ -96,9 +96,9 @@ export default function UserProfileDropdown({
                 setIsOpen(false);
                 onSettings();
               }}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200"
             >
-              <Settings className="w-4 h-4 mr-3" />
+              <Settings className="w-4 h-4 mr-3 transition-transform duration-200 hover:rotate-45" />
               Account Settings
             </button>
 
@@ -107,9 +107,9 @@ export default function UserProfileDropdown({
                 setIsOpen(false);
                 onSignOut();
               }}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 transition-all duration-200"
             >
-              <LogOut className="w-4 h-4 mr-3" />
+              <LogOut className="w-4 h-4 mr-3 transition-transform duration-200 hover:translate-x-1" />
               Sign Out
             </button>
           </div>

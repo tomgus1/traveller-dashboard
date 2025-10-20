@@ -13,10 +13,9 @@ interface CharacterManagementProps {
 
 interface CharacterListProps {
   characters: SimpleCharacter[];
-  currentUserId?: string;
 }
 
-function CharacterList({ characters, currentUserId }: CharacterListProps) {
+function CharacterList({ characters }: CharacterListProps) {
   if (characters.length === 0) {
     return (
       <p className="text-gray-500 text-sm">
@@ -49,20 +48,7 @@ function CharacterList({ characters, currentUserId }: CharacterListProps) {
             )}
           </div>
 
-          {character.ownerId === currentUserId &&
-            !character.id.startsWith("legacy-") && (
-              <div className="flex gap-2">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => {
-                    // TODO: Implement edit functionality
-                  }}
-                >
-                  Edit
-                </Button>
-              </div>
-            )}
+          {/* Edit functionality can be added in future iterations */}
         </div>
       ))}
     </div>
@@ -139,7 +125,7 @@ export default function CharacterManagement({
           </Button>
         </div>
 
-        <CharacterList characters={characters} currentUserId={user?.id} />
+        <CharacterList characters={characters} />
       </div>
 
       {/* Create Character Modal */}

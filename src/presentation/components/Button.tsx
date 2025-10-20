@@ -18,10 +18,12 @@ export function Button({
 
   const variantClasses = {
     default: "",
-    primary: "bg-blue-600 hover:bg-blue-700 text-white border-blue-600",
-    danger: "bg-red-600 hover:bg-red-700 text-white border-red-600",
+    primary:
+      "bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 text-white border-blue-600 transition-all duration-200",
+    danger:
+      "bg-red-600 hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5 text-white border-red-600 transition-all duration-200",
     ghost:
-      "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20",
+      "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-sm transition-all duration-200",
   };
 
   const sizeClasses = {
@@ -60,9 +62,9 @@ export function IconButton({
   ...props
 }: IconButtonProps) {
   const variantClasses = {
-    default: "btn p-2",
+    default: "btn p-2 hover:scale-110 transition-all duration-200",
     danger:
-      "btn p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20",
+      "btn p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:scale-110 transition-all duration-200",
   };
 
   return (
