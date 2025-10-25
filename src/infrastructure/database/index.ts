@@ -750,31 +750,37 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .single();
 
       if (profileError || !profile) {
-        // User not found - create a pending invitation instead
-        const userId = (await supabase.auth.getUser()).data.user?.id;
-        if (!userId) {
-          return {
-            success: false,
-            error: "You must be logged in to send invitations",
-          };
-        }
+        // User not found - use Supabase's built-in invitation system
+        // Get campaign info for the invitation
+        const { data: campaign } = await supabase
+          .from("campaigns")
+          .select("name")
+          .eq("id", campaignId)
+          .single();
 
-        const invitationResult = await this.createPendingInvitation(
-          campaignId,
+        const redirectTo = `${window.location.origin}?invited_to_campaign=${campaignId}&role=${role}`;
+        
+        const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
           email,
-          role,
-          userId
+          {
+            redirectTo,
+            data: {
+              campaign_id: campaignId,
+              campaign_name: campaign?.name || "Campaign",
+              role,
+            },
+          }
         );
 
-        if (invitationResult.success) {
+        if (inviteError) {
           return {
-            success: true,
+            success: false,
+            error: `Failed to send invitation: ${inviteError.message}`,
           };
         }
 
         return {
-          success: false,
-          error: invitationResult.error || "Failed to send invitation",
+          success: true,
         };
       }
 
