@@ -1,9 +1,36 @@
 # Traveller Campaign Dashboard
 
-A lightweight, browser-based dashboard for **Mongoose Traveller 2e** campaigns.  
-Track finances, cargo, and character inventories with **clean architecture** following SOLID/DRY/KISS principles.
+A browser-based dashboard for **Mongoose Traveller 2e** campaigns with **multi-user support**.  
+Track finances, cargo, character inventories, and collaborate with your gaming group through campaign invitations.
 
-**Features**: Party/ship finances • Cargo trading • Character ledgers/inventory/ammo • XLSX import/export • Offline-ready
+**Features**:
+
+- 🎯 Multi-user campaigns with role-based access (Admin/GM/Player)
+- 💰 Party/ship finances & cargo trading
+- 🎭 Character management (ledgers/inventory/weapons/armour/ammo)
+- 📧 Email invitations via Brevo (300 emails/day free tier)
+- 💾 Supabase backend with PostgreSQL + Row Level Security
+- 🔒 Secure authentication with email/password
+- 📱 Responsive design with dark mode
+
+---
+
+## 🚀 Quick Setup
+
+### Database Setup ✅
+
+Fresh database schema with all features ready.  
+Run `database/fresh-start.sql` in two parts (see file header comments).
+
+### Email Integration ✅
+
+Brevo email service configured and working (300 emails/day free tier).
+
+**Setup Guide:** [QUICK_START.md](./QUICK_START.md) - 5-minute configuration  
+**Detailed Info:** [BREVO_SETUP.md](./BREVO_SETUP.md) - Advanced options  
+**Troubleshooting:** [BREVO_TROUBLESHOOTING.md](./BREVO_TROUBLESHOOTING.md) - Common issues
+
+**Note:** First invitation emails may arrive in spam folder (normal for new senders).
 
 ---
 

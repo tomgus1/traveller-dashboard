@@ -1,22 +1,14 @@
 # Database Setup# Database Setup - Traveller Dashboard# Database Setup - Traveller Dashboard
 
-
-
 Complete database setup for the Traveller Dashboard.This directory contains the complete database setup for the Traveller Dashboard application.This directory contains the clean, minimal database setup for the Traveller Dashboard application.
-
-
 
 ## Quick Setup## Files## What's Here
 
-
-
 Run these files **in order** in your Supabase SQL Editor:- **`fresh-start.sql`** - Complete database setup from scratch (USE THIS!)**`setup.sql`** - The ONLY file you need! Contains complete database schema, policies, and email invitation system.
-
-
 
 ### 1. Create Tables- `README.md` - This documentation file
 
-```sql
+````sql
 
 -- File: 01-create-tables.sql**`README.md`** - This documentation file.
 
@@ -44,9 +36,9 @@ Creates:## Quick Setup
 
 -- Run this after step 1 completes   ```sql
 
-```
+````
 
-   ```
+`````
 
 Adds:
 
@@ -72,7 +64,7 @@ Splitting prevents **"relation does not exist"** errors. Part 1 creates all tabl
 
 ### Tables- ✅ Enable email invitations (compatible with Supabase Auth) - Customize the "Invite user" template for campaign invitations
 
-  - Enable SMTP settings if you want custom email delivery
+- Enable SMTP settings if you want custom email delivery
 
 **Core:**
 
@@ -282,23 +274,23 @@ The application uses 4 core tables plus character data tables:
 
 - All functions have correct parameter names matching app expectations1. **`user_profiles`** - User profile management and metadata
 
-   - Links to Supabase auth users
-   - Stores display names, usernames, and profile completion status
-   - Includes unique username constraints and validation
+- Links to Supabase auth users
+- Stores display names, usernames, and profile completion status
+- Includes unique username constraints and validation
 
 2. **`campaigns`** - Campaign management and metadata
-   - Campaign name and description
-   - Created by user reference
-   - Timestamps for tracking
+- Campaign name and description
+- Created by user reference
+- Timestamps for tracking
 
 3. **`campaign_members`** - User roles and membership in campaigns
-   - Links users to campaigns with roles (admin, gm, player)
-   - Unique constraint to prevent duplicate memberships
+- Links users to campaigns with roles (admin, gm, player)
+- Unique constraint to prevent duplicate memberships
 
 4. **`characters`** - Player characters within campaigns
-   - Character names (both player name and character name)
-   - Linked to campaigns and owned by users
-   - Campaign-specific character management
+- Character names (both player name and character name)
+- Linked to campaigns and owned by users
+- Campaign-specific character management
 
 ### Character Data Tables
 
@@ -389,4 +381,4 @@ This database supports the clean architecture pattern used in the application:
 - **Presentation Layer** - React components and hooks
 
 The database schema perfectly matches what the application actually needs, nothing more, nothing less.
-````
+`````
