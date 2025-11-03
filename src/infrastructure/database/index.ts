@@ -143,8 +143,11 @@ export class SupabaseAuthRepository implements AuthRepository {
     password: string
   ): Promise<OperationResult<User>> {
     try {
-      // Get the current full URL for the redirect (handles both localhost and GitHub Pages)
-      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      // Build correct redirect URL for both local and GitHub Pages
+      const origin = window.location.origin;
+      const redirectTo = origin.includes("github.io")
+        ? `${origin}/` // GitHub Pages: https://tomgus1.github.io/traveller-dashboard/
+        : `${origin}/traveller-dashboard/`; // Local: http://localhost:5173/traveller-dashboard/
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -750,46 +753,54 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .single();
 
       if (profileError || !profile) {
-        // User not found - create invitation record for when they sign up
+        // User not found - send invitation via Edge Function
+        // The Edge Function will create the database record AND send the email
         const currentUser = await supabase.auth.getUser();
         if (!currentUser.data.user) {
           return {
             success: false,
-            error: 'You must be logged in to send invitations'
+            error: "You must be logged in to send invitations",
           };
         }
 
-        const { error } = await supabase
-          .from("campaign_invitations")
-          .insert({
-            campaign_id: campaignId,
-            invited_email: email,
-            invited_by: currentUser.data.user.id,
-            roles_offered: {
-              isAdmin: role === 'admin',
-              isGm: role === 'gm',
-              isPlayer: role === 'player'
-            },
-            status: 'pending',
-            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-          });
+        try {
+          const { data, error: emailError } = await supabase.functions.invoke(
+            "invite-user",
+            {
+              body: {
+                email,
+                campaignId,
+                role,
+                campaignName: undefined, // Will be fetched in Edge Function
+              },
+            }
+          );
 
-        if (error) {
-          if (error.code === '23505') {
+          if (emailError) {
             return {
               success: false,
-              error: 'An invitation for this email already exists for this campaign'
+              error: `Failed to send invitation: ${emailError.message || JSON.stringify(emailError)}`,
             };
           }
+
+          if (data?.error) {
+            // Edge Function returned an error in the response
+            return {
+              success: false,
+              error: `${data.error}${data.details ? `: ${data.details}` : ""}`,
+            };
+          }
+
+          // Success - both database record and email sent by Edge Function
+          return {
+            success: true,
+          };
+        } catch (err) {
           return {
             success: false,
-            error: 'Failed to create invitation'
+            error: `Failed to send invitation: ${err instanceof Error ? err.message : "Unknown error"}`,
           };
         }
-
-        return {
-          success: true,
-        };
       }
 
       // Check if user is already a member
