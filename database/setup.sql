@@ -522,6 +522,226 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- ===== EMAIL INVITATION FUNCTIONS =====
+
+-- Function to handle invitation acceptance on user signup
+CREATE OR REPLACE FUNCTION public.handle_invitation_acceptance()
+RETURNS TRIGGER AS $$
+DECLARE
+  invitation_record RECORD;
+BEGIN
+  -- Check for pending invitations for this email
+  FOR invitation_record IN 
+    SELECT campaign_id, roles_offered
+    FROM campaign_invitations
+    WHERE invited_email = NEW.email 
+    AND status = 'pending'
+    AND (expires_at IS NULL OR expires_at > NOW())
+  LOOP
+    -- Add user to campaign with the invited roles
+    INSERT INTO campaign_members (
+      campaign_id,
+      user_id,
+      is_admin,
+      is_gm,
+      is_player
+    ) VALUES (
+      invitation_record.campaign_id,
+      NEW.id,
+      (invitation_record.roles_offered->>'isAdmin')::boolean,
+      (invitation_record.roles_offered->>'isGm')::boolean,
+      (invitation_record.roles_offered->>'isPlayer')::boolean
+    )
+    ON CONFLICT (campaign_id, user_id) DO NOTHING;
+    
+    -- Mark invitation as accepted
+    UPDATE campaign_invitations
+    SET status = 'accepted', accepted_at = NOW()
+    WHERE invited_email = NEW.email 
+    AND campaign_id = invitation_record.campaign_id
+    AND status = 'pending';
+  END LOOP;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger to handle invitation acceptance on new user profile creation
+DROP TRIGGER IF EXISTS on_user_profile_invitation_check ON user_profiles;
+CREATE TRIGGER on_user_profile_invitation_check
+  AFTER INSERT ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION public.handle_invitation_acceptance();
+
+-- Function to accept campaign invitation manually
+CREATE OR REPLACE FUNCTION accept_campaign_invitation(
+  p_invitation_id UUID
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_current_user_id UUID;
+  v_invitation RECORD;
+BEGIN
+  -- Get current user ID
+  v_current_user_id := auth.uid();
+  
+  IF v_current_user_id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Authentication required'
+    );
+  END IF;
+
+  -- Get invitation details
+  SELECT * INTO v_invitation
+  FROM campaign_invitations
+  WHERE id = p_invitation_id
+  AND invited_email = (SELECT email FROM auth.users WHERE id = v_current_user_id)
+  AND status = 'pending'
+  AND (expires_at IS NULL OR expires_at > NOW());
+
+  IF v_invitation.id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Invitation not found or already processed'
+    );
+  END IF;
+
+  -- Add user to campaign
+  INSERT INTO campaign_members (
+    campaign_id,
+    user_id,
+    is_admin,
+    is_gm,
+    is_player
+  ) VALUES (
+    v_invitation.campaign_id,
+    v_current_user_id,
+    (v_invitation.roles_offered->>'isAdmin')::boolean,
+    (v_invitation.roles_offered->>'isGm')::boolean,
+    (v_invitation.roles_offered->>'isPlayer')::boolean
+  )
+  ON CONFLICT (campaign_id, user_id) DO NOTHING;
+
+  -- Mark invitation as accepted
+  UPDATE campaign_invitations
+  SET status = 'accepted', accepted_at = NOW()
+  WHERE id = p_invitation_id;
+
+  RETURN json_build_object(
+    'success', true,
+    'message', 'Invitation accepted successfully'
+  );
+
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Database error: ' || SQLERRM
+    );
+END;
+$$;
+
+-- Function to decline campaign invitation
+CREATE OR REPLACE FUNCTION decline_campaign_invitation(
+  p_invitation_id UUID
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_current_user_id UUID;
+BEGIN
+  -- Get current user ID
+  v_current_user_id := auth.uid();
+  
+  IF v_current_user_id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Authentication required'
+    );
+  END IF;
+
+  -- Update invitation status
+  UPDATE campaign_invitations
+  SET status = 'declined'
+  WHERE id = p_invitation_id
+  AND invited_email = (SELECT email FROM auth.users WHERE id = v_current_user_id)
+  AND status = 'pending';
+
+  IF NOT FOUND THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Invitation not found or already processed'
+    );
+  END IF;
+
+  RETURN json_build_object(
+    'success', true,
+    'message', 'Invitation declined'
+  );
+
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Database error: ' || SQLERRM
+    );
+END;
+$$;
+
+-- Function to get user's pending invitations
+CREATE OR REPLACE FUNCTION get_user_invitations(
+  p_email TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+  id UUID,
+  campaign_id UUID,
+  campaign_name TEXT,
+  invited_by_name TEXT,
+  roles_offered JSONB,
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_email TEXT;
+BEGIN
+  -- Use provided email or get from current user
+  IF p_email IS NOT NULL THEN
+    v_email := p_email;
+  ELSE
+    SELECT email INTO v_email FROM auth.users WHERE id = auth.uid();
+  END IF;
+
+  IF v_email IS NULL THEN
+    RETURN;
+  END IF;
+
+  RETURN QUERY
+  SELECT 
+    ci.id,
+    ci.campaign_id,
+    c.name as campaign_name,
+    up.display_name as invited_by_name,
+    ci.roles_offered,
+    ci.expires_at,
+    ci.created_at
+  FROM campaign_invitations ci
+  JOIN campaigns c ON ci.campaign_id = c.id
+  JOIN user_profiles up ON ci.invited_by = up.id
+  WHERE ci.invited_email = v_email
+  AND ci.status = 'pending'
+  AND (ci.expires_at IS NULL OR ci.expires_at > NOW())
+  ORDER BY ci.created_at DESC;
+END;
+$$;
+
 -- ===== DATA MIGRATION FOR MULTIPLE ROLES =====
 -- Populate new role columns from existing single role column
 -- This ensures existing data works with the new multiple role system

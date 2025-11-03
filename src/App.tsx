@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./presentation/hooks/useAuth";
+import { useAuthInvitationHandler } from "./hooks/useAuthInvitationHandler";
 import AuthForm from "./presentation/components/AuthForm";
 import ProfileSetup from "./presentation/components/ProfileSetup";
 import MainDashboard from "./presentation/components/MainDashboard";
@@ -11,6 +12,9 @@ export default function App() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
     null
   );
+
+  // Handle campaign invitations for new users
+  useAuthInvitationHandler();
 
   // Temporarily show debug panel to diagnose the issue
   const isDebugMode = false;

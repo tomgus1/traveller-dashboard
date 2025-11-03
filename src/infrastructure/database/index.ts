@@ -750,32 +750,40 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .single();
 
       if (profileError || !profile) {
-        // User not found - use Supabase's built-in invitation system
-        // Get campaign info for the invitation
-        const { data: campaign } = await supabase
-          .from("campaigns")
-          .select("name")
-          .eq("id", campaignId)
-          .single();
-
-        const redirectTo = `${window.location.origin}?invited_to_campaign=${campaignId}&role=${role}`;
-        
-        const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-          email,
-          {
-            redirectTo,
-            data: {
-              campaign_id: campaignId,
-              campaign_name: campaign?.name || "Campaign",
-              role,
-            },
-          }
-        );
-
-        if (inviteError) {
+        // User not found - create invitation record for when they sign up
+        const currentUser = await supabase.auth.getUser();
+        if (!currentUser.data.user) {
           return {
             success: false,
-            error: `Failed to send invitation: ${inviteError.message}`,
+            error: 'You must be logged in to send invitations'
+          };
+        }
+
+        const { error } = await supabase
+          .from("campaign_invitations")
+          .insert({
+            campaign_id: campaignId,
+            invited_email: email,
+            invited_by: currentUser.data.user.id,
+            roles_offered: {
+              isAdmin: role === 'admin',
+              isGm: role === 'gm',
+              isPlayer: role === 'player'
+            },
+            status: 'pending',
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+          });
+
+        if (error) {
+          if (error.code === '23505') {
+            return {
+              success: false,
+              error: 'An invitation for this email already exists for this campaign'
+            };
+          }
+          return {
+            success: false,
+            error: 'Failed to create invitation'
           };
         }
 
