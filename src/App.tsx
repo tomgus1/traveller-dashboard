@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./presentation/hooks/useAuth";
 import { useAuthInvitationHandler } from "./hooks/useAuthInvitationHandler";
 import AuthForm from "./presentation/components/AuthForm";
@@ -7,11 +7,8 @@ import MainDashboard from "./presentation/components/MainDashboard";
 import Dashboard from "./presentation/components/Dashboard";
 import DebugPanel from "./presentation/components/DebugPanel";
 
-export default function App() {
+function AppContent() {
   const { user, loading, completeProfile } = useAuth();
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
-    null
-  );
 
   // Handle campaign invitations for new users
   useAuthInvitationHandler();
@@ -43,14 +40,19 @@ export default function App() {
     return <ProfileSetup onComplete={completeProfile} />;
   }
 
-  if (!selectedCampaignId) {
-    return <MainDashboard onCampaignSelect={setSelectedCampaignId} />;
-  }
-
   return (
-    <Dashboard
-      campaignId={selectedCampaignId}
-      onBackToCampaigns={() => setSelectedCampaignId(null)}
-    />
+    <Routes>
+      <Route path="/" element={<MainDashboard />} />
+      <Route path="/campaign/:campaignId" element={<Dashboard />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter basename="/traveller-dashboard">
+      <AppContent />
+    </BrowserRouter>
   );
 }

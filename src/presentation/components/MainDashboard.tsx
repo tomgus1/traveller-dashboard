@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Rocket, User, Users } from "lucide-react";
 import { useCampaigns } from "../hooks/useCampaigns";
 import { useCampaignMembers } from "../hooks/useCampaignMembers";
@@ -25,13 +26,8 @@ import type {
 } from "../../core/entities";
 import { getPrimaryRole } from "../../shared/utils/roleHelpers";
 
-interface MainDashboardProps {
-  onCampaignSelect: (campaignId: string) => void;
-}
-
-export default function MainDashboard({
-  onCampaignSelect,
-}: MainDashboardProps) {
+export default function MainDashboard() {
+  const navigate = useNavigate();
   const {
     campaigns,
     loading,
@@ -206,7 +202,9 @@ export default function MainDashboard({
           <div className="mb-8">
             <RecentActivityCard
               campaigns={campaigns}
-              onCampaignSelect={onCampaignSelect}
+              onCampaignSelect={(campaignId) =>
+                navigate(`/campaign/${campaignId}`)
+              }
             />
           </div>
 
@@ -242,7 +240,7 @@ export default function MainDashboard({
             <div className="mb-8">
               <CampaignManagementGrid
                 campaigns={campaigns}
-                onSelect={onCampaignSelect}
+                onSelect={(campaignId) => navigate(`/campaign/${campaignId}`)}
                 onEdit={handleEditCampaign}
                 onSettings={handleCampaignSettings}
               />
@@ -254,7 +252,9 @@ export default function MainDashboard({
             <div className="mb-8">
               <CharacterManagementGrid
                 campaigns={campaigns}
-                onViewCampaign={onCampaignSelect}
+                onViewCampaign={(campaignId) =>
+                  navigate(`/campaign/${campaignId}`)
+                }
               />
             </div>
           )}
@@ -350,7 +350,7 @@ export default function MainDashboard({
           campaigns={campaigns}
           onViewCampaign={(campaignId) => {
             setShowCharacterManagementModal(false);
-            onCampaignSelect(campaignId);
+            navigate(`/campaign/${campaignId}`);
           }}
         />
       </Modal>

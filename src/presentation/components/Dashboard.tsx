@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAppState } from "../hooks/useAppState";
 import { useBalanceCalculations } from "../hooks/useBalanceCalculations";
 import { useImportExport } from "../hooks/useImportExport";
@@ -8,21 +9,16 @@ import StatsDashboard from "./StatsDashboard";
 import { TabsBar } from "./Tabs";
 import TabContent from "./TabContent";
 
-interface DashboardProps {
-  campaignId: string;
-  onBackToCampaigns: () => void;
-}
+export default function Dashboard() {
+  const { campaignId } = useParams<{ campaignId: string }>();
+  const navigate = useNavigate();
 
-export default function Dashboard({
-  campaignId,
-  onBackToCampaigns,
-}: DashboardProps) {
   const [tab, setTab] = useState<"party" | "ship" | "cargo" | "characters">(
     "party"
   );
 
-  // Get characters for this campaign
-  const { characters } = useCampaignCharacters(campaignId);
+  // Get characters for this campaign (pass empty string if no campaignId)
+  const { characters } = useCampaignCharacters(campaignId || "");
 
   // Use character display name as selected character (simpler than ID)
   const [selectedCharacter, setSelectedCharacter] = useState<string>("");
@@ -49,6 +45,12 @@ export default function Dashboard({
   const balances = useBalanceCalculations(state, actualSelectedCharacter);
   const { handleImport, handleExport } = useImportExport(setState, state);
 
+  // Handle missing campaignId after all hooks are called
+  if (!campaignId) {
+    navigate("/");
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
       {/* Header with Back Button */}
@@ -56,7 +58,7 @@ export default function Dashboard({
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={onBackToCampaigns}
+              onClick={() => navigate("/")}
               className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors border border-gray-300 dark:border-zinc-600 rounded-md hover:border-gray-400 dark:hover:border-zinc-500"
             >
               ← Back to Campaigns
