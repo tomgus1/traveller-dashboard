@@ -57,7 +57,7 @@ describe("Armour Component", () => {
     render(<Armour rows={mockArmour} onAdd={mockOnAdd} />);
 
     // Check form fields are present
-    expect(screen.getByPlaceholderText("Armour Name")).toBeInTheDocument();
+    expect(screen.getByText("Select from Database or Enter Custom")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Select Type")).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText("Protection (e.g., +5, 1d6+2)")
@@ -77,8 +77,8 @@ describe("Armour Component", () => {
     expect(screen.getByText("Cost")).toBeInTheDocument();
     expect(screen.getByText("Notes")).toBeInTheDocument();
 
-    // Check table data - using getAllByText for text that appears multiple times
-    expect(screen.getAllByText("Combat Armour")).toHaveLength(3); // Option + 2 table cells
+    // Check table data
+    expect(screen.getAllByText("Combat Armour")).toHaveLength(2); // Name + Type columns
     expect(screen.getByText("Cloth Armour")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByText("5")).toBeInTheDocument();
@@ -87,16 +87,14 @@ describe("Armour Component", () => {
   it("includes all armour type options", () => {
     render(<Armour rows={[]} onAdd={mockOnAdd} />);
 
-    // Check that common Traveller armour types are available
-    expect(screen.getByText("Cloth")).toBeInTheDocument();
-    expect(screen.getByText("Mesh")).toBeInTheDocument();
-    expect(screen.getByText("Flak Jacket")).toBeInTheDocument();
-    expect(screen.getByText("Combat Armour")).toBeInTheDocument();
-    expect(screen.getByText("Battle Dress")).toBeInTheDocument();
-    expect(screen.getByText("Powered Armour")).toBeInTheDocument();
+    // Check that Traveller armour types from database are available
+    expect(screen.getByText("Light")).toBeInTheDocument();
+    expect(screen.getByText("Medium")).toBeInTheDocument();
+    expect(screen.getByText("Heavy")).toBeInTheDocument();
     expect(screen.getByText("Vacc Suit")).toBeInTheDocument();
-    expect(screen.getByText("Environmental Suit")).toBeInTheDocument();
-    expect(screen.getByText("Other")).toBeInTheDocument();
+    expect(screen.getByText("Environment")).toBeInTheDocument();
+    expect(screen.getByText("Shield")).toBeInTheDocument();
+    expect(screen.getByText("Accessory")).toBeInTheDocument();
   });
 
   it("displays empty state when no armour", () => {
