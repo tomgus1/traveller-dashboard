@@ -4,6 +4,7 @@ import FormField from "./FormField";
 import Tooltip from "./Tooltip";
 import { Button } from "./Button";
 import { useForm } from "../hooks/useForm";
+import { useTravellerWeapons } from "../../hooks/useTravellerWeapons";
 import { HelpCircle } from "lucide-react";
 import type { AmmoRow, WeaponRow } from "../../types";
 
@@ -81,8 +82,30 @@ export default function Ammo({
   onFireRound?: (ammoIndex: number) => void;
   onReload?: (ammoIndex: number) => void;
 }) {
-  const { form, createInputHandler, resetForm, updateField } =
+  const { form, createInputHandler, resetForm, updateField, setForm } =
     useForm(INITIAL_FORM);
+  const { getAllWeapons, getWeaponByName } = useTravellerWeapons();
+
+  const handleWeaponSelect = (weaponName: string) => {
+    if (!weaponName || weaponName === "" || weaponName === "__custom") {
+      return;
+    }
+
+    // Check if it's from the database
+    const weapon = getWeaponByName(weaponName);
+    if (weapon && weapon.magazine !== null) {
+      // Auto-fill magazine size from database
+      setForm({
+        ...form,
+        Weapon: weapon.name,
+        "Magazine Size": weapon.magazine.toString(),
+        "Ammo Type": weapon.type,
+      });
+    } else {
+      // It's from the character's weapon inventory
+      updateField("Weapon", weaponName);
+    }
+  };
 
   const handleSubmit = () => {
     if (!form.Weapon) return;
@@ -128,20 +151,42 @@ export default function Ammo({
   return (
     <div className="space-y-4">
       <SectionCard title="Add Ammunition Entry">
-        <div className="grid md:grid-cols-3 gap-3">
+        <div className="space-y-3">
           <FormField
             type="select"
-            value={form.Weapon === "__custom" ? "" : form.Weapon}
-            onChange={createInputHandler("Weapon")}
+            value={form.Weapon === "__custom" ? "__custom" : form.Weapon}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "__custom") {
+                setForm({ ...INITIAL_FORM, Weapon: "__custom" });
+              } else {
+                createInputHandler("Weapon")(e);
+                handleWeaponSelect(value);
+              }
+            }}
           >
             <option value="">Select Weapon</option>
-            {weapons.map((weapon) => (
-              <option key={weapon.Weapon} value={weapon.Weapon}>
-                {weapon.Weapon} ({weapon.Type})
-              </option>
-            ))}
-            <option value="__custom">--- Custom Weapon ---</option>
+            <optgroup label="Your Weapons">
+              {weapons.map((weapon) => (
+                <option key={weapon.Weapon} value={weapon.Weapon}>
+                  {weapon.Weapon} ({weapon.Type})
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Traveller Weapons Database">
+              {getAllWeapons()
+                .filter((w) => w.magazine !== null)
+                .map((weapon) => (
+                  <option key={weapon.name} value={weapon.name}>
+                    {weapon.name} ({weapon.type}) - Mag: {weapon.magazine}
+                  </option>
+                ))}
+            </optgroup>
+            <optgroup label="Custom">
+              <option value="__custom">Enter Custom Weapon</option>
+            </optgroup>
           </FormField>
+
           {form.Weapon === "__custom" && (
             <FormField
               placeholder="Custom Weapon Name"
@@ -149,40 +194,43 @@ export default function Ammo({
               onChange={(e) => handleCustomWeapon(e.target.value)}
             />
           )}
-          <FormField
-            placeholder="Ammo Type (e.g., 9mm, .45 ACP)"
-            value={form["Ammo Type"]}
-            onChange={createInputHandler("Ammo Type")}
-          />
-          <FormField
-            type="number"
-            placeholder="Magazine Size"
-            value={form["Magazine Size"]}
-            onChange={createInputHandler("Magazine Size")}
-          />
-          <FormField
-            type="number"
-            placeholder="Rounds Loaded"
-            value={form["Rounds Loaded"]}
-            onChange={createInputHandler("Rounds Loaded")}
-          />
-          <FormField
-            type="number"
-            placeholder="Spare Magazines"
-            value={form["Spare Magazines"]}
-            onChange={createInputHandler("Spare Magazines")}
-          />
-          <FormField
-            type="number"
-            placeholder="Loose Rounds"
-            value={form["Loose Rounds"]}
-            onChange={createInputHandler("Loose Rounds")}
-          />
-          <FormField
-            placeholder="Notes"
-            value={form.Notes}
-            onChange={createInputHandler("Notes")}
-          />
+
+          <div className="grid md:grid-cols-3 gap-3">
+            <FormField
+              placeholder="Ammo Type (e.g., 9mm, .45 ACP)"
+              value={form["Ammo Type"]}
+              onChange={createInputHandler("Ammo Type")}
+            />
+            <FormField
+              type="number"
+              placeholder="Magazine Size"
+              value={form["Magazine Size"]}
+              onChange={createInputHandler("Magazine Size")}
+            />
+            <FormField
+              type="number"
+              placeholder="Rounds Loaded"
+              value={form["Rounds Loaded"]}
+              onChange={createInputHandler("Rounds Loaded")}
+            />
+            <FormField
+              type="number"
+              placeholder="Spare Magazines"
+              value={form["Spare Magazines"]}
+              onChange={createInputHandler("Spare Magazines")}
+            />
+            <FormField
+              type="number"
+              placeholder="Loose Rounds"
+              value={form["Loose Rounds"]}
+              onChange={createInputHandler("Loose Rounds")}
+            />
+            <FormField
+              placeholder="Notes"
+              value={form.Notes}
+              onChange={createInputHandler("Notes")}
+            />
+          </div>
         </div>
         <Button
           className="mt-2"
