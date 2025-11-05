@@ -4,6 +4,7 @@ import {
   saveState,
   initializeCharacterData,
 } from "../../infrastructure/storage/storage";
+import weaponsData from "../../data/traveller-weapons.json";
 import { useAmmoActions } from "./useAmmoActions";
 import type {
   CampaignState,
@@ -115,13 +116,41 @@ export function useAppState() {
           Armour: [],
           Ammo: [],
         };
+
+        const currentAmmo = existingCharacter.Ammo || [];
+
+        // Check if ammo for this weapon already exists
+        const existingAmmoIndex = currentAmmo.findIndex(
+          (a) =>
+            a.Weapon === ammo.Weapon && a["Ammo Type"] === ammo["Ammo Type"]
+        );
+
+        let updatedAmmo;
+        if (existingAmmoIndex >= 0) {
+          // Merge with existing ammo entry
+          updatedAmmo = [...currentAmmo];
+          const existing = updatedAmmo[existingAmmoIndex];
+          updatedAmmo[existingAmmoIndex] = {
+            ...existing,
+            "Spare Magazines":
+              Number(existing["Spare Magazines"] || 0) +
+              Number(ammo["Spare Magazines"] || 0),
+            "Loose Rounds":
+              Number(existing["Loose Rounds"] || 0) +
+              Number(ammo["Loose Rounds"] || 0),
+          };
+        } else {
+          // Add new ammo entry
+          updatedAmmo = [...currentAmmo, ammo];
+        }
+
         return {
           ...prev,
           PCs: {
             ...prev.PCs,
             [characterDisplayName]: {
               ...existingCharacter,
-              Ammo: [...(existingCharacter.Ammo || []), ammo],
+              Ammo: updatedAmmo,
             },
           },
         };
@@ -144,6 +173,40 @@ export function useAppState() {
           Armour: [],
           Ammo: [],
         };
+
+        // Check if weapon has a magazine and auto-create ammo entry
+        const weaponData = weaponsData.weapons.find(
+          (w) => w.name === weapon.Weapon
+        );
+        let updatedAmmo = existingCharacter.Ammo || [];
+
+        if (
+          weaponData &&
+          weaponData.magazine !== null &&
+          weaponData.magazine > 0
+        ) {
+          // Check if ammo already exists for this weapon
+          const existingAmmoIndex = updatedAmmo.findIndex(
+            (a) => a.Weapon === weapon.Weapon
+          );
+
+          if (existingAmmoIndex === -1) {
+            // Create initial ammo entry for this weapon
+            updatedAmmo = [
+              ...updatedAmmo,
+              {
+                Weapon: weapon.Weapon,
+                "Ammo Type": weapon.Type || "",
+                "Magazine Size": weaponData.magazine,
+                "Rounds Loaded": 0, // Start with empty magazine
+                "Spare Magazines": 0,
+                "Loose Rounds": 0,
+                Notes: "Auto-created with weapon",
+              },
+            ];
+          }
+        }
+
         return {
           ...prev,
           PCs: {
@@ -151,6 +214,7 @@ export function useAppState() {
             [characterDisplayName]: {
               ...existingCharacter,
               Weapons: [...(existingCharacter.Weapons || []), weapon],
+              Ammo: updatedAmmo,
             },
           },
         };
