@@ -85,7 +85,7 @@ describe("Ammo Tracking Component", () => {
     // Check that weapons are available in dropdown
     expect(screen.getByText("Laser Pistol (Pistol)")).toBeInTheDocument();
     expect(screen.getByText("Assault Rifle (Rifle)")).toBeInTheDocument();
-    expect(screen.getByText("--- Custom Weapon ---")).toBeInTheDocument();
+    expect(screen.getByText("Enter Custom Weapon")).toBeInTheDocument();
   });
 
   it("displays ammo tracking instructions in tooltip", async () => {

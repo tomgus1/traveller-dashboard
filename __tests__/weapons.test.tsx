@@ -64,7 +64,9 @@ describe("Weapons Component", () => {
     render(<Weapons rows={mockWeapons} onAdd={mockOnAdd} />);
 
     // Check form fields are present
-    expect(screen.getByPlaceholderText("Weapon Name")).toBeInTheDocument();
+    expect(
+      screen.getByText("Select from Database or Enter Custom")
+    ).toBeInTheDocument();
     expect(screen.getByDisplayValue("Select Type")).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText("Damage (e.g., 3d6)")
@@ -83,8 +85,8 @@ describe("Weapons Component", () => {
     expect(screen.getByText("Weapon")).toBeInTheDocument();
     expect(screen.getByText("Type")).toBeInTheDocument();
     expect(screen.getByText("Damage")).toBeInTheDocument();
-    expect(screen.getByText("Range")).toBeInTheDocument();
-    expect(screen.getByText("Mass")).toBeInTheDocument();
+    expect(screen.getByText("Range (m)")).toBeInTheDocument();
+    expect(screen.getByText("Mass (kg)")).toBeInTheDocument();
     expect(screen.getByText("Cost")).toBeInTheDocument();
     expect(screen.getByText("Notes")).toBeInTheDocument();
 
@@ -98,14 +100,14 @@ describe("Weapons Component", () => {
   it("includes all weapon type options", () => {
     render(<Weapons rows={[]} onAdd={mockOnAdd} />);
 
-    // Check that common Traveller weapon types are available
-    expect(screen.getByText("Melee")).toBeInTheDocument();
-    expect(screen.getByText("Pistol")).toBeInTheDocument();
-    expect(screen.getByText("Rifle")).toBeInTheDocument();
-    expect(screen.getByText("Shotgun")).toBeInTheDocument();
+    // Check that Traveller weapon types from database are available
+    expect(screen.getByText("Slug Pistol")).toBeInTheDocument();
+    expect(screen.getByText("Slug Rifle")).toBeInTheDocument();
+    expect(screen.getByText("Energy Pistol")).toBeInTheDocument();
+    expect(screen.getByText("Energy Rifle")).toBeInTheDocument();
     expect(screen.getByText("Heavy Weapon")).toBeInTheDocument();
-    expect(screen.getByText("Explosive")).toBeInTheDocument();
-    expect(screen.getByText("Other")).toBeInTheDocument();
+    expect(screen.getByText("Blade")).toBeInTheDocument();
+    expect(screen.getByText("Grenade")).toBeInTheDocument();
   });
 
   it("displays empty state when no weapons", () => {
