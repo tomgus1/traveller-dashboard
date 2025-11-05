@@ -85,6 +85,7 @@ export interface MemberInfo {
   userId: string;
   email: string;
   displayName?: string;
+  username?: string;
   roles: CampaignRoles;
   joinedAt: Date;
 }

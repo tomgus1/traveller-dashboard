@@ -688,6 +688,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
 
           let email: string;
           let displayName: string | undefined;
+          let username: string | undefined;
 
           if (!profileError && profile) {
             // TypeScript workaround - cast to Record to access dynamic properties
@@ -695,13 +696,12 @@ export class SupabaseCampaignRepository implements CampaignRepository {
             email =
               (profileData.email as string) ||
               `user_${member.user_id.slice(0, 8)}@example.com`;
-            displayName =
-              (profileData.display_name as string) ||
-              (profileData.username as string) ||
-              undefined;
+            displayName = (profileData.display_name as string) || undefined;
+            username = (profileData.username as string) || undefined;
           } else {
             email = `user_${member.user_id.slice(0, 8)}@example.com`;
             displayName = undefined;
+            username = undefined;
           }
 
           members.push({
@@ -709,6 +709,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
             userId: member.user_id,
             email,
             displayName,
+            username,
             roles: {
               isAdmin: member.is_admin || false,
               isGm: member.is_gm || false,
@@ -723,6 +724,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
             userId: member.user_id,
             email: `user_${member.user_id.slice(0, 8)}@example.com`,
             displayName: undefined,
+            username: undefined,
             roles: {
               isAdmin: member.is_admin || false,
               isGm: member.is_gm || false,

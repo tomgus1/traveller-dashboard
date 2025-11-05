@@ -72,6 +72,7 @@ export default function CampaignSelector({
         user_profiles: {
           email: member.email,
           display_name: member.displayName || null,
+          username: member.username || null,
         },
       }));
     }

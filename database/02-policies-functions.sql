@@ -38,7 +38,21 @@ CREATE POLICY "Campaign creators can delete" ON campaigns FOR DELETE USING (crea
 -- Campaign Members Policies
 CREATE POLICY "Authenticated users can insert members" ON campaign_members FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "Users can view all members" ON campaign_members FOR SELECT USING (auth.uid() IS NOT NULL);
+
+-- Update policies: Allow users to update their own membership, and allow campaign creators/admins to update any member
 CREATE POLICY "Users can update own membership" ON campaign_members FOR UPDATE USING (user_id = auth.uid());
+CREATE POLICY "Campaign creators can update member roles" ON campaign_members FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM campaigns WHERE id = campaign_members.campaign_id AND created_by = auth.uid())
+);
+CREATE POLICY "Campaign admins can update member roles" ON campaign_members FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM campaign_members AS cm
+    WHERE cm.campaign_id = campaign_members.campaign_id 
+    AND cm.user_id = auth.uid()
+    AND cm.is_admin = true
+  )
+);
+
 CREATE POLICY "Campaign creators can delete members" ON campaign_members FOR DELETE USING (
   EXISTS (SELECT 1 FROM campaigns WHERE id = campaign_members.campaign_id AND created_by = auth.uid())
 );
@@ -291,6 +305,27 @@ BEGIN
   END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =====================================================================
+-- STEP 4: CREATE TRIGGER FOR AUTOMATIC USER PROFILE CREATION
+-- =====================================================================
+
+-- Function to automatically create user profile on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.user_profiles (id, email, profile_completed)
+  VALUES (NEW.id, NEW.email, false)
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to call the function when a new user signs up
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_user();
 
 -- =====================================================================
 -- SUCCESS MESSAGE

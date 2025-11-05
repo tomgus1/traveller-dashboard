@@ -17,6 +17,7 @@ interface CampaignMember {
   user_profiles: {
     email: string;
     display_name: string | null;
+    username: string | null;
   };
 }
 
@@ -274,37 +275,51 @@ export default function CampaignSettings({
             </div>
 
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {members.map((member) => (
-                <div
-                  key={member.id}
-                  className="card flex items-center justify-between"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-zinc-50">
-                      {member.user_profiles.display_name ||
-                        member.user_profiles.email}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {member.user_profiles.email}
-                    </p>
-                    <span
-                      className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${getRoleStyles(member.roles)}`}
-                    >
-                      {getRoleDisplay(member.roles)}
-                    </span>
-                  </div>
+              {members.map((member) => {
+                // Priority: display_name > username > email
+                const displayName =
+                  member.user_profiles.display_name ||
+                  member.user_profiles.username ||
+                  member.user_profiles.email;
 
-                  {!member.roles.isAdmin && (
-                    <IconButton
-                      onClick={() => handleRemoveMember(member.user_id)}
-                      icon={<Trash2 className="w-4 h-4" />}
-                      variant="danger"
-                      aria-label="Remove member"
-                      title="Remove member"
-                    />
-                  )}
-                </div>
-              ))}
+                // Show username if different from display name, otherwise show email
+                const secondaryInfo =
+                  member.user_profiles.display_name &&
+                  member.user_profiles.username
+                    ? `@${member.user_profiles.username}`
+                    : member.user_profiles.email;
+
+                return (
+                  <div
+                    key={member.id}
+                    className="card flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-zinc-50">
+                        {displayName}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {secondaryInfo}
+                      </p>
+                      <span
+                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${getRoleStyles(member.roles)}`}
+                      >
+                        {getRoleDisplay(member.roles)}
+                      </span>
+                    </div>
+
+                    {!member.roles.isAdmin && (
+                      <IconButton
+                        onClick={() => handleRemoveMember(member.user_id)}
+                        icon={<Trash2 className="w-4 h-4" />}
+                        variant="danger"
+                        aria-label="Remove member"
+                        title="Remove member"
+                      />
+                    )}
+                  </div>
+                );
+              })}
 
               {members.length === 0 && (
                 <p className="text-center text-gray-600 dark:text-gray-400 py-8">
