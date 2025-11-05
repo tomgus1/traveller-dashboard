@@ -63,6 +63,7 @@ export type AmmoRow = {
   ["Spare Magazines"]?: number | string;
   ["Loose Rounds"]?: number | string;
   ["Total Rounds"]?: number | null;
+  Cost?: number;
   Notes?: string;
 };
 

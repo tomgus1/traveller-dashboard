@@ -15,6 +15,7 @@ type AmmoFormData = Record<string, string> & {
   "Rounds Loaded": string;
   "Spare Magazines": string;
   "Loose Rounds": string;
+  Cost: string;
   Notes: string;
 };
 
@@ -25,6 +26,7 @@ const INITIAL_FORM: AmmoFormData = {
   "Rounds Loaded": "",
   "Spare Magazines": "",
   "Loose Rounds": "",
+  Cost: "",
   Notes: "",
 };
 
@@ -125,6 +127,7 @@ export default function Ammo({
       "Spare Magazines": spareMagazines,
       "Loose Rounds": looseRounds,
       "Total Rounds": totalRounds,
+      Cost: form.Cost ? Number(form.Cost) : undefined,
       Notes: form.Notes as string,
     });
 
@@ -224,6 +227,12 @@ export default function Ammo({
               placeholder="Loose Rounds"
               value={form["Loose Rounds"]}
               onChange={createInputHandler("Loose Rounds")}
+            />
+            <FormField
+              type="number"
+              placeholder="Cost (Cr)"
+              value={form.Cost}
+              onChange={createInputHandler("Cost")}
             />
             <FormField
               placeholder="Notes"

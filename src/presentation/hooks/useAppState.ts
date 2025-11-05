@@ -118,6 +118,7 @@ export function useAppState() {
         };
 
         const currentAmmo = existingCharacter.Ammo || [];
+        const currentFinance = existingCharacter.Finance || [];
 
         // Check if ammo for this weapon already exists
         const existingAmmoIndex = currentAmmo.findIndex(
@@ -144,6 +145,21 @@ export function useAppState() {
           updatedAmmo = [...currentAmmo, ammo];
         }
 
+        // Add finance transaction if ammo has a cost
+        let updatedFinance = currentFinance;
+        if (ammo.Cost && ammo.Cost > 0) {
+          const financeEntry: FinanceRow = {
+            Date: new Date().toISOString().split("T")[0],
+            Description: `Purchased ${ammo["Ammo Type"]} for ${ammo.Weapon}`,
+            Category: "Expense",
+            Subcategory: "Ammo",
+            ["Amount (Cr)"]: -Math.abs(ammo.Cost),
+            ["Paid By"]: characterDisplayName,
+            Notes: ammo.Notes || "",
+          };
+          updatedFinance = [...currentFinance, financeEntry];
+        }
+
         return {
           ...prev,
           PCs: {
@@ -151,6 +167,7 @@ export function useAppState() {
             [characterDisplayName]: {
               ...existingCharacter,
               Ammo: updatedAmmo,
+              Finance: updatedFinance,
             },
           },
         };
@@ -207,6 +224,21 @@ export function useAppState() {
           }
         }
 
+        // Add finance transaction if weapon has a cost
+        let updatedFinance = existingCharacter.Finance || [];
+        if (weapon.Cost && weapon.Cost > 0) {
+          const newTransaction: FinanceRow = {
+            Date: new Date().toISOString().split('T')[0],
+            Description: `Purchased ${weapon.Weapon}`,
+            Category: "Expense",
+            Subcategory: "Weapons",
+            ["Amount (Cr)"]: -Math.abs(weapon.Cost),
+            ["Paid By"]: characterDisplayName,
+            Notes: weapon.Notes || "",
+          };
+          updatedFinance = [...updatedFinance, newTransaction];
+        }
+
         return {
           ...prev,
           PCs: {
@@ -215,6 +247,7 @@ export function useAppState() {
               ...existingCharacter,
               Weapons: [...(existingCharacter.Weapons || []), weapon],
               Ammo: updatedAmmo,
+              Finance: updatedFinance,
             },
           },
         };
@@ -237,6 +270,22 @@ export function useAppState() {
           Armour: [],
           Ammo: [],
         };
+
+        // Add finance transaction if armour has a cost
+        let updatedFinance = existingCharacter.Finance || [];
+        if (armour.Cost && armour.Cost > 0) {
+          const newTransaction: FinanceRow = {
+            Date: new Date().toISOString().split('T')[0],
+            Description: `Purchased ${armour.Armour}`,
+            Category: "Expense",
+            Subcategory: "Armour",
+            ["Amount (Cr)"]: -Math.abs(armour.Cost),
+            ["Paid By"]: characterDisplayName,
+            Notes: armour.Notes || "",
+          };
+          updatedFinance = [...updatedFinance, newTransaction];
+        }
+
         return {
           ...prev,
           PCs: {
@@ -244,6 +293,7 @@ export function useAppState() {
             [characterDisplayName]: {
               ...existingCharacter,
               Armour: [...(existingCharacter.Armour || []), armour],
+              Finance: updatedFinance,
             },
           },
         };
