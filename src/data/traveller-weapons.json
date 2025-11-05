@@ -8,9 +8,12 @@
       "mass": 1,
       "cost": 200,
       "magazine": 15,
-      "traits": ["Auto 2"],
+      "traits": [
+        "Auto 2"
+      ],
       "tl": 5,
-      "notes": "Common sidearm"
+      "notes": "Common sidearm",
+      "source": "Core Rulebook"
     },
     {
       "name": "Revolver",
@@ -22,7 +25,8 @@
       "magazine": 6,
       "traits": [],
       "tl": 4,
-      "notes": "Reliable, simple design"
+      "notes": "Reliable, simple design",
+      "source": "Core Rulebook"
     },
     {
       "name": "Snub Pistol",
@@ -32,9 +36,12 @@
       "mass": 0.5,
       "cost": 150,
       "magazine": 6,
-      "traits": ["Zero-G"],
+      "traits": [
+        "Zero-G"
+      ],
       "tl": 8,
-      "notes": "Designed for spacecraft use"
+      "notes": "Designed for spacecraft use",
+      "source": "Core Rulebook"
     },
     {
       "name": "Body Pistol",
@@ -46,7 +53,8 @@
       "magazine": 6,
       "traits": [],
       "tl": 7,
-      "notes": "Easily concealed, non-metallic"
+      "notes": "Easily concealed, non-metallic",
+      "source": "Core Rulebook"
     },
     {
       "name": "Accelerator Rifle",
@@ -56,9 +64,13 @@
       "mass": 4,
       "cost": 900,
       "magazine": 15,
-      "traits": ["Auto 2", "Scope"],
+      "traits": [
+        "Auto 2",
+        "Scope"
+      ],
       "tl": 9,
-      "notes": "Magnetically accelerated projectiles"
+      "notes": "Magnetically accelerated projectiles",
+      "source": "Core Rulebook"
     },
     {
       "name": "Advanced Combat Rifle",
@@ -68,9 +80,13 @@
       "mass": 4,
       "cost": 1000,
       "magazine": 40,
-      "traits": ["Auto 3", "Scope"],
+      "traits": [
+        "Auto 3",
+        "Scope"
+      ],
       "tl": 9,
-      "notes": "Modern military standard"
+      "notes": "Modern military standard",
+      "source": "Core Rulebook"
     },
     {
       "name": "Assault Rifle",
@@ -80,9 +96,12 @@
       "mass": 4,
       "cost": 300,
       "magazine": 30,
-      "traits": ["Auto 3"],
+      "traits": [
+        "Auto 3"
+      ],
       "tl": 7,
-      "notes": "Common military weapon"
+      "notes": "Common military weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Autorifle",
@@ -92,9 +111,12 @@
       "mass": 5,
       "cost": 200,
       "magazine": 20,
-      "traits": ["Auto 2"],
+      "traits": [
+        "Auto 2"
+      ],
       "tl": 6,
-      "notes": "Early automatic rifle"
+      "notes": "Early automatic rifle",
+      "source": "Core Rulebook"
     },
     {
       "name": "Rifle",
@@ -106,7 +128,8 @@
       "magazine": 10,
       "traits": [],
       "tl": 5,
-      "notes": "Standard bolt-action rifle"
+      "notes": "Standard bolt-action rifle",
+      "source": "Core Rulebook"
     },
     {
       "name": "Shotgun",
@@ -117,9 +140,12 @@
       "mass": 4,
       "cost": 200,
       "magazine": 10,
-      "traits": ["Bulky"],
+      "traits": [
+        "Bulky"
+      ],
       "tl": 4,
-      "notes": "Can fire shot or slugs"
+      "notes": "Can fire shot or slugs",
+      "source": "Core Rulebook"
     },
     {
       "name": "Gauss Rifle",
@@ -129,9 +155,14 @@
       "mass": 4,
       "cost": 1500,
       "magazine": 80,
-      "traits": ["AP 3", "Auto 3", "Scope"],
+      "traits": [
+        "AP 3",
+        "Auto 3",
+        "Scope"
+      ],
       "tl": 12,
-      "notes": "Electromagnetically accelerated"
+      "notes": "Electromagnetically accelerated",
+      "source": "Core Rulebook"
     },
     {
       "name": "Gauss Pistol",
@@ -141,9 +172,12 @@
       "mass": 0.5,
       "cost": 500,
       "magazine": 40,
-      "traits": ["AP 3"],
+      "traits": [
+        "AP 3"
+      ],
       "tl": 12,
-      "notes": "Compact gauss weapon"
+      "notes": "Compact gauss weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Laser Carbine",
@@ -153,9 +187,12 @@
       "mass": 4,
       "cost": 2500,
       "magazine": 50,
-      "traits": ["Zero-G"],
+      "traits": [
+        "Zero-G"
+      ],
       "tl": 9,
-      "notes": "Lightweight laser weapon"
+      "notes": "Lightweight laser weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Laser Rifle",
@@ -165,9 +202,12 @@
       "mass": 5,
       "cost": 3500,
       "magazine": 100,
-      "traits": ["Zero-G"],
+      "traits": [
+        "Zero-G"
+      ],
       "tl": 9,
-      "notes": "Standard energy weapon"
+      "notes": "Standard energy weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Laser Pistol",
@@ -177,9 +217,12 @@
       "mass": 2,
       "cost": 1500,
       "magazine": 50,
-      "traits": ["Zero-G"],
+      "traits": [
+        "Zero-G"
+      ],
       "tl": 9,
-      "notes": "Personal energy weapon"
+      "notes": "Personal energy weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Plasma Rifle",
@@ -189,9 +232,14 @@
       "mass": 6,
       "cost": 7000,
       "magazine": 10,
-      "traits": ["AP 10", "Bulky", "Blast 3"],
+      "traits": [
+        "AP 10",
+        "Bulky",
+        "Blast 3"
+      ],
       "tl": 11,
-      "notes": "Superheated plasma bolts"
+      "notes": "Superheated plasma bolts",
+      "source": "Core Rulebook"
     },
     {
       "name": "Plasma Pistol",
@@ -201,9 +249,13 @@
       "mass": 2,
       "cost": 4000,
       "magazine": 10,
-      "traits": ["AP 5", "Blast 1"],
+      "traits": [
+        "AP 5",
+        "Blast 1"
+      ],
       "tl": 11,
-      "notes": "Compact plasma weapon"
+      "notes": "Compact plasma weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Stunner",
@@ -213,9 +265,13 @@
       "mass": 1,
       "cost": 500,
       "magazine": 100,
-      "traits": ["Stun", "Zero-G"],
+      "traits": [
+        "Stun",
+        "Zero-G"
+      ],
       "tl": 8,
-      "notes": "Non-lethal energy weapon"
+      "notes": "Non-lethal energy weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Neural Disruptor",
@@ -225,9 +281,13 @@
       "mass": 0.5,
       "cost": 2500,
       "magazine": 20,
-      "traits": ["Stun", "Illegal"],
+      "traits": [
+        "Stun",
+        "Illegal"
+      ],
       "tl": 11,
-      "notes": "Disrupts neural activity"
+      "notes": "Disrupts neural activity",
+      "source": "Core Rulebook"
     },
     {
       "name": "Grenade Launcher",
@@ -237,9 +297,12 @@
       "mass": 6,
       "cost": 400,
       "magazine": 6,
-      "traits": ["Bulky"],
+      "traits": [
+        "Bulky"
+      ],
       "tl": 7,
-      "notes": "Fires grenades"
+      "notes": "Fires grenades",
+      "source": "Core Rulebook"
     },
     {
       "name": "RAM Grenade Launcher",
@@ -249,9 +312,13 @@
       "mass": 5,
       "cost": 800,
       "magazine": 6,
-      "traits": ["Bulky", "Auto 3"],
+      "traits": [
+        "Bulky",
+        "Auto 3"
+      ],
       "tl": 8,
-      "notes": "Rocket Assisted Multi-purpose"
+      "notes": "Rocket Assisted Multi-purpose",
+      "source": "Core Rulebook"
     },
     {
       "name": "Machine Gun",
@@ -261,9 +328,13 @@
       "mass": 10,
       "cost": 1200,
       "magazine": 100,
-      "traits": ["Auto 4", "Bulky"],
+      "traits": [
+        "Auto 4",
+        "Bulky"
+      ],
       "tl": 7,
-      "notes": "Crew-served weapon"
+      "notes": "Crew-served weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Advanced Machine Gun",
@@ -273,9 +344,13 @@
       "mass": 8,
       "cost": 1800,
       "magazine": 100,
-      "traits": ["Auto 4", "Bulky"],
+      "traits": [
+        "Auto 4",
+        "Bulky"
+      ],
       "tl": 8,
-      "notes": "Improved crew-served weapon"
+      "notes": "Improved crew-served weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "PGMP (Plasma Gun, Man Portable)",
@@ -285,9 +360,14 @@
       "mass": 8,
       "cost": 20000,
       "magazine": 10,
-      "traits": ["AP 20", "Bulky", "Blast 6"],
+      "traits": [
+        "AP 20",
+        "Bulky",
+        "Blast 6"
+      ],
       "tl": 13,
-      "notes": "Man-portable plasma cannon"
+      "notes": "Man-portable plasma cannon",
+      "source": "Core Rulebook"
     },
     {
       "name": "FGMP (Fusion Gun, Man Portable)",
@@ -297,9 +377,15 @@
       "mass": 12,
       "cost": 50000,
       "magazine": 20,
-      "traits": ["AP 30", "Bulky", "Blast 9", "Radiation"],
+      "traits": [
+        "AP 30",
+        "Bulky",
+        "Blast 9",
+        "Radiation"
+      ],
       "tl": 14,
-      "notes": "Man-portable fusion weapon"
+      "notes": "Man-portable fusion weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Rocket Launcher",
@@ -309,9 +395,12 @@
       "mass": 8,
       "cost": 2000,
       "magazine": 1,
-      "traits": ["Bulky"],
+      "traits": [
+        "Bulky"
+      ],
       "tl": 7,
-      "notes": "Anti-vehicle weapon"
+      "notes": "Anti-vehicle weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Flamethrower",
@@ -321,9 +410,14 @@
       "mass": 12,
       "cost": 500,
       "magazine": 10,
-      "traits": ["Bulky", "Blast 3", "Fire"],
+      "traits": [
+        "Bulky",
+        "Blast 3",
+        "Fire"
+      ],
       "tl": 6,
-      "notes": "Area effect flame weapon"
+      "notes": "Area effect flame weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Dagger",
@@ -335,7 +429,8 @@
       "magazine": null,
       "traits": [],
       "tl": 1,
-      "notes": "Small blade weapon"
+      "notes": "Small blade weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Knife",
@@ -347,7 +442,8 @@
       "magazine": null,
       "traits": [],
       "tl": 1,
-      "notes": "Utility/combat knife"
+      "notes": "Utility/combat knife",
+      "source": "Core Rulebook"
     },
     {
       "name": "Cutlass",
@@ -359,7 +455,8 @@
       "magazine": null,
       "traits": [],
       "tl": 2,
-      "notes": "Curved sword"
+      "notes": "Curved sword",
+      "source": "Core Rulebook"
     },
     {
       "name": "Sword",
@@ -371,7 +468,8 @@
       "magazine": null,
       "traits": [],
       "tl": 2,
-      "notes": "Standard sword"
+      "notes": "Standard sword",
+      "source": "Core Rulebook"
     },
     {
       "name": "Blade",
@@ -383,7 +481,8 @@
       "magazine": null,
       "traits": [],
       "tl": 4,
-      "notes": "Modern combat blade"
+      "notes": "Modern combat blade",
+      "source": "Core Rulebook"
     },
     {
       "name": "Club",
@@ -395,7 +494,8 @@
       "magazine": null,
       "traits": [],
       "tl": 0,
-      "notes": "Simple bludgeon"
+      "notes": "Simple bludgeon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Improvised Weapon",
@@ -407,7 +507,8 @@
       "magazine": null,
       "traits": [],
       "tl": 0,
-      "notes": "Any makeshift weapon"
+      "notes": "Any makeshift weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Broadsword",
@@ -417,9 +518,12 @@
       "mass": 2,
       "cost": 500,
       "magazine": null,
-      "traits": ["Bulky"],
+      "traits": [
+        "Bulky"
+      ],
       "tl": 3,
-      "notes": "Large two-handed sword"
+      "notes": "Large two-handed sword",
+      "source": "Core Rulebook"
     },
     {
       "name": "Polearm",
@@ -429,9 +533,13 @@
       "mass": 3,
       "cost": 100,
       "magazine": null,
-      "traits": ["Bulky", "Reach"],
+      "traits": [
+        "Bulky",
+        "Reach"
+      ],
       "tl": 2,
-      "notes": "Spear, halberd, etc."
+      "notes": "Spear, halberd, etc.",
+      "source": "Core Rulebook"
     },
     {
       "name": "Pike",
@@ -441,9 +549,13 @@
       "mass": 4,
       "cost": 40,
       "magazine": null,
-      "traits": ["Bulky", "Reach"],
+      "traits": [
+        "Bulky",
+        "Reach"
+      ],
       "tl": 2,
-      "notes": "Very long spear"
+      "notes": "Very long spear",
+      "source": "Core Rulebook"
     },
     {
       "name": "Frag Grenade",
@@ -453,9 +565,12 @@
       "mass": 0.5,
       "cost": 30,
       "magazine": null,
-      "traits": ["Blast 6"],
+      "traits": [
+        "Blast 6"
+      ],
       "tl": 6,
-      "notes": "Fragmentation grenade"
+      "notes": "Fragmentation grenade",
+      "source": "Core Rulebook"
     },
     {
       "name": "Smoke Grenade",
@@ -465,9 +580,13 @@
       "mass": 0.25,
       "cost": 15,
       "magazine": null,
-      "traits": ["Smoke", "Blast 6"],
+      "traits": [
+        "Smoke",
+        "Blast 6"
+      ],
       "tl": 6,
-      "notes": "Creates smoke screen"
+      "notes": "Creates smoke screen",
+      "source": "Core Rulebook"
     },
     {
       "name": "Stun Grenade",
@@ -477,9 +596,13 @@
       "mass": 0.25,
       "cost": 30,
       "magazine": null,
-      "traits": ["Stun", "Blast 3"],
+      "traits": [
+        "Stun",
+        "Blast 3"
+      ],
       "tl": 7,
-      "notes": "Non-lethal grenade"
+      "notes": "Non-lethal grenade",
+      "source": "Core Rulebook"
     },
     {
       "name": "Aerosol Grenade",
@@ -489,9 +612,12 @@
       "mass": 0.25,
       "cost": 20,
       "magazine": null,
-      "traits": ["Blast 6"],
+      "traits": [
+        "Blast 6"
+      ],
       "tl": 7,
-      "notes": "Disperses chemical agent"
+      "notes": "Disperses chemical agent",
+      "source": "Core Rulebook"
     },
     {
       "name": "Snare Pistol",
@@ -501,9 +627,12 @@
       "mass": 0.5,
       "cost": 150,
       "magazine": 1,
-      "traits": ["Entangle"],
+      "traits": [
+        "Entangle"
+      ],
       "tl": 8,
-      "notes": "Fires entangling net"
+      "notes": "Fires entangling net",
+      "source": "Core Rulebook"
     },
     {
       "name": "Shotgun Pistol",
@@ -515,7 +644,8 @@
       "magazine": 4,
       "traits": [],
       "tl": 5,
-      "notes": "Compact shotgun"
+      "notes": "Compact shotgun",
+      "source": "Core Rulebook"
     },
     {
       "name": "Submachine Gun",
@@ -525,9 +655,12 @@
       "mass": 2.5,
       "cost": 250,
       "magazine": 30,
-      "traits": ["Auto 3"],
+      "traits": [
+        "Auto 3"
+      ],
       "tl": 6,
-      "notes": "Compact automatic weapon"
+      "notes": "Compact automatic weapon",
+      "source": "Core Rulebook"
     },
     {
       "name": "Carbine",
@@ -539,7 +672,8 @@
       "magazine": 10,
       "traits": [],
       "tl": 5,
-      "notes": "Shortened rifle"
+      "notes": "Shortened rifle",
+      "source": "Core Rulebook"
     },
     {
       "name": "Crossbow",
@@ -549,9 +683,12 @@
       "mass": 2,
       "cost": 75,
       "magazine": 1,
-      "traits": ["Silent"],
+      "traits": [
+        "Silent"
+      ],
       "tl": 2,
-      "notes": "Mechanical bow"
+      "notes": "Mechanical bow",
+      "source": "Core Rulebook"
     },
     {
       "name": "Bow",
@@ -561,9 +698,12 @@
       "mass": 1,
       "cost": 60,
       "magazine": 1,
-      "traits": ["Silent"],
+      "traits": [
+        "Silent"
+      ],
       "tl": 1,
-      "notes": "Traditional bow"
+      "notes": "Traditional bow",
+      "source": "Core Rulebook"
     }
   ],
   "weaponTypes": [

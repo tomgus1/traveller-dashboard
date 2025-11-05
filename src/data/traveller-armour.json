@@ -8,7 +8,8 @@
       "cost": 50,
       "tl": 1,
       "traits": [],
-      "notes": "Leather jacket or heavy clothing"
+      "notes": "Leather jacket or heavy clothing",
+      "source": "Core Rulebook"
     },
     {
       "name": "Cloth",
@@ -18,7 +19,8 @@
       "cost": 250,
       "tl": 7,
       "traits": [],
-      "notes": "Ballistic cloth armor"
+      "notes": "Ballistic cloth armor",
+      "source": "Core Rulebook"
     },
     {
       "name": "Mesh",
@@ -28,7 +30,8 @@
       "cost": 150,
       "tl": 6,
       "traits": [],
-      "notes": "Flexible metal mesh"
+      "notes": "Flexible metal mesh",
+      "source": "Core Rulebook"
     },
     {
       "name": "Flak Jacket",
@@ -37,8 +40,11 @@
       "mass": 3,
       "cost": 100,
       "tl": 5,
-      "traits": ["Bulky"],
-      "notes": "Heavy protective vest"
+      "traits": [
+        "Bulky"
+      ],
+      "notes": "Heavy protective vest",
+      "source": "Core Rulebook"
     },
     {
       "name": "Ablat",
@@ -47,8 +53,11 @@
       "mass": 2,
       "cost": 75,
       "tl": 9,
-      "traits": ["Ablative"],
-      "notes": "Ablative armor against energy weapons"
+      "traits": [
+        "Ablative"
+      ],
+      "notes": "Ablative armor against energy weapons",
+      "source": "Core Rulebook"
     },
     {
       "name": "Reflec",
@@ -58,8 +67,11 @@
       "mass": 0.5,
       "cost": 1500,
       "tl": 10,
-      "traits": ["Laser Only"],
-      "notes": "Reflective coating, only protects vs lasers"
+      "traits": [
+        "Laser Only"
+      ],
+      "notes": "Reflective coating, only protects vs lasers",
+      "source": "Core Rulebook"
     },
     {
       "name": "Combat Armour (TL 11)",
@@ -69,7 +81,8 @@
       "cost": 5000,
       "tl": 11,
       "traits": [],
-      "notes": "Military-grade powered armor"
+      "notes": "Military-grade powered armor",
+      "source": "Core Rulebook"
     },
     {
       "name": "Combat Armour (TL 13)",
@@ -79,7 +92,8 @@
       "cost": 8000,
       "tl": 13,
       "traits": [],
-      "notes": "Advanced military armor"
+      "notes": "Advanced military armor",
+      "source": "Core Rulebook"
     },
     {
       "name": "Hostile Environment Vacc Suit",
@@ -88,8 +102,11 @@
       "mass": 12,
       "cost": 7000,
       "tl": 8,
-      "traits": ["Environment"],
-      "notes": "Protects against vacuum and hostile environments"
+      "traits": [
+        "Environment"
+      ],
+      "notes": "Protects against vacuum and hostile environments",
+      "source": "Core Rulebook"
     },
     {
       "name": "Vacc Suit (Standard)",
@@ -98,8 +115,11 @@
       "mass": 10,
       "cost": 4000,
       "tl": 8,
-      "traits": ["Environment"],
-      "notes": "Standard vacuum protection"
+      "traits": [
+        "Environment"
+      ],
+      "notes": "Standard vacuum protection",
+      "source": "Core Rulebook"
     },
     {
       "name": "HEV Suit",
@@ -108,8 +128,12 @@
       "mass": 12,
       "cost": 9000,
       "tl": 10,
-      "traits": ["Environment", "Sealed"],
-      "notes": "Hazardous Environment Vacc Suit"
+      "traits": [
+        "Environment",
+        "Sealed"
+      ],
+      "notes": "Hazardous Environment Vacc Suit",
+      "source": "Core Rulebook"
     },
     {
       "name": "Battle Dress (TL 13)",
@@ -118,8 +142,13 @@
       "mass": 20,
       "cost": 200000,
       "tl": 13,
-      "traits": ["Powered", "Sealed", "Environment"],
-      "notes": "Fully powered combat armor with life support"
+      "traits": [
+        "Powered",
+        "Sealed",
+        "Environment"
+      ],
+      "notes": "Fully powered combat armor with life support",
+      "source": "Core Rulebook"
     },
     {
       "name": "Battle Dress (TL 14)",
@@ -128,8 +157,13 @@
       "mass": 18,
       "cost": 250000,
       "tl": 14,
-      "traits": ["Powered", "Sealed", "Environment"],
-      "notes": "Advanced powered armor"
+      "traits": [
+        "Powered",
+        "Sealed",
+        "Environment"
+      ],
+      "notes": "Advanced powered armor",
+      "source": "Core Rulebook"
     },
     {
       "name": "Boarding Armour",
@@ -138,8 +172,11 @@
       "mass": 8,
       "cost": 4500,
       "tl": 9,
-      "traits": ["Zero-G"],
-      "notes": "Designed for ship boarding operations"
+      "traits": [
+        "Zero-G"
+      ],
+      "notes": "Designed for ship boarding operations",
+      "source": "Core Rulebook"
     },
     {
       "name": "Diplo Vest",
@@ -148,8 +185,11 @@
       "mass": 0.5,
       "cost": 500,
       "tl": 9,
-      "traits": ["Concealed"],
-      "notes": "Easily concealed diplomatic protection"
+      "traits": [
+        "Concealed"
+      ],
+      "notes": "Easily concealed diplomatic protection",
+      "source": "Core Rulebook"
     },
     {
       "name": "Hostile Environment Suit",
@@ -158,8 +198,12 @@
       "mass": 8,
       "cost": 3000,
       "tl": 8,
-      "traits": ["Environment", "Sealed"],
-      "notes": "Protection from hostile atmospheres"
+      "traits": [
+        "Environment",
+        "Sealed"
+      ],
+      "notes": "Protection from hostile atmospheres",
+      "source": "Core Rulebook"
     },
     {
       "name": "NBC Suit",
@@ -168,8 +212,11 @@
       "mass": 4,
       "cost": 500,
       "tl": 6,
-      "traits": ["NBC"],
-      "notes": "Nuclear, Biological, Chemical protection"
+      "traits": [
+        "NBC"
+      ],
+      "notes": "Nuclear, Biological, Chemical protection",
+      "source": "Core Rulebook"
     },
     {
       "name": "Protec Suit",
@@ -178,8 +225,11 @@
       "mass": 3,
       "cost": 300,
       "tl": 5,
-      "traits": ["NBC"],
-      "notes": "Basic hazmat protection"
+      "traits": [
+        "NBC"
+      ],
+      "notes": "Basic hazmat protection",
+      "source": "Core Rulebook"
     },
     {
       "name": "Shield",
@@ -188,8 +238,11 @@
       "mass": 2,
       "cost": 20,
       "tl": 1,
-      "traits": ["Melee"],
-      "notes": "Personal shield, +2 vs melee attacks"
+      "traits": [
+        "Melee"
+      ],
+      "notes": "Personal shield, +2 vs melee attacks",
+      "source": "Core Rulebook"
     },
     {
       "name": "Riot Shield",
@@ -198,8 +251,12 @@
       "mass": 3,
       "cost": 100,
       "tl": 5,
-      "traits": ["Melee", "Bulky"],
-      "notes": "Large shield for riot control"
+      "traits": [
+        "Melee",
+        "Bulky"
+      ],
+      "notes": "Large shield for riot control",
+      "source": "Core Rulebook"
     },
     {
       "name": "Combat Helmet",
@@ -209,7 +266,8 @@
       "cost": 100,
       "tl": 7,
       "traits": [],
-      "notes": "Head protection only"
+      "notes": "Head protection only",
+      "source": "Core Rulebook"
     },
     {
       "name": "Respirator",
@@ -218,8 +276,11 @@
       "mass": 0.5,
       "cost": 100,
       "tl": 6,
-      "traits": ["Breathing"],
-      "notes": "Filters air, no armor value"
+      "traits": [
+        "Breathing"
+      ],
+      "notes": "Filters air, no armor value",
+      "source": "Core Rulebook"
     },
     {
       "name": "Breather Mask",
@@ -228,8 +289,11 @@
       "mass": 0.2,
       "cost": 150,
       "tl": 8,
-      "traits": ["Breathing"],
-      "notes": "Compact air filter"
+      "traits": [
+        "Breathing"
+      ],
+      "notes": "Compact air filter",
+      "source": "Core Rulebook"
     },
     {
       "name": "Skinsuit",
@@ -239,7 +303,8 @@
       "cost": 200,
       "tl": 8,
       "traits": [],
-      "notes": "Worn under armor, provides life support interface"
+      "notes": "Worn under armor, provides life support interface",
+      "source": "Core Rulebook"
     },
     {
       "name": "TL 10 Cloth",
@@ -249,7 +314,8 @@
       "cost": 500,
       "tl": 10,
       "traits": [],
-      "notes": "Advanced ballistic cloth"
+      "notes": "Advanced ballistic cloth",
+      "source": "Core Rulebook"
     },
     {
       "name": "TL 12 Cloth",
@@ -259,7 +325,8 @@
       "cost": 1000,
       "tl": 12,
       "traits": [],
-      "notes": "High-tech ballistic protection"
+      "notes": "High-tech ballistic protection",
+      "source": "Core Rulebook"
     },
     {
       "name": "Boarding Vacc Suit",
@@ -268,8 +335,12 @@
       "mass": 10,
       "cost": 8000,
       "tl": 10,
-      "traits": ["Environment", "Zero-G"],
-      "notes": "Armored vacc suit for combat"
+      "traits": [
+        "Environment",
+        "Zero-G"
+      ],
+      "notes": "Armored vacc suit for combat",
+      "source": "Core Rulebook"
     },
     {
       "name": "Thruster Pack",
@@ -278,8 +349,11 @@
       "mass": 5,
       "cost": 2000,
       "tl": 9,
-      "traits": ["Zero-G"],
-      "notes": "Personal maneuvering in zero-G"
+      "traits": [
+        "Zero-G"
+      ],
+      "notes": "Personal maneuvering in zero-G",
+      "source": "Core Rulebook"
     },
     {
       "name": "Gravitic Compensator",
@@ -289,7 +363,8 @@
       "cost": 10000,
       "tl": 12,
       "traits": [],
-      "notes": "Reduces effective weight of armor"
+      "notes": "Reduces effective weight of armor",
+      "source": "Core Rulebook"
     }
   ],
   "armourTypes": [

@@ -5,6 +5,8 @@ import { Button } from "./Button";
 import { useForm } from "../hooks/useForm";
 import { useTravellerArmour } from "../../hooks/useTravellerArmour";
 import type { ArmourRow } from "../../types";
+import { useState } from "react";
+import type { ArmourSource } from "../../data/traveller-armour.types";
 
 type ArmourFormData = Record<string, string> & {
   Armour: string;
@@ -35,6 +37,7 @@ export default function Armour({
     useForm(INITIAL_FORM);
   const { getAllArmour, getArmourTypes, getArmourByName } =
     useTravellerArmour();
+  const [sourceFilter, setSourceFilter] = useState<ArmourSource | "All">("All");
 
   const handleArmourSelect = (armourName: string) => {
     if (!armourName || armourName === "") {
@@ -87,6 +90,23 @@ export default function Armour({
         <div className="space-y-3">
           <FormField
             type="select"
+            value={sourceFilter}
+            onChange={(e) =>
+              setSourceFilter(e.target.value as ArmourSource | "All")
+            }
+          >
+            <option value="All">All Rulebooks</option>
+            <option value="Core Rulebook">Core Rulebook</option>
+            <option value="High Guard">High Guard</option>
+            <option value="Central Supply Catalogue">
+              Central Supply Catalogue
+            </option>
+            <option value="Mercenary">Mercenary</option>
+            <option value="Other">Other</option>
+          </FormField>
+
+          <FormField
+            type="select"
             value={form.Armour === "custom" ? "custom" : form.Armour}
             onChange={(e) => {
               if (e.target.value === "custom") {
@@ -99,12 +119,17 @@ export default function Armour({
           >
             <option value="">Select from Database or Enter Custom</option>
             <optgroup label="Traveller Armour Database">
-              {getAllArmour().map((armour) => (
-                <option key={armour.name} value={armour.name}>
-                  {armour.name} ({armour.type}) - Protection:{" "}
-                  {armour.protection} - {armour.cost} Cr
-                </option>
-              ))}
+              {getAllArmour()
+                .filter(
+                  (armour) =>
+                    sourceFilter === "All" || armour.source === sourceFilter
+                )
+                .map((armour) => (
+                  <option key={armour.name} value={armour.name}>
+                    {armour.name} ({armour.type}) - Protection:{" "}
+                    {armour.protection} - {armour.cost} Cr
+                  </option>
+                ))}
             </optgroup>
             <optgroup label="Custom">
               <option value="custom">Enter Custom Armour</option>

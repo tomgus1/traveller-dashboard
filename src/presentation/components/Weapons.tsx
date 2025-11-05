@@ -5,6 +5,8 @@ import { Button } from "./Button";
 import { useForm } from "../hooks/useForm";
 import { useTravellerWeapons } from "../../hooks/useTravellerWeapons";
 import type { WeaponRow } from "../../types";
+import { useState } from "react";
+import type { WeaponSource } from "../../data/traveller-weapons.types";
 
 type WeaponFormData = Record<string, string> & {
   Weapon: string;
@@ -37,6 +39,7 @@ export default function Weapons({
     useForm(INITIAL_FORM);
   const { getAllWeapons, getWeaponTypes, getWeaponByName } =
     useTravellerWeapons();
+  const [sourceFilter, setSourceFilter] = useState<WeaponSource | "All">("All");
 
   const handleWeaponSelect = (weaponName: string) => {
     if (!weaponName || weaponName === "") {
@@ -85,6 +88,23 @@ export default function Weapons({
         <div className="space-y-3">
           <FormField
             type="select"
+            value={sourceFilter}
+            onChange={(e) =>
+              setSourceFilter(e.target.value as WeaponSource | "All")
+            }
+          >
+            <option value="All">All Rulebooks</option>
+            <option value="Core Rulebook">Core Rulebook</option>
+            <option value="High Guard">High Guard</option>
+            <option value="Central Supply Catalogue">
+              Central Supply Catalogue
+            </option>
+            <option value="Mercenary">Mercenary</option>
+            <option value="Other">Other</option>
+          </FormField>
+
+          <FormField
+            type="select"
             value={form.Weapon === "custom" ? "custom" : form.Weapon}
             onChange={(e) => {
               if (e.target.value === "custom") {
@@ -97,11 +117,16 @@ export default function Weapons({
           >
             <option value="">Select from Database or Enter Custom</option>
             <optgroup label="Traveller Weapons Database">
-              {getAllWeapons().map((weapon) => (
-                <option key={weapon.name} value={weapon.name}>
-                  {weapon.name} ({weapon.type}) - {weapon.cost} Cr
-                </option>
-              ))}
+              {getAllWeapons()
+                .filter(
+                  (weapon) =>
+                    sourceFilter === "All" || weapon.source === sourceFilter
+                )
+                .map((weapon) => (
+                  <option key={weapon.name} value={weapon.name}>
+                    {weapon.name} ({weapon.type}) - {weapon.cost} Cr
+                  </option>
+                ))}
             </optgroup>
             <optgroup label="Custom">
               <option value="custom">Enter Custom Weapon</option>

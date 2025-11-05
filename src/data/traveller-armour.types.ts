@@ -8,6 +8,16 @@ export type ArmourType =
   | "Accessory"
   | "Undersuit";
 
+export type ArmourSource =
+  | "Core Rulebook"
+  | "High Guard"
+  | "Central Supply Catalogue"
+  | "Mercenary"
+  | "Pirates of Drinax"
+  | "Robot Handbook"
+  | "Vehicle Handbook"
+  | "Other";
+
 export type ArmourTrait =
   | "Ablative"
   | "Bulky"
@@ -31,6 +41,7 @@ export interface TravellerArmour {
   tl: number;
   traits: string[];
   notes: string;
+  source: ArmourSource;
 }
 
 export interface ArmourDatabase {

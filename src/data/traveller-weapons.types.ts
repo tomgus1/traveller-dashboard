@@ -10,6 +10,16 @@ export type WeaponType =
   | "Projectile"
   | "Special";
 
+export type WeaponSource =
+  | "Core Rulebook"
+  | "High Guard"
+  | "Central Supply Catalogue"
+  | "Mercenary"
+  | "Pirates of Drinax"
+  | "Robot Handbook"
+  | "Vehicle Handbook"
+  | "Other";
+
 export type WeaponTrait =
   | "AP"
   | "Auto"
@@ -38,6 +48,7 @@ export interface TravellerWeapon {
   traits: string[];
   tl: number;
   notes: string;
+  source: WeaponSource;
 }
 
 export interface WeaponsDatabase {
