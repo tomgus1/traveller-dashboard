@@ -1,0 +1,318 @@
+{
+  "armour": [
+    {
+      "name": "Jack",
+      "type": "Light",
+      "protection": 1,
+      "mass": 1,
+      "cost": 50,
+      "tl": 1,
+      "traits": [],
+      "notes": "Leather jacket or heavy clothing"
+    },
+    {
+      "name": "Cloth",
+      "type": "Light",
+      "protection": 5,
+      "mass": 2,
+      "cost": 250,
+      "tl": 7,
+      "traits": [],
+      "notes": "Ballistic cloth armor"
+    },
+    {
+      "name": "Mesh",
+      "type": "Light",
+      "protection": 6,
+      "mass": 2,
+      "cost": 150,
+      "tl": 6,
+      "traits": [],
+      "notes": "Flexible metal mesh"
+    },
+    {
+      "name": "Flak Jacket",
+      "type": "Light",
+      "protection": 7,
+      "mass": 3,
+      "cost": 100,
+      "tl": 5,
+      "traits": ["Bulky"],
+      "notes": "Heavy protective vest"
+    },
+    {
+      "name": "Ablat",
+      "type": "Light",
+      "protection": 3,
+      "mass": 2,
+      "cost": 75,
+      "tl": 9,
+      "traits": ["Ablative"],
+      "notes": "Ablative armor against energy weapons"
+    },
+    {
+      "name": "Reflec",
+      "type": "Light",
+      "protection": 10,
+      "protectionType": "vs lasers",
+      "mass": 0.5,
+      "cost": 1500,
+      "tl": 10,
+      "traits": ["Laser Only"],
+      "notes": "Reflective coating, only protects vs lasers"
+    },
+    {
+      "name": "Combat Armour (TL 11)",
+      "type": "Medium",
+      "protection": 13,
+      "mass": 6,
+      "cost": 5000,
+      "tl": 11,
+      "traits": [],
+      "notes": "Military-grade powered armor"
+    },
+    {
+      "name": "Combat Armour (TL 13)",
+      "type": "Medium",
+      "protection": 15,
+      "mass": 5,
+      "cost": 8000,
+      "tl": 13,
+      "traits": [],
+      "notes": "Advanced military armor"
+    },
+    {
+      "name": "Hostile Environment Vacc Suit",
+      "type": "Vacc Suit",
+      "protection": 8,
+      "mass": 12,
+      "cost": 7000,
+      "tl": 8,
+      "traits": ["Environment"],
+      "notes": "Protects against vacuum and hostile environments"
+    },
+    {
+      "name": "Vacc Suit (Standard)",
+      "type": "Vacc Suit",
+      "protection": 6,
+      "mass": 10,
+      "cost": 4000,
+      "tl": 8,
+      "traits": ["Environment"],
+      "notes": "Standard vacuum protection"
+    },
+    {
+      "name": "HEV Suit",
+      "type": "Vacc Suit",
+      "protection": 8,
+      "mass": 12,
+      "cost": 9000,
+      "tl": 10,
+      "traits": ["Environment", "Sealed"],
+      "notes": "Hazardous Environment Vacc Suit"
+    },
+    {
+      "name": "Battle Dress (TL 13)",
+      "type": "Heavy",
+      "protection": 18,
+      "mass": 20,
+      "cost": 200000,
+      "tl": 13,
+      "traits": ["Powered", "Sealed", "Environment"],
+      "notes": "Fully powered combat armor with life support"
+    },
+    {
+      "name": "Battle Dress (TL 14)",
+      "type": "Heavy",
+      "protection": 20,
+      "mass": 18,
+      "cost": 250000,
+      "tl": 14,
+      "traits": ["Powered", "Sealed", "Environment"],
+      "notes": "Advanced powered armor"
+    },
+    {
+      "name": "Boarding Armour",
+      "type": "Medium",
+      "protection": 11,
+      "mass": 8,
+      "cost": 4500,
+      "tl": 9,
+      "traits": ["Zero-G"],
+      "notes": "Designed for ship boarding operations"
+    },
+    {
+      "name": "Diplo Vest",
+      "type": "Light",
+      "protection": 4,
+      "mass": 0.5,
+      "cost": 500,
+      "tl": 9,
+      "traits": ["Concealed"],
+      "notes": "Easily concealed diplomatic protection"
+    },
+    {
+      "name": "Hostile Environment Suit",
+      "type": "Environment",
+      "protection": 6,
+      "mass": 8,
+      "cost": 3000,
+      "tl": 8,
+      "traits": ["Environment", "Sealed"],
+      "notes": "Protection from hostile atmospheres"
+    },
+    {
+      "name": "NBC Suit",
+      "type": "Environment",
+      "protection": 3,
+      "mass": 4,
+      "cost": 500,
+      "tl": 6,
+      "traits": ["NBC"],
+      "notes": "Nuclear, Biological, Chemical protection"
+    },
+    {
+      "name": "Protec Suit",
+      "type": "Environment",
+      "protection": 2,
+      "mass": 3,
+      "cost": 300,
+      "tl": 5,
+      "traits": ["NBC"],
+      "notes": "Basic hazmat protection"
+    },
+    {
+      "name": "Shield",
+      "type": "Shield",
+      "protection": 2,
+      "mass": 2,
+      "cost": 20,
+      "tl": 1,
+      "traits": ["Melee"],
+      "notes": "Personal shield, +2 vs melee attacks"
+    },
+    {
+      "name": "Riot Shield",
+      "type": "Shield",
+      "protection": 3,
+      "mass": 3,
+      "cost": 100,
+      "tl": 5,
+      "traits": ["Melee", "Bulky"],
+      "notes": "Large shield for riot control"
+    },
+    {
+      "name": "Combat Helmet",
+      "type": "Accessory",
+      "protection": 2,
+      "mass": 1,
+      "cost": 100,
+      "tl": 7,
+      "traits": [],
+      "notes": "Head protection only"
+    },
+    {
+      "name": "Respirator",
+      "type": "Accessory",
+      "protection": 0,
+      "mass": 0.5,
+      "cost": 100,
+      "tl": 6,
+      "traits": ["Breathing"],
+      "notes": "Filters air, no armor value"
+    },
+    {
+      "name": "Breather Mask",
+      "type": "Accessory",
+      "protection": 0,
+      "mass": 0.2,
+      "cost": 150,
+      "tl": 8,
+      "traits": ["Breathing"],
+      "notes": "Compact air filter"
+    },
+    {
+      "name": "Skinsuit",
+      "type": "Undersuit",
+      "protection": 0,
+      "mass": 2,
+      "cost": 200,
+      "tl": 8,
+      "traits": [],
+      "notes": "Worn under armor, provides life support interface"
+    },
+    {
+      "name": "TL 10 Cloth",
+      "type": "Light",
+      "protection": 7,
+      "mass": 1.5,
+      "cost": 500,
+      "tl": 10,
+      "traits": [],
+      "notes": "Advanced ballistic cloth"
+    },
+    {
+      "name": "TL 12 Cloth",
+      "type": "Light",
+      "protection": 9,
+      "mass": 1,
+      "cost": 1000,
+      "tl": 12,
+      "traits": [],
+      "notes": "High-tech ballistic protection"
+    },
+    {
+      "name": "Boarding Vacc Suit",
+      "type": "Vacc Suit",
+      "protection": 9,
+      "mass": 10,
+      "cost": 8000,
+      "tl": 10,
+      "traits": ["Environment", "Zero-G"],
+      "notes": "Armored vacc suit for combat"
+    },
+    {
+      "name": "Thruster Pack",
+      "type": "Accessory",
+      "protection": 0,
+      "mass": 5,
+      "cost": 2000,
+      "tl": 9,
+      "traits": ["Zero-G"],
+      "notes": "Personal maneuvering in zero-G"
+    },
+    {
+      "name": "Gravitic Compensator",
+      "type": "Accessory",
+      "protection": 0,
+      "mass": 6,
+      "cost": 10000,
+      "tl": 12,
+      "traits": [],
+      "notes": "Reduces effective weight of armor"
+    }
+  ],
+  "armourTypes": [
+    "Light",
+    "Medium",
+    "Heavy",
+    "Vacc Suit",
+    "Environment",
+    "Shield",
+    "Accessory",
+    "Undersuit"
+  ],
+  "traits": {
+    "Ablative": "Degrades with use, protects better against energy weapons",
+    "Bulky": "Difficult to move in, may impose penalties",
+    "Concealed": "Can be hidden under normal clothing",
+    "Environment": "Protects against environmental hazards",
+    "Laser Only": "Only provides protection against laser weapons",
+    "Melee": "Provides bonus against melee attacks",
+    "NBC": "Protection against Nuclear, Biological, Chemical threats",
+    "Powered": "Powered armor system, enhances strength",
+    "Sealed": "Provides sealed environment",
+    "Zero-G": "Optimized for zero gravity operations",
+    "Breathing": "Provides air filtration or supply"
+  }
+}
