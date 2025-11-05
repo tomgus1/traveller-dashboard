@@ -42,7 +42,7 @@ export default function CampaignSelector({
     updateCampaign,
     deleteCampaign,
   } = useCampaigns();
-  const { fetchMembers, removeMember } = useCampaignMembers();
+  const { fetchMembers, removeMember, updateMemberRole } = useCampaignMembers();
   const { signOut } = useAuth();
 
   // Adapter functions to make new services work with legacy component interfaces
@@ -82,6 +82,15 @@ export default function CampaignSelector({
   const adaptedRemoveMember = async (campaignId: string, userId: string) => {
     await removeMember(campaignId, userId);
   };
+
+  const adaptedUpdateMemberRole = async (
+    campaignId: string,
+    userId: string,
+    roles: CampaignRoles
+  ) => {
+    return await updateMemberRole(campaignId, userId, roles);
+  };
+
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCampaignName, setNewCampaignName] = useState("");
   const [newCampaignDescription, setNewCampaignDescription] = useState("");
@@ -211,6 +220,7 @@ export default function CampaignSelector({
                           onDeleteCampaign={adaptedDeleteCampaign}
                           onGetMembers={adaptedGetMembers}
                           onRemoveMember={adaptedRemoveMember}
+                          onUpdateMemberRole={adaptedUpdateMemberRole}
                         />
                       </div>
                     )}

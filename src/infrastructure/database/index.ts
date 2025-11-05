@@ -682,7 +682,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         try {
           const { data: profile, error: profileError } = await supabase
             .from("user_profiles")
-            .select("email, display_name, username")
+            .select("*")
             .eq("id", member.user_id)
             .single();
 
@@ -691,14 +691,13 @@ export class SupabaseCampaignRepository implements CampaignRepository {
           let username: string | undefined;
 
           if (!profileError && profile) {
-            // TypeScript workaround - cast to Record to access dynamic properties
-            const profileData = profile as unknown as Record<string, unknown>;
-            email =
-              (profileData.email as string) ||
-              `user_${member.user_id.slice(0, 8)}@example.com`;
+            // Direct property access - profile should have all fields
+            const profileData = profile as Record<string, unknown>;
+            email = (profileData.email as string) || "";
             displayName = (profileData.display_name as string) || undefined;
             username = (profileData.username as string) || undefined;
           } else {
+            // Profile doesn't exist - this shouldn't happen but use fallback
             email = `user_${member.user_id.slice(0, 8)}@example.com`;
             displayName = undefined;
             username = undefined;
