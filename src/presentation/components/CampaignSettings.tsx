@@ -1,9 +1,22 @@
 import { useState } from "react";
-import { Settings, Edit3, Trash2, UserPlus, Users, X } from "lucide-react";
+import {
+  Settings,
+  Edit3,
+  Trash2,
+  UserPlus,
+  Users,
+  X,
+  Edit,
+} from "lucide-react";
 import type { Database } from "../../infrastructure/types/supabase";
 import type { CampaignRoles } from "../../core/entities";
 import { Button, IconButton } from "./Button";
 import { Modal, ModalFooter } from "./Modal";
+import RoleSelector from "./RoleSelector";
+import {
+  getUserDisplayName,
+  getUserSecondaryInfo,
+} from "../../shared/utils/userDisplay";
 
 type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
   userRoles?: CampaignRoles;
@@ -30,6 +43,11 @@ interface CampaignSettingsProps {
   onDeleteCampaign: (campaignId: string) => Promise<void>;
   onGetMembers: (campaignId: string) => Promise<CampaignMember[] | undefined>;
   onRemoveMember: (campaignId: string, userId: string) => Promise<void>;
+  onUpdateMemberRole: (
+    campaignId: string,
+    userId: string,
+    roles: CampaignRoles
+  ) => Promise<{ success: boolean }>;
 }
 
 export default function CampaignSettings({
@@ -38,6 +56,7 @@ export default function CampaignSettings({
   onDeleteCampaign,
   onGetMembers,
   onRemoveMember,
+  onUpdateMemberRole,
 }: CampaignSettingsProps) {
   // Helper function to get role display for a member
   const getRoleDisplay = (roles: CampaignRoles) => {
@@ -64,6 +83,15 @@ export default function CampaignSettings({
   const [showMembers, setShowMembers] = useState(false);
   const [members, setMembers] = useState<CampaignMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
+  const [editingMember, setEditingMember] = useState<CampaignMember | null>(
+    null
+  );
+  const [editingRoles, setEditingRoles] = useState<CampaignRoles>({
+    isAdmin: false,
+    isGm: false,
+    isPlayer: true,
+  });
+  const [updatingRole, setUpdatingRole] = useState(false);
 
   const [editName, setEditName] = useState(campaign.name);
   const [editDescription, setEditDescription] = useState(
@@ -125,6 +153,35 @@ export default function CampaignSettings({
       setMembers(memberData || []);
     } catch {
       // Handle error silently or show user notification
+    }
+  };
+
+  const handleEditMemberRole = (member: CampaignMember) => {
+    setEditingMember(member);
+    setEditingRoles(member.roles);
+  };
+
+  const handleUpdateRole = async () => {
+    if (!editingMember) return;
+
+    try {
+      setUpdatingRole(true);
+      const result = await onUpdateMemberRole(
+        campaign.id,
+        editingMember.user_id,
+        editingRoles
+      );
+
+      if (result.success) {
+        // Refresh members list
+        const memberData = await onGetMembers(campaign.id);
+        setMembers(memberData || []);
+        setEditingMember(null);
+      }
+    } catch {
+      // Handle error silently or show user notification
+    } finally {
+      setUpdatingRole(false);
     }
   };
 
@@ -276,18 +333,17 @@ export default function CampaignSettings({
 
             <div className="space-y-3 max-h-64 overflow-y-auto">
               {members.map((member) => {
-                // Priority: display_name > username > email
-                const displayName =
-                  member.user_profiles.display_name ||
-                  member.user_profiles.username ||
-                  member.user_profiles.email;
+                const displayName = getUserDisplayName(
+                  member.user_profiles.display_name,
+                  member.user_profiles.username,
+                  member.user_profiles.email
+                );
 
-                // Show username if different from display name, otherwise show email
-                const secondaryInfo =
-                  member.user_profiles.display_name &&
-                  member.user_profiles.username
-                    ? `@${member.user_profiles.username}`
-                    : member.user_profiles.email;
+                const secondaryInfo = getUserSecondaryInfo(
+                  member.user_profiles.display_name,
+                  member.user_profiles.username,
+                  member.user_profiles.email
+                );
 
                 return (
                   <div
@@ -308,15 +364,25 @@ export default function CampaignSettings({
                       </span>
                     </div>
 
-                    {!member.roles.isAdmin && (
-                      <IconButton
-                        onClick={() => handleRemoveMember(member.user_id)}
-                        icon={<Trash2 className="w-4 h-4" />}
-                        variant="danger"
-                        aria-label="Remove member"
-                        title="Remove member"
-                      />
-                    )}
+                    <div className="flex gap-2">
+                      {!member.roles.isAdmin && (
+                        <>
+                          <IconButton
+                            onClick={() => handleEditMemberRole(member)}
+                            icon={<Edit className="w-4 h-4" />}
+                            aria-label="Edit roles"
+                            title="Edit roles"
+                          />
+                          <IconButton
+                            onClick={() => handleRemoveMember(member.user_id)}
+                            icon={<Trash2 className="w-4 h-4" />}
+                            variant="danger"
+                            aria-label="Remove member"
+                            title="Remove member"
+                          />
+                        </>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -341,6 +407,41 @@ export default function CampaignSettings({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit Member Role Modal */}
+      {editingMember && (
+        <Modal
+          isOpen={true}
+          onClose={() => setEditingMember(null)}
+          title={`Edit Roles - ${
+            editingMember.user_profiles.display_name ||
+            editingMember.user_profiles.username ||
+            editingMember.user_profiles.email
+          }`}
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Member Roles
+              </label>
+              <RoleSelector
+                roles={editingRoles}
+                onChange={setEditingRoles}
+                disabled={updatingRole}
+              />
+            </div>
+
+            <ModalFooter
+              onCancel={() => setEditingMember(null)}
+              cancelText="Cancel"
+              confirmText={updatingRole ? "Updating..." : "Update Roles"}
+              confirmDisabled={updatingRole}
+              onConfirm={handleUpdateRole}
+              isLoading={updatingRole}
+            />
+          </div>
+        </Modal>
       )}
     </div>
   );
