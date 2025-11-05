@@ -57,7 +57,9 @@ describe("Armour Component", () => {
     render(<Armour rows={mockArmour} onAdd={mockOnAdd} />);
 
     // Check form fields are present
-    expect(screen.getByText("Select from Database or Enter Custom")).toBeInTheDocument();
+    expect(
+      screen.getByText("Select from Database or Enter Custom")
+    ).toBeInTheDocument();
     expect(screen.getByDisplayValue("Select Type")).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText("Protection (e.g., +5, 1d6+2)")

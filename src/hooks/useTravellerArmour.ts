@@ -1,6 +1,9 @@
-import { useMemo } from 'react';
-import armourData from '../data/traveller-armour.json';
-import type { TravellerArmour, ArmourDatabase } from '../data/traveller-armour.types';
+import { useMemo } from "react";
+import armourData from "../data/traveller-armour.json";
+import type {
+  TravellerArmour,
+  ArmourDatabase,
+} from "../data/traveller-armour.types";
 
 export function useTravellerArmour() {
   const armour = useMemo(() => armourData as ArmourDatabase, []);
@@ -26,7 +29,10 @@ export function useTravellerArmour() {
   };
 
   // Get armour by tech level
-  const getArmourByTechLevel = (minTL: number, maxTL?: number): TravellerArmour[] => {
+  const getArmourByTechLevel = (
+    minTL: number,
+    maxTL?: number
+  ): TravellerArmour[] => {
     return armour.armour.filter((item) => {
       if (maxTL !== undefined) {
         return item.tl >= minTL && item.tl <= maxTL;
@@ -48,7 +54,9 @@ export function useTravellerArmour() {
 
   // Sort armour by protection
   const sortArmourByProtection = (ascending = true): TravellerArmour[] => {
-    const sorted = [...armour.armour].sort((a, b) => a.protection - b.protection);
+    const sorted = [...armour.armour].sort(
+      (a, b) => a.protection - b.protection
+    );
     return ascending ? sorted : sorted.reverse();
   };
 

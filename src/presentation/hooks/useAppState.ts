@@ -153,7 +153,7 @@ export function useAppState() {
             Description: `Purchased ${ammo["Ammo Type"]} for ${ammo.Weapon}`,
             Category: "Expense",
             Subcategory: "Ammo",
-            ["Amount (Cr)"]: -Math.abs(ammo.Cost),
+            ["Amount (Cr)"]: Math.abs(ammo.Cost),
             ["Paid By"]: characterDisplayName,
             Notes: ammo.Notes || "",
           };
@@ -228,11 +228,11 @@ export function useAppState() {
         let updatedFinance = existingCharacter.Finance || [];
         if (weapon.Cost && weapon.Cost > 0) {
           const newTransaction: FinanceRow = {
-            Date: new Date().toISOString().split('T')[0],
+            Date: new Date().toISOString().split("T")[0],
             Description: `Purchased ${weapon.Weapon}`,
             Category: "Expense",
             Subcategory: "Weapons",
-            ["Amount (Cr)"]: -Math.abs(weapon.Cost),
+            ["Amount (Cr)"]: Math.abs(weapon.Cost),
             ["Paid By"]: characterDisplayName,
             Notes: weapon.Notes || "",
           };
@@ -275,11 +275,11 @@ export function useAppState() {
         let updatedFinance = existingCharacter.Finance || [];
         if (armour.Cost && armour.Cost > 0) {
           const newTransaction: FinanceRow = {
-            Date: new Date().toISOString().split('T')[0],
+            Date: new Date().toISOString().split("T")[0],
             Description: `Purchased ${armour.Armour}`,
             Category: "Expense",
             Subcategory: "Armour",
-            ["Amount (Cr)"]: -Math.abs(armour.Cost),
+            ["Amount (Cr)"]: Math.abs(armour.Cost),
             ["Paid By"]: characterDisplayName,
             Notes: armour.Notes || "",
           };

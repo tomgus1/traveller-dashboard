@@ -31,8 +31,10 @@ export default function Armour({
   rows: ArmourRow[];
   onAdd: (r: ArmourRow) => void;
 }) {
-  const { form, createInputHandler, resetForm, setForm } = useForm(INITIAL_FORM);
-  const { getAllArmour, getArmourTypes, getArmourByName } = useTravellerArmour();
+  const { form, createInputHandler, resetForm, setForm } =
+    useForm(INITIAL_FORM);
+  const { getAllArmour, getArmourTypes, getArmourByName } =
+    useTravellerArmour();
 
   const handleArmourSelect = (armourName: string) => {
     if (!armourName || armourName === "") {
@@ -99,7 +101,8 @@ export default function Armour({
             <optgroup label="Traveller Armour Database">
               {getAllArmour().map((armour) => (
                 <option key={armour.name} value={armour.name}>
-                  {armour.name} ({armour.type}) - Protection: {armour.protection} - {armour.cost} Cr
+                  {armour.name} ({armour.type}) - Protection:{" "}
+                  {armour.protection} - {armour.cost} Cr
                 </option>
               ))}
             </optgroup>
