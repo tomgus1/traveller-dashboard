@@ -172,16 +172,12 @@ export default function Weapons({
       </SectionCard>
 
       <Table
-        columns={[
-          "Weapon",
-          "Type",
-          "Damage",
-          "Range (m)",
-          "Mass (kg)",
-          "Cost",
-          "Notes",
-        ]}
-        rows={rows}
+        columns={["Weapon", "Type", "Damage", "Range", "Mass", "Cost", "Notes"]}
+        rows={rows.map((row) => ({
+          ...row,
+          Range: row.Range ? `${row.Range}` : "",
+          Mass: row.Mass ? `${row.Mass} kg` : "",
+        }))}
       />
     </div>
   );

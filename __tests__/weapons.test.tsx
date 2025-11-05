@@ -85,8 +85,8 @@ describe("Weapons Component", () => {
     expect(screen.getByText("Weapon")).toBeInTheDocument();
     expect(screen.getByText("Type")).toBeInTheDocument();
     expect(screen.getByText("Damage")).toBeInTheDocument();
-    expect(screen.getByText("Range (m)")).toBeInTheDocument();
-    expect(screen.getByText("Mass (kg)")).toBeInTheDocument();
+    expect(screen.getByText("Range")).toBeInTheDocument();
+    expect(screen.getByText("Mass")).toBeInTheDocument();
     expect(screen.getByText("Cost")).toBeInTheDocument();
     expect(screen.getByText("Notes")).toBeInTheDocument();
 
