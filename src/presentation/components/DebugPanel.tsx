@@ -4,19 +4,17 @@ import { supabase } from "../../infrastructure/database/supabase";
 export default function DebugPanel() {
   const [connectionStatus, setConnectionStatus] =
     useState<string>("Testing...");
-  const [envVars, setEnvVars] = useState<Record<string, string | boolean>>({});
+  
+  const envVars = {
+    VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+    VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
+      ? "***SET***"
+      : "MISSING",
+    MODE: import.meta.env.MODE,
+    DEV: import.meta.env.DEV,
+  };
 
   useEffect(() => {
-    // Check environment variables
-    setEnvVars({
-      VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-      VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
-        ? "***SET***"
-        : "MISSING",
-      MODE: import.meta.env.MODE,
-      DEV: import.meta.env.DEV,
-    });
-
     // Test Supabase connection
     const testConnection = async () => {
       try {
