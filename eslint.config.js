@@ -4,19 +4,19 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import prettierConfig from 'eslint-config-prettier'
-import { defineConfig, globalIgnores } from 'eslint/config'
 
-export default defineConfig([
-  globalIgnores(['dist', 'node_modules', 'coverage', '*.config.js', '*.config.ts']),
+export default [
+  {
+    ignores: ['dist', 'node_modules', 'coverage', '*.config.js', '*.config.ts'],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-      prettierConfig,
-    ],
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+    },
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.browser,
@@ -27,6 +27,9 @@ export default defineConfig([
       },
     },
     rules: {
+      ...reactHooks.configs.recommended.rules,
+      ...prettierConfig.rules,
+      
       // TypeScript specific rules (non-type-aware)
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': 'error',
@@ -75,7 +78,7 @@ export default defineConfig([
       'max-params': ['warn', 5],
     },
   },
-  // Test files configuration
+  // Test files configuration (TypeScript)
   {
     files: ['**/__tests__/**/*.{ts,tsx}', '**/*.{test,spec}.{ts,tsx}'],
     languageOptions: {
@@ -90,4 +93,20 @@ export default defineConfig([
       'no-console': 'off', // Allow console.log in tests for debugging
     },
   },
-])
+  // Test files configuration (JavaScript)
+  {
+    files: ['**/__tests__/**/*.{js,jsx}', '**/*.{test,spec}.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+    },
+    rules: {
+      // Relax some rules for test files
+      'max-lines-per-function': 'off',
+      'no-console': 'off',
+    },
+  },
+]
+
