@@ -120,6 +120,7 @@ export default function AccountSettings({
 
   const handleDeleteAccount = () => {
     if (
+      // eslint-disable-next-line no-alert
       window.confirm(
         "Are you sure you want to delete your account? This action cannot be undone."
       )
