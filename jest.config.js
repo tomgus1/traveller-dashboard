@@ -25,7 +25,7 @@ export default {
     '!src/vite-env.d.ts'
   ],
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'], // Test setup file
-  moduleNameMapping: {
+  moduleNameMapper: {
     // Handle CSS imports (mock them)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     // Handle dynamic imports that might fail in Jest
