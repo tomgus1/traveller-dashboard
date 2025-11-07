@@ -35,6 +35,8 @@ export default function Dashboard() {
     shipCargo,
     shipMaintenance,
     loans,
+    partyInventory,
+    campaignAmmo,
     updatePartyFinances,
     updateShipAccounts,
     addCargoLeg,
@@ -59,8 +61,8 @@ export default function Dashboard() {
     Ship_Cargo: shipCargo,
     Ship_Maintenance_Log: shipMaintenance,
     Loans_Mortgage: loans,
-    Party_Inventory: [],
-    Ammo_Tracker: [],
+    Party_Inventory: partyInventory,
+    Ammo_Tracker: campaignAmmo,
     PCs: state.PCs,
   }, actualSelectedCharacter);
   const { handleImport, handleExport } = useImportExport(setState, state);
