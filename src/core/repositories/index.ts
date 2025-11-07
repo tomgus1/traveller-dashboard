@@ -202,3 +202,7 @@ export interface CharacterRepository {
   ): Promise<OperationResult>;
   deleteCharacterAmmo(ammoId: string): Promise<OperationResult>;
 }
+
+// Export CampaignDataRepository
+export type { CampaignDataRepository } from './CampaignDataRepository';
+export { SupabaseCampaignDataRepository } from './CampaignDataRepository';

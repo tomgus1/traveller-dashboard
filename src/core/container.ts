@@ -4,6 +4,11 @@ import {
   SupabaseAuthRepository,
   SupabaseCampaignRepository,
 } from "../infrastructure/database";
+import {
+  type CampaignDataRepository,
+  SupabaseCampaignDataRepository,
+} from "./repositories/CampaignDataRepository";
+import { supabase } from "../infrastructure/database/supabase";
 
 // Service container for dependency injection
 export class ServiceContainer {
@@ -11,6 +16,7 @@ export class ServiceContainer {
 
   private _authRepository: SupabaseAuthRepository;
   private _campaignRepository: SupabaseCampaignRepository;
+  private _campaignDataRepository: CampaignDataRepository;
   private _authService: AuthService;
   private _campaignService: CampaignService;
 
@@ -18,6 +24,7 @@ export class ServiceContainer {
     // Initialize repositories
     this._authRepository = new SupabaseAuthRepository();
     this._campaignRepository = new SupabaseCampaignRepository();
+    this._campaignDataRepository = new SupabaseCampaignDataRepository(supabase);
 
     // Initialize services with dependencies
     this._authService = new AuthService(this._authRepository);
@@ -51,6 +58,10 @@ export class ServiceContainer {
   get campaignRepository(): SupabaseCampaignRepository {
     return this._campaignRepository;
   }
+
+  get campaignDataRepository(): CampaignDataRepository {
+    return this._campaignDataRepository;
+  }
 }
 
 // Convenience function to get services
@@ -69,4 +80,8 @@ export function getCampaignService(): CampaignService {
 
 export function getCampaignRepository(): SupabaseCampaignRepository {
   return ServiceContainer.getInstance().campaignRepository;
+}
+
+export function getCampaignDataRepository(): CampaignDataRepository {
+  return ServiceContainer.getInstance().campaignDataRepository;
 }
