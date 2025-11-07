@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppState } from "../hooks/useAppState";
+import { useCampaignData } from "../hooks/useCampaignData";
 import { useBalanceCalculations } from "../hooks/useBalanceCalculations";
 import { useImportExport } from "../hooks/useImportExport";
 import { useCampaignCharacters } from "../hooks/useCampaignCharacters";
@@ -27,12 +28,20 @@ export default function Dashboard() {
   const actualSelectedCharacter =
     selectedCharacter || characters[0]?.displayName || "";
 
+  // Campaign-level data (Party/Ship finances, Cargo, etc.) - now from database!
   const {
-    state,
-    setState,
+    partyFinances,
+    shipFinances,
+    shipCargo,
     updatePartyFinances,
     updateShipAccounts,
     addCargoLeg,
+  } = useCampaignData(campaignId);
+
+  // Character-level data (still using localStorage for now)
+  const {
+    state,
+    setState,
     updateCharacterFinance,
     addCharacterInventory,
     addCharacterAmmo,
@@ -42,7 +51,16 @@ export default function Dashboard() {
     reloadWeapon,
   } = useAppState();
 
-  const balances = useBalanceCalculations(state, actualSelectedCharacter);
+    const balances = useBalanceCalculations({
+    Party_Finances: partyFinances,
+    Ship_Accounts: shipFinances,
+    Ship_Cargo: shipCargo,
+    Ship_Maintenance_Log: [],
+    Loans_Mortgage: [],
+    Party_Inventory: [],
+    Ammo_Tracker: [],
+    PCs: state.PCs,
+  }, actualSelectedCharacter);
   const { handleImport, handleExport } = useImportExport(setState, state);
 
   // Handle missing campaignId after all hooks are called
@@ -82,7 +100,7 @@ export default function Dashboard() {
         <StatsDashboard
           partyBalance={balances.party}
           shipBalance={balances.ship}
-          cargoLegsCount={state.Ship_Cargo.length}
+          cargoLegsCount={shipCargo.length}
           characterCount={characters.length}
         />
 
@@ -100,8 +118,11 @@ export default function Dashboard() {
         />
 
         <TabContent
-          campaignId={campaignId}
+          campaignId={campaignId || ''}
           activeTab={tab}
+          partyFinances={partyFinances}
+          shipFinances={shipFinances}
+          shipCargo={shipCargo}
           state={state}
           selectedCharacterDisplayName={actualSelectedCharacter}
           characterBalance={balances.character}

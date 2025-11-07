@@ -14,6 +14,11 @@ import CharacterSection from "./CharacterSection";
 interface TabContentProps {
   campaignId: string; // Add campaign context
   activeTab: "party" | "ship" | "cargo" | "characters";
+  // Campaign-level data (from database)
+  partyFinances: FinanceRow[];
+  shipFinances: FinanceRow[];
+  shipCargo: CargoRow[];
+  // Character data (still from state for now)
   state: CampaignState;
   selectedCharacterDisplayName: string;
   characterBalance: number;
@@ -45,6 +50,9 @@ interface TabContentProps {
 export default function TabContent({
   campaignId,
   activeTab,
+  partyFinances,
+  shipFinances,
+  shipCargo,
   state,
   selectedCharacterDisplayName,
   characterBalance,
@@ -69,7 +77,7 @@ export default function TabContent({
       {activeTab === "party" && (
         <FinanceManager
           title="Party"
-          rows={state.Party_Finances}
+          rows={partyFinances}
           onUpdate={onUpdatePartyFinances}
           fundName="Party Fund"
           initialBalance={0}
@@ -80,7 +88,7 @@ export default function TabContent({
       {activeTab === "ship" && (
         <FinanceManager
           title="Ship"
-          rows={state.Ship_Accounts}
+          rows={shipFinances}
           onUpdate={onUpdateShipAccounts}
           fundName="Ship Fund"
           initialBalance={0}
@@ -89,7 +97,7 @@ export default function TabContent({
       )}
 
       {activeTab === "cargo" && (
-        <Cargo rows={state.Ship_Cargo} onAdd={onAddCargoLeg} />
+        <Cargo rows={shipCargo} onAdd={onAddCargoLeg} />
       )}
 
       {activeTab === "characters" && (
