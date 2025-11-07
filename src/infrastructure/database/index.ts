@@ -1676,3 +1676,4 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     }
   }
 }
+export { SupabaseCharacterRepository } from "./SupabaseCharacterRepository";
