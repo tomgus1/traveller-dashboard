@@ -1,5 +1,6 @@
 // Financial data types
 export type FinanceRow = {
+  id?: string;
   Date: string;
   Description: string;
   Category: "Income" | "Expense" | "Transfer" | string;

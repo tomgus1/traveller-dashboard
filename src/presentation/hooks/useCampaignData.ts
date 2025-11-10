@@ -67,15 +67,22 @@ export function useCampaignData(campaignId: string | undefined) {
   const updatePartyFinances = useCallback(async (rows: FinanceRow[]) => {
     if (!campaignId) return;
     
-    // For now, just update local state
-    // TODO: Implement proper sync strategy (optimistic updates, conflict resolution)
-    setPartyFinances(rows);
-    
-    // In a production app, you'd want to:
-    // 1. Detect what changed (added, updated, deleted)
-    // 2. Send only the changes to the backend
-    // 3. Handle conflicts gracefully
-  }, [campaignId]);
+    try {
+      // Update each row in the database if it has an ID
+      const updatePromises = rows
+        .filter((row): row is FinanceRow & { id: string } => !!row.id) // Type guard for rows with IDs
+        .map(row => repo.updateCampaignFinance(row.id, row));
+      
+      await Promise.all(updatePromises);
+      
+      // Update local state after successful database update
+      setPartyFinances(rows);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to update party finances:', err);
+      throw err;
+    }
+  }, [campaignId, repo]);
 
   const addPartyFinance = useCallback(async (finance: Omit<FinanceRow, 'Running Total'>) => {
     if (!campaignId) return;
@@ -96,8 +103,23 @@ export function useCampaignData(campaignId: string | undefined) {
 
   const updateShipAccounts = useCallback(async (rows: FinanceRow[]) => {
     if (!campaignId) return;
-    setShipFinances(rows);
-  }, [campaignId]);
+    
+    try {
+      // Update each row in the database if it has an ID
+      const updatePromises = rows
+        .filter((row): row is FinanceRow & { id: string } => !!row.id) // Type guard for rows with IDs
+        .map(row => repo.updateShipFinance(row.id, row));
+      
+      await Promise.all(updatePromises);
+      
+      // Update local state after successful database update
+      setShipFinances(rows);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to update ship finances:', err);
+      throw err;
+    }
+  }, [campaignId, repo]);
 
   const addShipFinance = useCallback(async (finance: Omit<FinanceRow, 'Running Total'>) => {
     if (!campaignId) return;

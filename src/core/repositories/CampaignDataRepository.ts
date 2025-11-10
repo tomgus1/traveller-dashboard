@@ -84,6 +84,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
     if (error) throw error;
 
     return (data || []).map(row => ({
+      id: row.id,
       Date: row.transaction_date,
       Description: row.description,
       Category: row.category,
@@ -116,6 +117,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
     if (error) throw error;
     
     return {
+      id: data.id, // Include database ID
       Date: data.transaction_date,
       Description: data.description,
       Category: data.category,
@@ -170,6 +172,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
     if (error) throw error;
 
     return (data || []).map(row => ({
+      id: row.id, // Include database ID for updates
       Date: row.transaction_date,
       Description: row.description,
       Category: row.category,
@@ -202,6 +205,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
     if (error) throw error;
     
     return {
+      id: data.id, // Include database ID
       Date: data.transaction_date,
       Description: data.description,
       Category: data.category,
