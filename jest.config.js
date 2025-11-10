@@ -2,6 +2,7 @@
 export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'jsdom', // Changed to jsdom for React components
+  coverageProvider: 'v8', // Use V8 coverage provider to avoid test-exclude issues
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
