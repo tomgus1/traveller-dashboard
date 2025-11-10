@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import type { FinanceRow, InventoryRow, AmmoRow, WeaponRow, ArmourRow } from "../../types";
 import { useAppState } from "../hooks/useAppState";
 import { useCampaignData } from "../hooks/useCampaignData";
+import { useCharacterData } from "../hooks/useCharacterData";
 import { useBalanceCalculations } from "../hooks/useBalanceCalculations";
 import { useImportExport } from "../hooks/useImportExport";
 import { useCampaignCharacters } from "../hooks/useCampaignCharacters";
@@ -28,6 +30,12 @@ export default function Dashboard() {
   const actualSelectedCharacter =
     selectedCharacter || characters[0]?.displayName || "";
 
+  // Find the character ID for the selected character
+  const selectedCharacterId = useMemo(() => {
+    const character = characters.find(c => c.displayName === actualSelectedCharacter);
+    return character?.id;
+  }, [characters, actualSelectedCharacter]);
+
   // Campaign-level data (Party/Ship finances, Cargo, etc.) - now from database!
   const {
     partyFinances,
@@ -42,20 +50,41 @@ export default function Dashboard() {
     addCargoLeg,
   } = useCampaignData(campaignId);
 
-  // Character-level data (still using localStorage for now)
+  // Character-level data - now from database!
   const {
-    state,
-    setState,
-    updateCharacterFinance,
-    addCharacterInventory,
-    addCharacterAmmo,
-    addCharacterWeapon,
-    addCharacterArmour,
+    finance: characterFinance,
+    inventory: characterInventory,
+    weapons: characterWeapons,
+    armour: characterArmour,
+    ammo: characterAmmo,
+    updateFinance: updateCharacterFinance,
+    addInventory: addCharacterInventory,
+    addAmmo: addCharacterAmmo,
+    addWeapon: addCharacterWeapon,
+    addArmour: addCharacterArmour,
     fireRound,
     reloadWeapon,
-  } = useAppState();
+  } = useCharacterData(selectedCharacterId);
 
-    const balances = useBalanceCalculations({
+  // Keep useAppState for backward compatibility (import/export, legacy data)
+  const { state, setState } = useAppState();
+
+  // Build character data in the format expected by useBalanceCalculations
+  const characterData = useMemo(() => {
+    if (!actualSelectedCharacter) return {};
+    
+    return {
+      [actualSelectedCharacter]: {
+        Finance: characterFinance,
+        Inventory: characterInventory,
+        Weapons: characterWeapons,
+        Armour: characterArmour,
+        Ammo: characterAmmo,
+      },
+    };
+  }, [actualSelectedCharacter, characterFinance, characterInventory, characterWeapons, characterArmour, characterAmmo]);
+
+  const balances = useBalanceCalculations({
     Party_Finances: partyFinances,
     Ship_Accounts: shipFinances,
     Ship_Cargo: shipCargo,
@@ -63,9 +92,39 @@ export default function Dashboard() {
     Loans_Mortgage: loans,
     Party_Inventory: partyInventory,
     Ammo_Tracker: campaignAmmo,
-    PCs: state.PCs,
+    PCs: characterData,
   }, actualSelectedCharacter);
   const { handleImport, handleExport } = useImportExport(setState, state);
+
+  // Wrapper functions to match expected callback signatures
+  // (they ignore the characterDisplayName param since we already know the character)
+  const handleUpdateCharacterFinance = (_displayName: string, rows: FinanceRow[]) => {
+    updateCharacterFinance(rows);
+  };
+
+  const handleAddCharacterInventory = (_displayName: string, item: InventoryRow) => {
+    addCharacterInventory(item);
+  };
+
+  const handleAddCharacterAmmo = (_displayName: string, ammo: AmmoRow) => {
+    addCharacterAmmo(ammo);
+  };
+
+  const handleAddCharacterWeapon = (_displayName: string, weapon: WeaponRow) => {
+    addCharacterWeapon(weapon);
+  };
+
+  const handleAddCharacterArmour = (_displayName: string, armour: ArmourRow) => {
+    addCharacterArmour(armour);
+  };
+
+  const handleFireRound = (_displayName: string, ammoIndex: number) => {
+    fireRound(ammoIndex);
+  };
+
+  const handleReloadWeapon = (_displayName: string, ammoIndex: number) => {
+    reloadWeapon(ammoIndex);
+  };
 
   // Handle missing campaignId after all hooks are called
   if (!campaignId) {
@@ -127,20 +186,24 @@ export default function Dashboard() {
           partyFinances={partyFinances}
           shipFinances={shipFinances}
           shipCargo={shipCargo}
-          state={state}
+          characterFinance={characterFinance}
+          characterInventory={characterInventory}
+          characterWeapons={characterWeapons}
+          characterArmour={characterArmour}
+          characterAmmo={characterAmmo}
           selectedCharacterDisplayName={actualSelectedCharacter}
           characterBalance={balances.character}
           onCharacterChange={setSelectedCharacter}
           onUpdatePartyFinances={updatePartyFinances}
           onUpdateShipAccounts={updateShipAccounts}
           onAddCargoLeg={addCargoLeg}
-          onUpdateCharacterFinance={updateCharacterFinance}
-          onAddCharacterInventory={addCharacterInventory}
-          onAddCharacterAmmo={addCharacterAmmo}
-          onAddCharacterWeapon={addCharacterWeapon}
-          onAddCharacterArmour={addCharacterArmour}
-          onFireRound={fireRound}
-          onReloadWeapon={reloadWeapon}
+          onUpdateCharacterFinance={handleUpdateCharacterFinance}
+          onAddCharacterInventory={handleAddCharacterInventory}
+          onAddCharacterAmmo={handleAddCharacterAmmo}
+          onAddCharacterWeapon={handleAddCharacterWeapon}
+          onAddCharacterArmour={handleAddCharacterArmour}
+          onFireRound={handleFireRound}
+          onReloadWeapon={handleReloadWeapon}
         />
       </div>
     </div>

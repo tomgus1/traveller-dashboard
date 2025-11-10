@@ -1,5 +1,4 @@
 import type {
-  CampaignState,
   FinanceRow,
   CargoRow,
   InventoryRow,
@@ -18,8 +17,12 @@ interface TabContentProps {
   partyFinances: FinanceRow[];
   shipFinances: FinanceRow[];
   shipCargo: CargoRow[];
-  // Character data (still from state for now)
-  state: CampaignState;
+  // Character data (now from database!)
+  characterFinance: FinanceRow[];
+  characterInventory: InventoryRow[];
+  characterWeapons: WeaponRow[];
+  characterArmour: ArmourRow[];
+  characterAmmo: AmmoRow[];
   selectedCharacterDisplayName: string;
   characterBalance: number;
   onCharacterChange: (characterDisplayName: string) => void;
@@ -53,7 +56,11 @@ export default function TabContent({
   partyFinances,
   shipFinances,
   shipCargo,
-  state,
+  characterFinance,
+  characterInventory,
+  characterWeapons,
+  characterArmour,
+  characterAmmo,
   selectedCharacterDisplayName,
   characterBalance,
   onCharacterChange,
@@ -106,19 +113,11 @@ export default function TabContent({
           selectedPc={selectedCharacterDisplayName}
           onPcChange={onCharacterChange}
           characterBalance={characterBalance}
-          characterFinance={
-            state.PCs[selectedCharacterDisplayName]?.Finance || []
-          }
-          characterInventory={
-            state.PCs[selectedCharacterDisplayName]?.Inventory || []
-          }
-          characterAmmo={state.PCs[selectedCharacterDisplayName]?.Ammo || []}
-          characterWeapons={
-            state.PCs[selectedCharacterDisplayName]?.Weapons || []
-          }
-          characterArmour={
-            state.PCs[selectedCharacterDisplayName]?.Armour || []
-          }
+          characterFinance={characterFinance}
+          characterInventory={characterInventory}
+          characterAmmo={characterAmmo}
+          characterWeapons={characterWeapons}
+          characterArmour={characterArmour}
           onUpdateFinance={onUpdateCharacterFinance}
           onAddInventory={onAddCharacterInventory}
           onAddAmmo={onAddCharacterAmmo}
