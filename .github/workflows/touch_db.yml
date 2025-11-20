@@ -1,0 +1,25 @@
+name: Touch Database
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # Runs at 1 AM every day
+
+jobs:
+  touch-db:
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js (for curl)
+        uses: actions/setup-node@v2
+        with:
+          node-version: "24"
+
+      - name: Run script to touch the database
+        run: ./touch_db.sh
