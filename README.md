@@ -127,7 +127,7 @@ body { @apply bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50; }
 3. **Characters**: Select PC → manage ledger/inventory/ammo
 4. **Import/Export**: Round-trip with Excel/LibreOffice/Google Sheets
 
-Data persists in localStorage. XLSX format ensures universal compatibility.
+Data persists in PostgreSQL database via Supabase. XLSX format ensures universal compatibility for import/export.
 
 ---
 

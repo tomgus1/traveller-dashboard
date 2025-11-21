@@ -29,10 +29,15 @@ if (!adminEmail || !recipientEmail) {
   process.exit(1);
 }
 
-// Supabase configuration
-const SUPABASE_URL = "https://xtdudfccgbdanmmncwhn.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0ZHVkZmNjZ2JkYW5tbW5jd2huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk4MDE4NDksImV4cCI6MjA0NTM3Nzg0OX0.v6F2QzB6kNWUiIXg7D8qCk0EYaUPqJd8Pnz-5vDwrXo";
+// Supabase configuration from environment variables
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error("❌ Missing environment variables:");
+  console.error("Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set");
+  process.exit(1);
+}
 
 console.log("\n🧪 Testing Brevo Invitation System\n");
 console.log("Admin Email:", adminEmail);

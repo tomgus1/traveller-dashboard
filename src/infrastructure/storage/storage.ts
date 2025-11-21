@@ -1,5 +1,10 @@
 import type { CampaignState } from "../../types";
 
+/**
+ * Storage utilities for import/export functionality.
+ * NOTE: This module is ONLY used for Excel import/export operations.
+ * All actual data persistence is handled by database repositories.
+ */
 const STORAGE_KEY = "traveller-ui-state-v1";
 
 export const DEFAULT_STATE: CampaignState = {

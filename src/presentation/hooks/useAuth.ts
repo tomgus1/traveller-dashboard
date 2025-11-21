@@ -41,8 +41,6 @@ export const useAuth = (): AuthContextType => {
     // Get initial user
     const getCurrentUser = async () => {
       const currentUser = await authService.getCurrentUser();
-      // eslint-disable-next-line no-console
-      console.log("useAuth: getCurrentUser result:", currentUser);
       setUser(currentUser);
       setLoading(false);
     };
@@ -51,8 +49,6 @@ export const useAuth = (): AuthContextType => {
 
     // Listen for auth changes
     const unsubscribe = authService.onAuthStateChange((user) => {
-      // eslint-disable-next-line no-console
-      console.log("useAuth: onAuthStateChange triggered with user:", user);
       setUser(user);
       setLoading(false);
     });
