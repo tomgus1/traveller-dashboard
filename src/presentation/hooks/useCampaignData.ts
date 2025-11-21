@@ -68,15 +68,28 @@ export function useCampaignData(campaignId: string | undefined) {
     if (!campaignId) return;
     
     try {
-      // Update each row in the database if it has an ID
-      const updatePromises = rows
-        .filter((row): row is FinanceRow & { id: string } => !!row.id) // Type guard for rows with IDs
-        .map(row => repo.updateCampaignFinance(row.id, row));
+      // Separate new rows (no ID) from existing rows (has ID)
+      const newRows = rows.filter(row => !row.id);
+      const existingRows = rows.filter((row): row is FinanceRow & { id: string } => !!row.id);
       
+      // Add new rows to database
+      const addPromises = newRows.map(row => repo.addCampaignFinance(campaignId, row));
+      const addedRows = await Promise.all(addPromises);
+      
+      // Update existing rows in database
+      const updatePromises = existingRows.map(row => repo.updateCampaignFinance(row.id, row));
       await Promise.all(updatePromises);
       
-      // Update local state after successful database update
-      setPartyFinances(rows);
+      // Merge added rows (with IDs) and existing rows, maintaining order
+      const rowsWithIds = rows.map((row) => {
+        if (row.id) return row;
+        // Find the corresponding added row (they're in the same order as newRows)
+        const newRowIndex = newRows.indexOf(row);
+        return addedRows[newRowIndex];
+      });
+      
+      // Update local state with rows that now all have IDs
+      setPartyFinances(rowsWithIds);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('Failed to update party finances:', err);
@@ -105,15 +118,28 @@ export function useCampaignData(campaignId: string | undefined) {
     if (!campaignId) return;
     
     try {
-      // Update each row in the database if it has an ID
-      const updatePromises = rows
-        .filter((row): row is FinanceRow & { id: string } => !!row.id) // Type guard for rows with IDs
-        .map(row => repo.updateShipFinance(row.id, row));
+      // Separate new rows (no ID) from existing rows (has ID)
+      const newRows = rows.filter(row => !row.id);
+      const existingRows = rows.filter((row): row is FinanceRow & { id: string } => !!row.id);
       
+      // Add new rows to database
+      const addPromises = newRows.map(row => repo.addShipFinance(campaignId, row));
+      const addedRows = await Promise.all(addPromises);
+      
+      // Update existing rows in database
+      const updatePromises = existingRows.map(row => repo.updateShipFinance(row.id, row));
       await Promise.all(updatePromises);
       
-      // Update local state after successful database update
-      setShipFinances(rows);
+      // Merge added rows (with IDs) and existing rows, maintaining order
+      const rowsWithIds = rows.map((row) => {
+        if (row.id) return row;
+        // Find the corresponding added row (they're in the same order as newRows)
+        const newRowIndex = newRows.indexOf(row);
+        return addedRows[newRowIndex];
+      });
+      
+      // Update local state with rows that now all have IDs
+      setShipFinances(rowsWithIds);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('Failed to update ship finances:', err);

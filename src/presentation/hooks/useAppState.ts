@@ -1,9 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
-import {
-  loadState,
-  saveState,
-  initializeCharacterData,
-} from "../../infrastructure/storage/storage";
+import { useState, useCallback } from "react";
 import weaponsData from "../../data/traveller-weapons.json";
 import { useAmmoActions } from "./useAmmoActions";
 import type {
@@ -16,18 +11,24 @@ import type {
   ArmourRow,
 } from "../../types";
 
+const DEFAULT_STATE: CampaignState = {
+  Party_Finances: [],
+  Ship_Accounts: [],
+  Ship_Cargo: [],
+  Ship_Maintenance_Log: [],
+  Loans_Mortgage: [],
+  Party_Inventory: [],
+  Ammo_Tracker: [],
+  PCs: {},
+};
+
 /**
- * Custom hook for application state management
- * Follows Single Responsibility Principle by isolating state logic
- * Provides type-safe state updates
+ * Custom hook for application state management (import/export only)
+ * Note: Actual data persistence is handled by database hooks (useCampaignData, useCharacterData)
+ * This is only used for XLSX import/export functionality
  */
 export function useAppState() {
-  const [state, setState] = useState<CampaignState>(loadState());
-
-  // Auto-save state changes to localStorage
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
+  const [state, setState] = useState<CampaignState>(DEFAULT_STATE);
 
   // Type-safe state update functions
   const updatePartyFinances = useCallback((rows: FinanceRow[]) => {
@@ -48,10 +49,6 @@ export function useAppState() {
   const updateCharacterFinance = useCallback(
     (characterDisplayName: string, rows: FinanceRow[]) => {
       setState((prev) => {
-        // Initialize character data if it doesn't exist
-        if (!prev.PCs[characterDisplayName]) {
-          initializeCharacterData(characterDisplayName);
-        }
         return {
           ...prev,
           PCs: {
@@ -76,10 +73,6 @@ export function useAppState() {
   const addCharacterInventory = useCallback(
     (characterDisplayName: string, item: InventoryRow) => {
       setState((prev) => {
-        // Initialize character data if it doesn't exist
-        if (!prev.PCs[characterDisplayName]) {
-          initializeCharacterData(characterDisplayName);
-        }
         const existingCharacter = prev.PCs[characterDisplayName] || {
           Finance: [],
           Inventory: [],
@@ -105,10 +98,6 @@ export function useAppState() {
   const addCharacterAmmo = useCallback(
     (characterDisplayName: string, ammo: AmmoRow) => {
       setState((prev) => {
-        // Initialize character data if it doesn't exist
-        if (!prev.PCs[characterDisplayName]) {
-          initializeCharacterData(characterDisplayName);
-        }
         const existingCharacter = prev.PCs[characterDisplayName] || {
           Finance: [],
           Inventory: [],
@@ -179,10 +168,6 @@ export function useAppState() {
   const addCharacterWeapon = useCallback(
     (characterDisplayName: string, weapon: WeaponRow) => {
       setState((prev) => {
-        // Initialize character data if it doesn't exist
-        if (!prev.PCs[characterDisplayName]) {
-          initializeCharacterData(characterDisplayName);
-        }
         const existingCharacter = prev.PCs[characterDisplayName] || {
           Finance: [],
           Inventory: [],
@@ -259,10 +244,6 @@ export function useAppState() {
   const addCharacterArmour = useCallback(
     (characterDisplayName: string, armour: ArmourRow) => {
       setState((prev) => {
-        // Initialize character data if it doesn't exist
-        if (!prev.PCs[characterDisplayName]) {
-          initializeCharacterData(characterDisplayName);
-        }
         const existingCharacter = prev.PCs[characterDisplayName] || {
           Finance: [],
           Inventory: [],

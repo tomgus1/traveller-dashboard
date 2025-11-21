@@ -57,6 +57,7 @@ export type InventoryRow = {
 };
 
 export type AmmoRow = {
+  id?: string;
   Weapon: string;
   ["Ammo Type"]?: string;
   ["Magazine Size"]?: number | string;

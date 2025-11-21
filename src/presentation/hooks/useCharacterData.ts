@@ -98,10 +98,36 @@ export function useCharacterData(characterId: string | undefined) {
   const updateFinance = useCallback(async (rows: FinanceRow[]) => {
     if (!characterId) return;
     
-    // For now, just update local state
-    // TODO: Implement proper sync strategy (detect changes, sync to DB)
-    setFinance(rows);
-  }, [characterId]);
+    try {
+      // Separate new rows (no ID) from existing rows (has ID)
+      const newRows = rows.filter(row => !row.id);
+      
+      // Add new rows to database
+      const addPromises = newRows.map(row => 
+        repo.addCharacterFinance(characterId, row.Description, row['Amount (Cr)'])
+      );
+      const addResults = await Promise.all(addPromises);
+      const addedRows = addResults
+        .filter((r): r is { success: true; data: CharacterFinance } => r.success && !!r.data)
+        .map(r => mapFinanceToRow(r.data));
+      
+      // Update existing rows in database (if update method exists)
+      // For now, existing rows are already in DB from initial load
+      
+      // Merge added rows (with IDs) and existing rows, maintaining order
+      const rowsWithIds = rows.map((row) => {
+        if (row.id) return row;
+        const newRowIndex = newRows.indexOf(row);
+        return addedRows[newRowIndex];
+      });
+      
+      setFinance(rowsWithIds);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to update character finances:', err);
+      throw err;
+    }
+  }, [characterId, repo]);
 
   const addFinance = useCallback(async (description: string, amount: number) => {
     if (!characterId) return;
@@ -249,9 +275,18 @@ export function useCharacterData(characterId: string | undefined) {
     };
     setAmmo(updatedAmmo);
 
-    // TODO: Sync to database
-    // Need to track ammo IDs to update specific records
-  }, [characterId, ammo]);
+    // Sync to database if ammo has an ID
+    if (currentAmmo.id) {
+      try {
+        await repo.updateCharacterAmmo(currentAmmo.id, mapAmmoRowToDbUpdate(updatedAmmo[ammoIndex]));
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to update ammo in database:', err);
+        // Revert optimistic update on error
+        setAmmo(ammo);
+      }
+    }
+  }, [characterId, ammo, repo]);
 
   const reloadWeapon = useCallback(async (ammoIndex: number) => {
     if (!characterId || ammoIndex < 0 || ammoIndex >= ammo.length) return;
@@ -270,8 +305,18 @@ export function useCharacterData(characterId: string | undefined) {
     };
     setAmmo(updatedAmmo);
 
-    // TODO: Sync to database
-  }, [characterId, ammo]);
+    // Sync to database if ammo has an ID
+    if (currentAmmo.id) {
+      try {
+        await repo.updateCharacterAmmo(currentAmmo.id, mapAmmoRowToDbUpdate(updatedAmmo[ammoIndex]));
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to update ammo in database:', err);
+        // Revert optimistic update on error
+        setAmmo(ammo);
+      }
+    }
+  }, [characterId, ammo, repo]);
 
   return {
     // State
@@ -359,6 +404,7 @@ function mapArmourToRow(armour: CharacterArmour): ArmourRow {
 
 function mapAmmoToRow(ammo: CharacterAmmo): AmmoRow {
   return {
+    id: ammo.id,
     Weapon: ammo.type,
     'Ammo Type': ammo.weaponCompatibility,
     'Magazine Size': ammo.maxQuantity,
@@ -368,5 +414,15 @@ function mapAmmoToRow(ammo: CharacterAmmo): AmmoRow {
     'Total Rounds': ammo.quantity,
     Cost: undefined,
     Notes: ammo.notes,
+  };
+}
+
+function mapAmmoRowToDbUpdate(ammo: AmmoRow): Partial<Omit<CharacterAmmo, 'id' | 'characterId' | 'createdAt'>> {
+  return {
+    type: ammo.Weapon,
+    quantity: typeof ammo['Total Rounds'] === 'number' ? ammo['Total Rounds'] : undefined,
+    maxQuantity: typeof ammo['Magazine Size'] === 'number' ? ammo['Magazine Size'] : undefined,
+    weaponCompatibility: ammo['Ammo Type'],
+    notes: ammo.Notes,
   };
 }
