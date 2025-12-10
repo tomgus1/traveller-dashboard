@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Use environment variables for Supabase URL and API Key
-DB_URL="$SUPABASE_URL"
-API_KEY="$SUPABASE_ANON_KEY"
+DB_URL="$VITE_SUPABASE_URL"
+API_KEY="$VITE_SUPABASE_ANON_KEY"
 
 # Verify environment variables are set
 if [ -z "$DB_URL" ] || [ -z "$API_KEY" ]; then
-  echo "Error: SUPABASE_URL and SUPABASE_ANON_KEY environment variables must be set"
+  echo "Error: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables must be set"
   exit 1
 fi
 
