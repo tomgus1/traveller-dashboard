@@ -3,6 +3,7 @@ name: Touch Database
 on:
   schedule:
     - cron: "0 1 * * *" # Runs at 1 AM every day
+  workflow_dispatch: # Allow manual triggering from GitHub UI
 
 jobs:
   touch-db:
