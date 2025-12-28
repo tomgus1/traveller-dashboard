@@ -5,11 +5,11 @@
   --primary-h: 220;
   --primary-s: 100%;
   --primary-l: 50%;
-  
+
   --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
   --primary-hover: hsl(var(--primary-h), var(--primary-s), 40%);
   --primary-glow: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.3);
-  
+
   --bg-main: #ffffff;
   --bg-card: rgba(255, 255, 255, 0.7);
   --border-color: rgba(229, 231, 235, 1);
@@ -23,10 +23,13 @@
   --primary-h: 210;
   --primary-s: 90%;
   --primary-l: 60%;
-  
-  --bg-main: #09090b; /* Deep Zinc 950 */
-  --bg-card: rgba(24, 24, 27, 0.6); /* Zinc 900 Glass */
-  --border-color: rgba(39, 39, 42, 0.8); /* Zinc 800 */
+
+  --bg-main: #09090b;
+  /* Deep Zinc 950 */
+  --bg-card: rgba(24, 24, 27, 0.6);
+  /* Zinc 900 Glass */
+  --border-color: rgba(39, 39, 42, 0.8);
+  /* Zinc 800 */
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
 }
@@ -122,10 +125,54 @@ body {
 
 /* Micro-animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Sci-fi Glow Backgrounds */
+.glow-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-bg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, var(--primary-glow) 0%, transparent 70%);
+  z-index: -1;
+  animation: pulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
 }
 
 .animate-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mesh-gradient {
+  background-color: var(--bg-main);
+  background-image:
+    radial-gradient(at 0% 0%, hsla(var(--primary-h), 100%, 50%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(280, 100%, 50%, 0.1) 0px, transparent 50%);
 }
