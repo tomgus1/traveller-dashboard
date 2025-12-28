@@ -6,8 +6,8 @@ export default function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="card space-y-3">
-      <div className="font-semibold">{title}</div>
+    <div className="card-modern space-y-4">
+      <div className="font-bold text-lg tracking-tight">{title}</div>
       {children}
     </div>
   );
