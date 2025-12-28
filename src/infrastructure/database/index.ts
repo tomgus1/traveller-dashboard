@@ -46,13 +46,20 @@ export class SupabaseAuthRepository implements AuthRepository {
   }): Promise<User> {
     // Try to fetch profile data from database (gracefully handle missing columns)
     try {
-      const { data: profileData } = await supabase
-        .from("user_profiles")
-        .select("display_name, username, profile_completed")
-        .eq("id", authUser.id)
-        .single();
+      // Ensure we have a valid client connection
+      const { isSupabaseConfigured } = await import("./supabase");
+      if (isSupabaseConfigured) {
+        const { data: profileData, error } = await supabase
+          .from("user_profiles")
+          .select("display_name, username, profile_completed")
+          .eq("id", authUser.id)
+          .single();
 
-      return UserMapper.toDomain(authUser, profileData || undefined);
+        if (!error && profileData) {
+          return UserMapper.toDomain(authUser, profileData);
+        }
+      }
+      return UserMapper.toDomain(authUser);
     } catch {
       // Fallback to auth metadata if database columns don't exist yet
       return UserMapper.toDomain(authUser);
@@ -112,16 +119,14 @@ export class SupabaseAuthRepository implements AuthRepository {
     password: string
   ): Promise<OperationResult<User>> {
     try {
-      // Build correct redirect URL for both local and GitHub Pages
-      const origin = window.location.origin;
-      const redirectTo = origin.includes("github.io")
-        ? `${origin}/` // GitHub Pages: https://tomgus1.github.io/traveller-dashboard/
-        : `${origin}/traveller-dashboard/`; // Local: http://localhost:5173/traveller-dashboard/
-
+      const redirectTo = `${window.location.origin}/traveller-dashboard/`;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          data: {
+            display_name: email.split("@")[0],
+          },
           emailRedirectTo: redirectTo,
         },
       });

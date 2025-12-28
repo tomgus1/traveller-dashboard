@@ -33,7 +33,16 @@ function AppContent() {
   }
 
   if (!user) {
-    return <AuthForm />;
+    return (
+      <>
+        {!import.meta.env.VITE_SUPABASE_URL && (
+          <div className="bg-amber-500/10 border-b border-amber-500/20 p-2 text-[10px] font-bold text-amber-500 text-center uppercase tracking-widest animate-pulse">
+            Warning: System running in degraded mode (Missing Backend Config)
+          </div>
+        )}
+        <AuthForm />
+      </>
+    );
   }
 
   // Show profile setup if user hasn't completed their profile
