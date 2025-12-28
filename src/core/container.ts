@@ -1,34 +1,48 @@
 // Service container - dependency injection and service management
 import { AuthService, CampaignService } from "./services";
-import {
-  SupabaseAuthRepository,
-  SupabaseCampaignRepository,
-  SupabaseCharacterRepository,
-} from "../infrastructure/database";
-import {
-  type CampaignDataRepository,
-  SupabaseCampaignDataRepository,
-} from "./repositories/CampaignDataRepository";
-import type { CharacterRepository } from "./repositories";
-import { supabase } from "../infrastructure/database/supabase";
+import type {
+  AuthRepository,
+  CampaignRepository,
+  CharacterRepository,
+  CampaignDataRepository,
+} from "./repositories";
+
+export interface ContainerDependencies {
+  authRepository: AuthRepository;
+  campaignRepository: CampaignRepository;
+  characterRepository: CharacterRepository;
+  campaignDataRepository: CampaignDataRepository;
+}
 
 // Service container for dependency injection
 export class ServiceContainer {
   private static instance: ServiceContainer;
 
-  private _authRepository: SupabaseAuthRepository;
-  private _campaignRepository: SupabaseCampaignRepository;
-  private _campaignDataRepository: CampaignDataRepository;
-  private _characterRepository: CharacterRepository;
-  private _authService: AuthService;
-  private _campaignService: CampaignService;
+  private _authRepository?: AuthRepository;
+  private _campaignRepository?: CampaignRepository;
+  private _campaignDataRepository?: CampaignDataRepository;
+  private _characterRepository?: CharacterRepository;
+  private _authService?: AuthService;
+  private _campaignService?: CampaignService;
 
-  private constructor() {
-    // Initialize repositories
-    this._authRepository = new SupabaseAuthRepository();
-    this._campaignRepository = new SupabaseCampaignRepository();
-    this._campaignDataRepository = new SupabaseCampaignDataRepository(supabase);
-    this._characterRepository = new SupabaseCharacterRepository(supabase);
+  private constructor() { }
+
+  public static getInstance(): ServiceContainer {
+    if (!ServiceContainer.instance) {
+      ServiceContainer.instance = new ServiceContainer();
+    }
+    return ServiceContainer.instance;
+  }
+
+  /**
+   * Initialize the container with concrete implementations.
+   * This should be called once at application startup (Composition Root).
+   */
+  public init(deps: ContainerDependencies): void {
+    this._authRepository = deps.authRepository;
+    this._campaignRepository = deps.campaignRepository;
+    this._campaignDataRepository = deps.campaignDataRepository;
+    this._characterRepository = deps.characterRepository;
 
     // Initialize services with dependencies
     this._authService = new AuthService(this._authRepository);
@@ -38,43 +52,43 @@ export class ServiceContainer {
     );
   }
 
-  public static getInstance(): ServiceContainer {
-    if (!ServiceContainer.instance) {
-      ServiceContainer.instance = new ServiceContainer();
+  private ensureInitialized(): void {
+    if (!this._authService) {
+      throw new Error("ServiceContainer not initialized. Call init() first.");
     }
-    return ServiceContainer.instance;
   }
 
   // Service getters
   get authService(): AuthService {
-    return this._authService;
+    this.ensureInitialized();
+    return this._authService!;
   }
 
   get campaignService(): CampaignService {
-    return this._campaignService;
+    this.ensureInitialized();
+    return this._campaignService!;
   }
 
-  // Repository getters (for testing or direct access)
-  get authRepository(): SupabaseAuthRepository {
-    return this._authRepository;
+  // Repository getters
+  get authRepository(): AuthRepository {
+    this.ensureInitialized();
+    return this._authRepository!;
   }
 
-  get campaignRepository(): SupabaseCampaignRepository {
-    return this._campaignRepository;
+  get campaignRepository(): CampaignRepository {
+    this.ensureInitialized();
+    return this._campaignRepository!;
   }
 
   get campaignDataRepository(): CampaignDataRepository {
-    return this._campaignDataRepository;
+    this.ensureInitialized();
+    return this._campaignDataRepository!;
   }
 
   get characterRepository(): CharacterRepository {
-    return this._characterRepository;
+    this.ensureInitialized();
+    return this._characterRepository!;
   }
-}
-
-// Convenience function to get services
-export function getServices() {
-  return ServiceContainer.getInstance();
 }
 
 // Individual service getters for convenience
@@ -86,7 +100,7 @@ export function getCampaignService(): CampaignService {
   return ServiceContainer.getInstance().campaignService;
 }
 
-export function getCampaignRepository(): SupabaseCampaignRepository {
+export function getCampaignRepository(): CampaignRepository {
   return ServiceContainer.getInstance().campaignRepository;
 }
 

@@ -18,6 +18,8 @@ import type {
   CampaignRepository,
 } from "../../core/repositories";
 
+import { UserMapper } from "../mappers/UserMapper";
+
 // Internal interface for Supabase pending invitation response
 interface SupabasePendingInvitationResponse {
   id: string;
@@ -32,37 +34,6 @@ interface SupabasePendingInvitationResponse {
 }
 
 export class SupabaseAuthRepository implements AuthRepository {
-  // Private helper method to create User object from auth user (DRY principle)
-  private createUserFromProfileData(
-    authUser: {
-      id: string;
-      email?: string;
-      user_metadata?: Record<string, unknown>;
-      created_at: string;
-    },
-    profileData?: {
-      display_name?: string | null;
-      username?: string | null;
-      profile_completed?: boolean | null;
-    }
-  ): User {
-    return {
-      id: authUser.id,
-      email: authUser.email || "",
-      displayName:
-        profileData?.display_name ||
-        (authUser.user_metadata?.display_name as string) ||
-        authUser.email?.split("@")[0],
-      username:
-        profileData?.username ||
-        (authUser.user_metadata?.username as string) ||
-        authUser.email?.split("@")[0],
-      profileCompleted:
-        profileData?.profile_completed ||
-        Boolean(authUser.user_metadata?.profile_completed),
-      createdAt: new Date(authUser.created_at),
-    };
-  }
 
   private async mapAuthUserToUser(authUser: {
     id: string;
@@ -78,15 +49,10 @@ export class SupabaseAuthRepository implements AuthRepository {
         .eq("id", authUser.id)
         .single();
 
-      // Ensure profileData is a valid object before using it
-      if (profileData && typeof profileData === "object") {
-        return this.createUserFromProfileData(authUser, profileData);
-      }
-
-      return this.createUserFromProfileData(authUser);
+      return UserMapper.toDomain(authUser, profileData || undefined);
     } catch {
       // Fallback to auth metadata if database columns don't exist yet
-      return this.createUserFromProfileData(authUser);
+      return UserMapper.toDomain(authUser);
     }
   }
 
@@ -490,15 +456,15 @@ export class SupabaseCampaignRepository implements CampaignRepository {
           updatedAt: new Date(campaign.updated_at || Date.now()),
           userRoles: member
             ? {
-                isAdmin: member.is_admin || false,
-                isGm: member.is_gm || false,
-                isPlayer: member.is_player || false,
-              }
+              isAdmin: member.is_admin || false,
+              isGm: member.is_gm || false,
+              isPlayer: member.is_player || false,
+            }
             : {
-                isAdmin: false,
-                isGm: false,
-                isPlayer: false,
-              },
+              isAdmin: false,
+              isGm: false,
+              isPlayer: false,
+            },
           memberCount: campaign.member_count?.[0]?.count || 0,
           isOwner: campaign.created_by === userId,
         };
@@ -1565,29 +1531,29 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       // Transform the raw data to match our CampaignInvitation interface
       const invitations = Array.isArray(data)
         ? data.map((item: Record<string, unknown>) => ({
-            id: item.id as string,
-            campaignId: item.campaign_id as string,
-            campaignName: item.campaign_name as string,
-            invitedEmail: item.invited_email as string,
-            invitedBy: item.invited_by as string,
-            invitedByName: item.inviter_name as string,
-            rolesOffered:
-              typeof item.roles_offered === "string"
-                ? JSON.parse(item.roles_offered as string)
-                : (item.roles_offered as CampaignRoles),
-            status: item.status as
-              | "pending"
-              | "accepted"
-              | "declined"
-              | "expired",
-            expiresAt: item.expires_at
-              ? new Date(item.expires_at as string)
-              : null,
-            createdAt: new Date(item.created_at as string),
-            acceptedAt: item.accepted_at
-              ? new Date(item.accepted_at as string)
-              : null,
-          }))
+          id: item.id as string,
+          campaignId: item.campaign_id as string,
+          campaignName: item.campaign_name as string,
+          invitedEmail: item.invited_email as string,
+          invitedBy: item.invited_by as string,
+          invitedByName: item.inviter_name as string,
+          rolesOffered:
+            typeof item.roles_offered === "string"
+              ? JSON.parse(item.roles_offered as string)
+              : (item.roles_offered as CampaignRoles),
+          status: item.status as
+            | "pending"
+            | "accepted"
+            | "declined"
+            | "expired",
+          expiresAt: item.expires_at
+            ? new Date(item.expires_at as string)
+            : null,
+          createdAt: new Date(item.created_at as string),
+          acceptedAt: item.accepted_at
+            ? new Date(item.accepted_at as string)
+            : null,
+        }))
         : [];
 
       return { success: true, data: invitations };
