@@ -6,6 +6,7 @@ import type {
   CharacterWeapon,
   CharacterArmour,
   CharacterAmmo,
+  OperationResult,
 } from '../../core/entities';
 import type {
   FinanceRow,
@@ -48,7 +49,7 @@ export function useCharacterData(characterId: string | undefined) {
         setError(null);
 
         // Load all character data in parallel
-        const [financeResult, inventoryResult, weaponsResult, armourResult, ammoResult] = 
+        const [financeResult, inventoryResult, weaponsResult, armourResult, ammoResult] =
           await Promise.all([
             repo.getCharacterFinance(characterId),
             repo.getCharacterInventory(characterId),
@@ -97,30 +98,30 @@ export function useCharacterData(characterId: string | undefined) {
 
   const updateFinance = useCallback(async (rows: FinanceRow[]) => {
     if (!characterId) return;
-    
+
     try {
       // Separate new rows (no ID) from existing rows (has ID)
       const newRows = rows.filter(row => !row.id);
-      
+
       // Add new rows to database
-      const addPromises = newRows.map(row => 
+      const addPromises = newRows.map(row =>
         repo.addCharacterFinance(characterId, row.Description, row['Amount (Cr)'])
       );
       const addResults = await Promise.all(addPromises);
       const addedRows = addResults
-        .filter((r): r is { success: true; data: CharacterFinance } => r.success && !!r.data)
-        .map(r => mapFinanceToRow(r.data));
-      
+        .filter((r: OperationResult<CharacterFinance>): r is { success: true; data: CharacterFinance } => r.success && !!r.data)
+        .map((r: { success: true; data: CharacterFinance }) => mapFinanceToRow(r.data));
+
       // Update existing rows in database (if update method exists)
       // For now, existing rows are already in DB from initial load
-      
+
       // Merge added rows (with IDs) and existing rows, maintaining order
       const rowsWithIds = rows.map((row) => {
         if (row.id) return row;
         const newRowIndex = newRows.indexOf(row);
         return addedRows[newRowIndex];
       });
-      
+
       setFinance(rowsWithIds);
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -131,7 +132,7 @@ export function useCharacterData(characterId: string | undefined) {
 
   const addFinance = useCallback(async (description: string, amount: number) => {
     if (!characterId) return;
-    
+
     try {
       const result = await repo.addCharacterFinance(characterId, description, amount);
       if (result.success && result.data) {
@@ -151,7 +152,7 @@ export function useCharacterData(characterId: string | undefined) {
 
   const addInventory = useCallback(async (item: InventoryRow) => {
     if (!characterId) return;
-    
+
     try {
       const inventoryItem: Omit<CharacterInventory, 'id' | 'characterId' | 'createdAt'> = {
         itemName: item.Item,
@@ -179,7 +180,7 @@ export function useCharacterData(characterId: string | undefined) {
 
   const addWeapon = useCallback(async (weapon: WeaponRow) => {
     if (!characterId) return;
-    
+
     try {
       const weaponData: Omit<CharacterWeapon, 'id' | 'characterId' | 'createdAt'> = {
         name: weapon.Weapon,
@@ -208,7 +209,7 @@ export function useCharacterData(characterId: string | undefined) {
 
   const addArmour = useCallback(async (armourItem: ArmourRow) => {
     if (!characterId) return;
-    
+
     try {
       const armourData: Omit<CharacterArmour, 'id' | 'characterId' | 'createdAt'> = {
         name: armourItem.Armour,
@@ -236,7 +237,7 @@ export function useCharacterData(characterId: string | undefined) {
 
   const addAmmo = useCallback(async (ammoItem: AmmoRow) => {
     if (!characterId) return;
-    
+
     try {
       const ammoData: Omit<CharacterAmmo, 'id' | 'characterId' | 'createdAt'> = {
         type: ammoItem.Weapon, // In the database, "type" stores weapon/ammo type
@@ -293,8 +294,8 @@ export function useCharacterData(characterId: string | undefined) {
 
     // Get current ammo item
     const currentAmmo = ammo[ammoIndex];
-    const magazineSize = typeof currentAmmo['Magazine Size'] === 'number' 
-      ? currentAmmo['Magazine Size'] 
+    const magazineSize = typeof currentAmmo['Magazine Size'] === 'number'
+      ? currentAmmo['Magazine Size']
       : 0;
 
     // Update local state immediately (optimistic update)
@@ -327,20 +328,20 @@ export function useCharacterData(characterId: string | undefined) {
     ammo,
     isLoading,
     error,
-    
+
     // Finance operations
     updateFinance,
     addFinance,
-    
+
     // Inventory operations
     addInventory,
-    
+
     // Weapons operations
     addWeapon,
-    
+
     // Armour operations
     addArmour,
-    
+
     // Ammo operations
     addAmmo,
     fireRound,

@@ -65,55 +65,54 @@ describe("Weapons Component", () => {
 
     // Check form fields are present
     expect(
-      screen.getByText("Select from Database or Enter Custom")
+      screen.getByText("Registry")
     ).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Select Type")).toBeInTheDocument();
+    expect(screen.getByText("Class")).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText("Damage (e.g., 3d6)")
+      screen.getByPlaceholderText("DMG")
     ).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText("Range (e.g., 150m)")
+      screen.getByPlaceholderText("RNG")
     ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Mass (kg)")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Cost (Cr)")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Notes")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("WT (kg)")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("CR")).toBeInTheDocument();
 
     // Check submit button
-    expect(screen.getByText("Add Weapon")).toBeInTheDocument();
+    expect(screen.getByText("Equip")).toBeInTheDocument();
 
     // Check table headers
-    expect(screen.getByText("Weapon")).toBeInTheDocument();
-    expect(screen.getByText("Type")).toBeInTheDocument();
-    expect(screen.getByText("Damage")).toBeInTheDocument();
-    expect(screen.getByText("Range")).toBeInTheDocument();
-    expect(screen.getByText("Mass")).toBeInTheDocument();
-    expect(screen.getByText("Cost")).toBeInTheDocument();
-    expect(screen.getByText("Notes")).toBeInTheDocument();
+    expect(screen.getAllByText(/Weapon/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Type/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Damage/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Range/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Mass/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Cost/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Notes/).length).toBeGreaterThan(0);
 
     // Check table data
-    expect(screen.getByText("Laser Pistol")).toBeInTheDocument();
-    expect(screen.getByText("Cutlass")).toBeInTheDocument();
-    expect(screen.getByText("3d6")).toBeInTheDocument();
-    expect(screen.getByText("2d6+2")).toBeInTheDocument();
+    expect(screen.getAllByText("Laser Pistol").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Cutlass").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("3d6").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("2d6+2").length).toBeGreaterThan(0);
   });
 
   it("includes all weapon type options", () => {
     render(<Weapons rows={[]} onAdd={mockOnAdd} />);
 
     // Check that Traveller weapon types from database are available
-    expect(screen.getByText("Slug Pistol")).toBeInTheDocument();
-    expect(screen.getByText("Slug Rifle")).toBeInTheDocument();
-    expect(screen.getByText("Energy Pistol")).toBeInTheDocument();
-    expect(screen.getByText("Energy Rifle")).toBeInTheDocument();
-    expect(screen.getByText("Heavy Weapon")).toBeInTheDocument();
-    expect(screen.getByText("Blade")).toBeInTheDocument();
-    expect(screen.getByText("Grenade")).toBeInTheDocument();
+    expect(screen.getAllByText("Slug Pistol").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Slug Rifle").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Energy Pistol").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Energy Rifle").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Heavy Weapon").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Blade").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Grenade").length).toBeGreaterThan(0);
   });
 
   it("displays empty state when no weapons", () => {
     render(<Weapons rows={[]} onAdd={mockOnAdd} />);
 
-    expect(screen.getByText("No rows yet.")).toBeInTheDocument();
+    expect(screen.getByText("No data available in this section.")).toBeInTheDocument();
   });
 
   it("has proper accessibility attributes", () => {

@@ -28,16 +28,16 @@ export function useStandaloneCharacters(userId?: string) {
             (char: {
               id: string;
               name: string;
-              player_name?: string;
-              character_name?: string;
-              owner_id: string;
+              playerName?: string;
+              characterName?: string;
+              ownerId?: string;
             }) => ({
               id: char.id,
               campaignId: null, // Always null for standalone characters
               displayName: char.name,
-              playerName: char.player_name || "",
-              characterName: char.character_name || "",
-              ownerId: char.owner_id,
+              playerName: char.playerName || "",
+              characterName: char.characterName || "",
+              ownerId: char.ownerId || "",
             })
           );
 
@@ -63,9 +63,11 @@ export function useStandaloneCharacters(userId?: string) {
 
         const result = await campaignRepo.createStandaloneCharacter(
           uId,
-          displayName,
-          playerName,
-          characterName
+          {
+            name: displayName,
+            playerName,
+            characterName
+          }
         );
 
         if (result.success && result.data) {
@@ -74,9 +76,9 @@ export function useStandaloneCharacters(userId?: string) {
             id: result.data.id,
             campaignId: null,
             displayName: result.data.name,
-            playerName: result.data.player_name || playerName,
-            characterName: result.data.character_name || characterName,
-            ownerId: result.data.owner_id,
+            playerName: result.data.playerName || playerName,
+            characterName: result.data.characterName || characterName,
+            ownerId: result.data.ownerId || "",
           };
 
           // Add to local state for immediate UI update

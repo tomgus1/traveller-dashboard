@@ -10,6 +10,7 @@ jest.mock("lucide-react", () => ({
   HelpCircle: () => "HelpCircle",
   Rocket: () => "Rocket",
   ChevronRight: () => "ChevronRight",
+  ChevronLeft: () => "ChevronLeft",
   Edit: () => "Edit",
   Edit3: () => "Edit3",
   User: () => "User",
@@ -18,6 +19,20 @@ jest.mock("lucide-react", () => ({
   X: () => "X",
   UserPlus: () => "UserPlus",
   Building2: () => "Building2",
+  Zap: () => "Zap",
+  Target: () => "Target",
+  Info: () => "Info",
+  Lock: () => "Lock",
+  Shield: () => "Shield",
+  Activity: () => "Activity",
+  Package: () => "Package",
+  Wallet: () => "Wallet",
+  TrendingUp: () => "TrendingUp",
+  TrendingDown: () => "TrendingDown",
+  Crosshair: () => "Crosshair",
+  LayoutDashboard: () => "LayoutDashboard",
+  LogOut: () => "LogOut",
+  CreditCard: () => "CreditCard",
 }));
 
 // Mock dynamic imports for ExcelJS
