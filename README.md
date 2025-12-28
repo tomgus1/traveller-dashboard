@@ -1,17 +1,18 @@
-# Traveller Campaign Dashboard
+# Traveller Dashboard
 
-A browser-based dashboard for **Mongoose Traveller 2e** campaigns with **multi-user support**.  
-Track finances, cargo, character inventories, and collaborate with your gaming group through campaign invitations.
+**The Next-Gen Digital Companion for Mongoose Traveller 2E.**
 
-**Features**:
+Traveller Dashboard is a high-fidelity, high-performance web application designed to be the ultimate companion for players and GMs. Inspired by modern digital tabletop giants like Demiplane and D&D Beyond, it combines a tactical "Mission Control" aesthetic with powerful administrative tools to streamline campaign management, character tracking, and planetary economics.
 
-- 🎯 Multi-user campaigns with role-based access (Admin/GM/Player)
-- 💰 Party/ship finances & cargo trading
-- 🎭 Character management (ledgers/inventory/weapons/armour/ammo)
-- 📧 Email invitations via Brevo (300 emails/day free tier)
-- 💾 Supabase backend with PostgreSQL + Row Level Security
-- 🔒 Secure authentication with email/password
-- 📱 Responsive design with dark mode
+---
+
+## 🚀 Vision
+
+- **Immersive HUD**: A "Tactical Terminal" interface that feels like part of your ship's bridge, featuring custom glassmorphism and micro-animations.
+- **Unified Dashboards**: Modular "Mission Control" views for Campaign, Ship, and Character data.
+- **Cross-Platform**: Optimized for **Laptop, Tablet, and Mobile**—your data accompanies you everywhere.
+- **Theme-Aware**: Seamlessly switch between "Tactical Light" (Blueprint) and "Stealth Dark" (Mission Clock) modes with optimized accessibility.
+- **Admin Excellence**: Beneath the sci-fi polish lies a robust system focused on speed, efficiency, and data integrity.
 
 ---
 
@@ -108,13 +109,18 @@ export default defineConfig({
 ```css
 /* src/index.css */
 @import "tailwindcss";
-body { @apply bg-white text-gray-900 dark:bg-zinc-950 dark:text-zinc-50; }
-.card { @apply rounded-2xl border p-4 shadow-sm bg-white/60 dark:bg-zinc-900/60; }
-.btn { @apply inline-flex items-center gap-2 rounded-2xl px-3 py-2 border; }
-  @apply rounded-2xl border p-4 shadow-sm bg-white/60 dark:bg-zinc-900/60;
+
+:root {
+  /* ... HSL variables ... */
 }
-.btn {
-  @apply inline-flex items-center gap-2 rounded-2xl px-3 py-2 border;
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+.card-modern {
+  @apply hud-glass rounded-[2rem] p-8 transition-all duration-500;
 }
 ```
 
@@ -180,4 +186,8 @@ npm run build && npx gh-pages -d dist
 
 ---
 
-**MIT License** • Traveller © Far Future Enterprises/Mongoose Publishing
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+Distributed under the **GNU General Public License v3.0**. See `LICENSE` for more information.
+
+Traveller © Far Future Enterprises / Mongoose Publishing.

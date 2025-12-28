@@ -17,19 +17,26 @@ This document outlines the strategic plan for improving the Traveller Dashboard 
 - [ ] **Utility Unification**: Merge redundant validation and permission logic spread across the codebase.
 - [ ] **Remove Dead Code**: Audit the codebase for unused types, components, or functions (YAGNI).
 
-## Phase 3: UX/UI Modernization
-**Goal**: Create a premium, state-of-the-art interface.
+## Phase 3: Design System Foundation
+**Goal**: Establish a scalable, theme-driven foundation.
 
-- [ ] **Design System**: Implement a cohesive design system using CSS variables for colors (HSL), spacing, and typography.
-- [ ] **Micro-animations**: Add subtle transitions for state changes, hover effects, and page transitions.
-- [ ] **Dark Mode Polish**: Enhance the dark mode experience with better contrast and vibrant accents.
-- [ ] **Responsive Refinement**: Optimize layouts for various screen sizes with a mobile-first approach.
+- [x] **HSL Variable System**: Dynamic color tokens for light/dark modes.
+- [x] **Glassmorphism Utility**: Standardized surface treatment for panels.
+- [x] **Typography & Spacing**: Unified scales for industrial-grade interfaces.
 
 ## Phase 4: Legal & Licensing
 **Goal**: Establish a clear Open Source identity.
 
-- [ ] **FSF License Adoption**: Adopt the **GNU General Public License v3.0 (GPL-3.0)** to ensure user freedom and reflect the project's community-driven nature.
-- [ ] **License Documentation**: Create a `LICENSE` file and add license headers to source files.
+- [x] **FSF License Adoption**: Adopted **GNU General Public License v3.0 (GPL-3.0)**.
+- [x] **License Documentation**: Added `LICENSE` and updated `package.json`.
+
+## Phase 5: The Digital Companion Overhaul
+**Goal**: Transform the app into a high-fidelity, immersive digital companion.
+
+- [x] **AppShell Architecture**: Implement a persistent, responsive **Sidebar Navigation** optimized for Laptop, Tablet, and Mobile.
+- [x] **HUD Aesthetic**: Integrate scanlines (optional), solid tactical surfaces, and localized glow effects.
+- [x] **Mission Control Views**: Re-imagine Campaign and Character dashboards as modular, visual "command centers."
+- [x] **Micro-Interactions**: Implement high-fidelity transitions and state-based animations.
 
 ---
 
