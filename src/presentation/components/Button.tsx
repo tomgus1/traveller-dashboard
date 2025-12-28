@@ -2,7 +2,7 @@
 import { type ReactNode, type ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "primary" | "danger" | "ghost";
+  variant?: "default" | "primary" | "secondary" | "outline" | "danger" | "ghost" | "premium";
   size?: "sm" | "md" | "full";
   children: ReactNode;
 }
@@ -14,16 +14,14 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseClasses = "btn";
-
   const variantClasses = {
-    default: "",
-    primary:
-      "bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 text-white border-blue-600 transition-all duration-200",
-    danger:
-      "bg-red-600 hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5 text-white border-red-600 transition-all duration-200",
-    ghost:
-      "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-sm transition-all duration-200",
+    default: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700",
+    primary: "bg-primary text-white hover:brightness-110 shadow-lg shadow-primary/20",
+    secondary: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700",
+    outline: "border-2 border-primary/20 bg-transparent text-primary hover:bg-primary/5",
+    danger: "bg-red-600 hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5 text-white border-red-600",
+    ghost: "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 text-muted",
+    premium: "btn-premium",
   };
 
   const sizeClasses = {
@@ -32,17 +30,16 @@ export function Button({
     full: "w-full justify-center",
   };
 
-  const classes = [
-    baseClasses,
-    variantClasses[variant],
-    sizeClasses[size],
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const combinedClasses = `
+    inline-flex items-center gap-2 rounded-xl px-4 py-2 transition-all duration-300
+    active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-bold
+    ${variantClasses[variant]}
+    ${sizeClasses[size]}
+    ${className}
+  `.trim();
 
   return (
-    <button className={classes} {...props}>
+    <button className={combinedClasses} {...props}>
       {children}
     </button>
   );

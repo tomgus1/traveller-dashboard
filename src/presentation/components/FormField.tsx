@@ -16,24 +16,24 @@ interface BaseFormFieldProps {
 // Enhanced form field for inputs
 interface InputFormFieldProps
   extends BaseFormFieldProps,
-    Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "required"> {
+  Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "required"> {
   type?: "text" | "number" | "date" | "email" | "password";
 }
 
 // Textarea field props
 interface TextareaFormFieldProps
   extends BaseFormFieldProps,
-    Omit<
-      TextareaHTMLAttributes<HTMLTextAreaElement>,
-      "className" | "required"
-    > {
+  Omit<
+    TextareaHTMLAttributes<HTMLTextAreaElement>,
+    "className" | "required"
+  > {
   type: "textarea";
 }
 
 // Select field props
 interface SelectFormFieldProps
   extends BaseFormFieldProps,
-    Omit<SelectHTMLAttributes<HTMLSelectElement>, "className" | "required"> {
+  Omit<SelectHTMLAttributes<HTMLSelectElement>, "className" | "required"> {
   type: "select";
   children: ReactNode;
 }
@@ -48,20 +48,27 @@ const FormField = forwardRef<
   FormFieldProps
 >(
   (
-    { label, type = "text", className, required = false, error, ...props },
+    { label, type = "text", className, required = false, error, id, ...props },
     ref
   ) => {
-    const labelClassName =
-      "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2";
-    const baseInputClassName = `input w-full ${error ? "border-red-500 focus:border-red-500" : ""}`;
-
     const renderInput = () => {
       if (type === "textarea") {
         const textareaProps = props as TextareaFormFieldProps;
         return (
           <textarea
+            id={id}
             ref={ref as React.Ref<HTMLTextAreaElement>}
-            className={className || baseInputClassName}
+            className={`
+              w-full px-4 py-2.5 
+              bg-zinc-50/50 dark:bg-zinc-900/50 
+              border border-border-color rounded-2xl 
+              text-sm transition-all duration-300
+              placeholder:text-zinc-400
+              focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+              disabled:opacity-50 disabled:bg-zinc-100
+              ${error ? "border-red-500 focus:ring-red-500/20" : ""}
+              ${className || ""}
+            `}
             required={required}
             {...textareaProps}
           />
@@ -72,8 +79,18 @@ const FormField = forwardRef<
         const { children, ...selectProps } = props as SelectFormFieldProps;
         return (
           <select
+            id={id}
             ref={ref as React.Ref<HTMLSelectElement>}
-            className={className || "select"}
+            className={`
+              w-full px-4 py-2.5 
+              bg-zinc-50/50 dark:bg-zinc-900/50 
+              border border-border-color rounded-2xl 
+              text-sm transition-all duration-300
+              focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+              disabled:opacity-50 disabled:bg-zinc-100
+              ${error ? "border-red-500 focus:ring-red-500/20" : ""}
+              ${className || ""}
+            `}
             required={required}
             {...selectProps}
           >
@@ -86,10 +103,21 @@ const FormField = forwardRef<
       const inputProps = props as InputFormFieldProps;
       return (
         <input
+          id={id}
           ref={ref as React.Ref<HTMLInputElement>}
           type={type}
           step={type === "number" ? "1" : undefined}
-          className={className || baseInputClassName}
+          className={`
+            w-full px-4 py-2.5 
+            bg-zinc-50/50 dark:bg-zinc-900/50 
+            border border-border-color rounded-2xl 
+            text-sm transition-all duration-300
+            placeholder:text-zinc-400
+            focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
+            disabled:opacity-50 disabled:bg-zinc-100
+            ${error ? "border-red-500 focus:ring-red-500/20" : ""}
+            ${className || ""}
+          `}
           required={required}
           {...inputProps}
         />
@@ -99,13 +127,18 @@ const FormField = forwardRef<
     return (
       <div>
         {label && (
-          <label className={labelClassName}>
+          <label
+            htmlFor={id}
+            className="block text-xs font-black uppercase tracking-widest text-muted mb-1.5 ml-1"
+          >
             {label} {required && "*"}
           </label>
         )}
         {renderInput()}
         {error && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="mt-1 text-xs font-bold text-red-500 ml-1 animate-in">
+            {error}
+          </p>
         )}
       </div>
     );
