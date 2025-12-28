@@ -34,5 +34,5 @@ Thumbs.db
 # Misc
 *.local
 
-# Supabase temp files
-supabase/.temp/
+# Books references
+books/

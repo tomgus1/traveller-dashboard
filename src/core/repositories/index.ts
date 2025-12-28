@@ -237,4 +237,3 @@ export interface CharacterRepository {
 
 // Export CampaignDataRepository
 export type { CampaignDataRepository } from './CampaignDataRepository';
-export { SupabaseCampaignDataRepository } from './CampaignDataRepository';

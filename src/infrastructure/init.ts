@@ -3,8 +3,8 @@ import {
     SupabaseAuthRepository,
     SupabaseCampaignRepository,
     SupabaseCharacterRepository,
+    SupabaseCampaignDataRepository,
 } from "./database";
-import { SupabaseCampaignDataRepository } from "../core/repositories/CampaignDataRepository";
 import { supabase } from "./database/supabase";
 
 /**
