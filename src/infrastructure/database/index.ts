@@ -12,6 +12,8 @@ import type {
   UpdateCampaignRequest,
   MemberInfo,
   OperationResult,
+  Character,
+  CreateCharacterRequest,
 } from "../../core/entities";
 import type {
   AuthRepository,
@@ -19,6 +21,7 @@ import type {
 } from "../../core/repositories";
 
 import { UserMapper } from "../mappers/UserMapper";
+import { CharacterMapper } from "../mappers/CharacterMapper";
 
 // Internal interface for Supabase pending invitation response
 interface SupabasePendingInvitationResponse {
@@ -1297,28 +1300,16 @@ export class SupabaseCampaignRepository implements CampaignRepository {
   // Standalone Character Management
   async createStandaloneCharacter(
     userId: string,
-    displayName: string,
-    playerName?: string,
-    characterName?: string
-  ): Promise<
-    OperationResult<{
-      id: string;
-      name: string;
-      player_name?: string;
-      character_name?: string;
-      owner_id: string;
-      created_at: string;
-      updated_at: string;
-    }>
-  > {
+    request: CreateCharacterRequest
+  ): Promise<OperationResult<Character>> {
     try {
       const { data, error } = await supabase.rpc(
         "create_standalone_character",
         {
           user_id: userId,
-          char_name: displayName,
-          player_name: playerName || undefined,
-          character_name: characterName || undefined,
+          char_name: request.name,
+          player_name: request.playerName || undefined,
+          character_name: request.characterName || undefined,
         }
       );
 
@@ -1328,34 +1319,16 @@ export class SupabaseCampaignRepository implements CampaignRepository {
 
       return {
         success: true,
-        data: data as {
-          id: string;
-          name: string;
-          player_name?: string;
-          character_name?: string;
-          owner_id: string;
-          created_at: string;
-          updated_at: string;
-        },
+        data: CharacterMapper.toDomain(data as Record<string, unknown>),
       };
     } catch {
       return { success: false, error: "An unexpected error occurred" };
     }
   }
 
-  async getStandaloneCharacters(userId: string): Promise<
-    OperationResult<
-      {
-        id: string;
-        name: string;
-        player_name?: string;
-        character_name?: string;
-        owner_id: string;
-        created_at: string;
-        updated_at: string;
-      }[]
-    >
-  > {
+  async getStandaloneCharacters(
+    userId: string
+  ): Promise<OperationResult<Character[]>> {
     try {
       const { data, error } = await supabase
         .from("characters")
@@ -1368,18 +1341,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         return { success: false, error: error.message };
       }
 
-      // Transform null values to undefined for type compatibility
-      const transformedData = (data || []).map((char) => ({
-        id: char.id,
-        name: char.name,
-        player_name: char.player_name || undefined,
-        character_name: char.character_name || undefined,
-        owner_id: char.owner_id || "",
-        created_at: char.created_at || "",
-        updated_at: char.updated_at || "",
-      }));
-
-      return { success: true, data: transformedData };
+      return { success: true, data: CharacterMapper.toDomainList(data || []) };
     } catch {
       return { success: false, error: "An unexpected error occurred" };
     }

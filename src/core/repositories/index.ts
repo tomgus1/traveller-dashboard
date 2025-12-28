@@ -5,6 +5,7 @@ import type {
   CampaignWithMeta,
   CampaignRole,
   CampaignRoles,
+  CampaignInvitation,
   CreateCampaignRequest,
   UpdateCampaignRequest,
   MemberInfo,
@@ -96,6 +97,24 @@ export interface CampaignRepository {
   declinePendingInvitation(invitationId: string): Promise<OperationResult>;
   cancelPendingInvitation(invitationId: string): Promise<OperationResult>;
 
+  // Campaign Invitations (New system)
+  createCampaignInvitation(
+    campaignId: string,
+    invitedEmail: string,
+    invitedBy: string,
+    rolesOffered: CampaignRoles
+  ): Promise<OperationResult<string>>;
+  getUserInvitations(
+    userEmail: string
+  ): Promise<OperationResult<CampaignInvitation[]>>;
+  acceptCampaignInvitation(
+    invitationId: string,
+    userId: string
+  ): Promise<OperationResult<boolean>>;
+  declineCampaignInvitation(
+    invitationId: string
+  ): Promise<OperationResult<boolean>>;
+
   // Permission checks
   getUserRole(
     campaignId: string,
@@ -116,6 +135,19 @@ export interface CampaignRepository {
     campaignId: string,
     userId: string
   ): Promise<OperationResult<void>>;
+
+  // Standalone characters (not assigned to any campaign)
+  getStandaloneCharacters(
+    userId: string
+  ): Promise<OperationResult<Character[]>>;
+  createStandaloneCharacter(
+    userId: string,
+    request: CreateCharacterRequest
+  ): Promise<OperationResult<Character>>;
+  deleteStandaloneCharacter(
+    characterId: string,
+    userId: string
+  ): Promise<OperationResult>;
 }
 
 export interface CharacterRepository {

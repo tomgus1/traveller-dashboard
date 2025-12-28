@@ -1,4 +1,3 @@
-// Service container - dependency injection and service management
 import { AuthService, CampaignService } from "./services";
 import type {
   AuthRepository,
@@ -10,11 +9,10 @@ import type {
 export interface ContainerDependencies {
   authRepository: AuthRepository;
   campaignRepository: CampaignRepository;
-  characterRepository: CharacterRepository;
   campaignDataRepository: CampaignDataRepository;
+  characterRepository: CharacterRepository;
 }
 
-// Service container for dependency injection
 export class ServiceContainer {
   private static instance: ServiceContainer;
 
@@ -25,7 +23,9 @@ export class ServiceContainer {
   private _authService?: AuthService;
   private _campaignService?: CampaignService;
 
-  private constructor() { }
+  private constructor() {
+    // Private constructor for singleton pattern
+  }
 
   public static getInstance(): ServiceContainer {
     if (!ServiceContainer.instance) {
@@ -61,53 +61,48 @@ export class ServiceContainer {
   // Service getters
   get authService(): AuthService {
     this.ensureInitialized();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this._authService!;
   }
 
   get campaignService(): CampaignService {
     this.ensureInitialized();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this._campaignService!;
   }
 
   // Repository getters
   get authRepository(): AuthRepository {
     this.ensureInitialized();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this._authRepository!;
   }
 
   get campaignRepository(): CampaignRepository {
     this.ensureInitialized();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this._campaignRepository!;
   }
 
   get campaignDataRepository(): CampaignDataRepository {
     this.ensureInitialized();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this._campaignDataRepository!;
   }
 
   get characterRepository(): CharacterRepository {
     this.ensureInitialized();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this._characterRepository!;
   }
 }
 
-// Individual service getters for convenience
-export function getAuthService(): AuthService {
-  return ServiceContainer.getInstance().authService;
-}
-
-export function getCampaignService(): CampaignService {
-  return ServiceContainer.getInstance().campaignService;
-}
-
-export function getCampaignRepository(): CampaignRepository {
-  return ServiceContainer.getInstance().campaignRepository;
-}
-
-export function getCampaignDataRepository(): CampaignDataRepository {
-  return ServiceContainer.getInstance().campaignDataRepository;
-}
-
-export function getCharacterRepository(): CharacterRepository {
-  return ServiceContainer.getInstance().characterRepository;
-}
+export const getAuthService = () => ServiceContainer.getInstance().authService;
+export const getCampaignService = () =>
+  ServiceContainer.getInstance().campaignService;
+export const getCampaignRepository = () =>
+  ServiceContainer.getInstance().campaignRepository;
+export const getCharacterRepository = () =>
+  ServiceContainer.getInstance().characterRepository;
+export const getCampaignDataRepository = () =>
+  ServiceContainer.getInstance().campaignDataRepository;
