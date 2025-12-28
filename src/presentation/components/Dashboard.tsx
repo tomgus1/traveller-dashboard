@@ -72,7 +72,7 @@ export default function Dashboard() {
   // Build character data in the format expected by useBalanceCalculations
   const characterData = useMemo(() => {
     if (!actualSelectedCharacter) return {};
-    
+
     return {
       [actualSelectedCharacter]: {
         Finance: characterFinance,
@@ -133,22 +133,22 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
+    <div className="min-h-screen transition-colors duration-500">
       {/* Header with Back Button */}
-      <div className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-700 px-4 py-4">
+      <div className="glass sticky top-0 z-50 px-4 py-4 border-b">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/")}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors border border-gray-300 dark:border-zinc-600 rounded-md hover:border-gray-400 dark:hover:border-zinc-500"
+              className="btn"
             >
               ← Back to Campaigns
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50">
+              <h1 className="text-2xl font-bold">
                 Campaign Dashboard
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted">
                 Campaign ID: {campaignId}
               </p>
             </div>
@@ -157,7 +157,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
         <AppHeader onImport={handleImport} onExport={handleExport} />
 
         <StatsDashboard

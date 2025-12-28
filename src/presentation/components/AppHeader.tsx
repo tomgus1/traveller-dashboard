@@ -56,6 +56,7 @@ export default function AppHeader({ onImport, onExport }: AppHeaderProps) {
           type="button"
           data-testid="export-button"
           aria-label="Export campaign data to Excel file"
+          className="btn-premium"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
           Export XLSX

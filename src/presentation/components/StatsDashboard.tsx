@@ -19,7 +19,7 @@ export default function StatsDashboard({
       role="region"
       aria-label="Campaign statistics"
     >
-      <div className="card">
+      <div className="card-modern animate-in" style={{ animationDelay: '0ms' }}>
         <div className="text-xs text-zinc-500">Party Fund</div>
         <div
           className="text-xl font-semibold"
@@ -28,7 +28,7 @@ export default function StatsDashboard({
           {fmtCr(partyBalance)}
         </div>
       </div>
-      <div className="card">
+      <div className="card-modern animate-in" style={{ animationDelay: '100ms' }}>
         <div className="text-xs text-zinc-500">Ship Fund</div>
         <div
           className="text-xl font-semibold"
@@ -37,7 +37,7 @@ export default function StatsDashboard({
           {fmtCr(shipBalance)}
         </div>
       </div>
-      <div className="card">
+      <div className="card-modern animate-in" style={{ animationDelay: '200ms' }}>
         <div className="text-xs text-zinc-500">Cargo Legs</div>
         <div
           className="text-xl font-semibold"
@@ -46,7 +46,7 @@ export default function StatsDashboard({
           {cargoLegsCount}
         </div>
       </div>
-      <div className="card">
+      <div className="card-modern animate-in" style={{ animationDelay: '300ms' }}>
         <div className="text-xs text-zinc-500">PCs Tracked</div>
         <div
           className="text-xl font-semibold"
