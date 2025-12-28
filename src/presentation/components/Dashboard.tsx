@@ -7,6 +7,7 @@ import { useCharacterData } from "../hooks/useCharacterData";
 import { useBalanceCalculations } from "../hooks/useBalanceCalculations";
 import { useImportExport } from "../hooks/useImportExport";
 import { useCampaignCharacters } from "../hooks/useCampaignCharacters";
+import { useCampaigns } from "../hooks/useCampaigns";
 import AppHeader from "./AppHeader";
 import StatsDashboard from "./StatsDashboard";
 import { TabsBar } from "./Tabs";
@@ -126,86 +127,95 @@ export default function Dashboard() {
     reloadWeapon(ammoIndex);
   };
 
+  const { campaigns } = useCampaigns();
+
   // Handle missing campaignId after all hooks are called
   if (!campaignId) {
     navigate("/");
     return null;
   }
 
+  const campaignMetadata = campaigns.find(c => c.id === campaignId);
+
   return (
-    <div className="min-h-screen transition-colors duration-500">
-      {/* Header with Back Button */}
-      <div className="glass sticky top-0 z-50 px-4 py-4 border-b">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/")}
-              className="btn"
-            >
-              ← Back to Campaigns
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold">
-                Campaign Dashboard
-              </h1>
-              <p className="text-sm text-muted">
-                Campaign ID: {campaignId}
-              </p>
+    <>
+      {/* Campaign Page Header */}
+      <div className="mb-12 animate-hud">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20">
+                ACTIVE_MISSION
+              </span>
+              <span className="text-muted text-[10px] font-black uppercase tracking-widest">
+                ID: {campaignId?.slice(0, 8)}...
+              </span>
             </div>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">
+              {campaignMetadata?.name || 'Campaign'} <span className="text-primary">Dashboard</span>
+            </h1>
+          </div>
+
+          <div className="flex gap-3">
+            <AppHeader onImport={handleImport} onExport={handleExport} />
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        <AppHeader onImport={handleImport} onExport={handleExport} />
+      {/* Control Room Layout */}
+      <div className="space-y-8">
+        <div className="animate-hud delay-100">
+          <StatsDashboard
+            partyBalance={balances.party}
+            shipBalance={balances.ship}
+            cargoLegsCount={shipCargo.length}
+            characterCount={characters.length}
+          />
+        </div>
 
-        <StatsDashboard
-          partyBalance={balances.party}
-          shipBalance={balances.ship}
-          cargoLegsCount={shipCargo.length}
-          characterCount={characters.length}
-        />
+        <div className="animate-hud delay-200">
+          <TabsBar
+            tabs={[
+              { id: "party", label: "Party" },
+              { id: "ship", label: "Ship" },
+              { id: "cargo", label: "Cargo" },
+              { id: "characters", label: "Characters" },
+            ]}
+            active={tab}
+            onChange={(id: string) =>
+              setTab(id as "party" | "ship" | "cargo" | "characters")
+            }
+          />
 
-        <TabsBar
-          tabs={[
-            { id: "party", label: "Party" },
-            { id: "ship", label: "Ship" },
-            { id: "cargo", label: "Cargo" },
-            { id: "characters", label: "Characters" },
-          ]}
-          active={tab}
-          onChange={(id: string) =>
-            setTab(id as "party" | "ship" | "cargo" | "characters")
-          }
-        />
-
-        <TabContent
-          campaignId={campaignId || ''}
-          activeTab={tab}
-          partyFinances={partyFinances}
-          shipFinances={shipFinances}
-          shipCargo={shipCargo}
-          characterFinance={characterFinance}
-          characterInventory={characterInventory}
-          characterWeapons={characterWeapons}
-          characterArmour={characterArmour}
-          characterAmmo={characterAmmo}
-          selectedCharacterDisplayName={actualSelectedCharacter}
-          characterBalance={balances.character}
-          onCharacterChange={setSelectedCharacter}
-          onUpdatePartyFinances={updatePartyFinances}
-          onUpdateShipAccounts={updateShipAccounts}
-          onAddCargoLeg={addCargoLeg}
-          onUpdateCharacterFinance={handleUpdateCharacterFinance}
-          onAddCharacterInventory={handleAddCharacterInventory}
-          onAddCharacterAmmo={handleAddCharacterAmmo}
-          onAddCharacterWeapon={handleAddCharacterWeapon}
-          onAddCharacterArmour={handleAddCharacterArmour}
-          onFireRound={handleFireRound}
-          onReloadWeapon={handleReloadWeapon}
-        />
+          <div className="mt-8 transition-all duration-500">
+            <TabContent
+              campaignId={campaignId || ''}
+              activeTab={tab}
+              partyFinances={partyFinances}
+              shipFinances={shipFinances}
+              shipCargo={shipCargo}
+              characterFinance={characterFinance}
+              characterInventory={characterInventory}
+              characterWeapons={characterWeapons}
+              characterArmour={characterArmour}
+              characterAmmo={characterAmmo}
+              selectedCharacterDisplayName={actualSelectedCharacter}
+              characterBalance={balances.character}
+              onCharacterChange={setSelectedCharacter}
+              onUpdatePartyFinances={updatePartyFinances}
+              onUpdateShipAccounts={updateShipAccounts}
+              onAddCargoLeg={addCargoLeg}
+              onUpdateCharacterFinance={handleUpdateCharacterFinance}
+              onAddCharacterInventory={handleAddCharacterInventory}
+              onAddCharacterAmmo={handleAddCharacterAmmo}
+              onAddCharacterWeapon={handleAddCharacterWeapon}
+              onAddCharacterArmour={handleAddCharacterArmour}
+              onFireRound={handleFireRound}
+              onReloadWeapon={handleReloadWeapon}
+            />
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -157,19 +157,19 @@ export default function CampaignSelector({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-transparent">
       {/* Header */}
-      <div className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-700 px-4 py-4">
+      <div className="glass sticky top-0 z-50 px-4 py-4 border-b">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50">
+            <h1 className="text-2xl font-black tracking-tight">
               Campaign Selection
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted">
               Choose a campaign to manage or create a new one
             </p>
           </div>
-          <Button onClick={signOut}>Sign Out</Button>
+          <Button onClick={signOut} variant="outline">Sign Out</Button>
         </div>
       </div>
 
@@ -197,7 +197,7 @@ export default function CampaignSelector({
           ) : (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-50">
+                <h2 className="text-xl font-black tracking-tighter uppercase">
                   Your Campaigns
                 </h2>
                 <Button
@@ -210,7 +210,7 @@ export default function CampaignSelector({
 
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {campaigns.map((campaign) => (
-                  <div key={campaign.id} className="card relative">
+                  <div key={campaign.id} className="card-modern relative">
                     {/* Settings button for admins */}
                     {campaign.userRoles?.isAdmin && (
                       <div className="absolute top-4 right-4">
@@ -231,7 +231,7 @@ export default function CampaignSelector({
                       onClick={() => onCampaignSelect(campaign.id)}
                     >
                       <div className="flex justify-between items-start mb-3 pr-8">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50 truncate">
+                        <h3 className="text-lg font-bold tracking-tight truncate">
                           {campaign.name}
                         </h3>
                         {campaign.userRoles && (

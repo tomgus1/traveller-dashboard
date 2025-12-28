@@ -1,10 +1,9 @@
 import { useState } from "react";
-import SectionCard from "./SectionCard";
 import FormField from "./FormField";
-import { Button } from "./Button";
 import { todayISO } from "../../shared/utils/number";
 import { validateTransaction } from "../../shared/utils/finance";
 import { useForm } from "../hooks/useForm";
+import { Plus } from "lucide-react";
 import type { FinanceRow } from "../../types";
 
 interface TransactionFormProps {
@@ -60,34 +59,35 @@ export default function TransactionForm({
     }
 
     onSubmit(newTransaction);
-
-    // Reset form (keeping date and category)
     resetForm(["Date", "Category"]);
   };
 
   return (
-    <SectionCard title={`Add ${title} Transaction`}>
-      {errors.length > 0 && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          <ul className="list-disc list-inside">
-            {errors.map((error, index) => (
-              <li key={index}>{error}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+    <div className="hud-glass p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-sm font-black tracking-[0.2em] uppercase text-text-main">
+          Log <span className="text-primary">{title}</span> Transaction
+        </h3>
+        {errors.length > 0 && (
+          <span className="text-[10px] font-bold text-red-500 uppercase animate-pulse">
+            Validation Error
+          </span>
+        )}
+      </div>
 
-      <div className="grid md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <FormField
           type="date"
           value={form.Date}
           onChange={createInputHandler("Date")}
         />
-        <FormField
-          placeholder="Description"
-          value={form.Description}
-          onChange={createInputHandler("Description")}
-        />
+        <div className="lg:col-span-2">
+          <FormField
+            placeholder="Description / Reason"
+            value={form.Description}
+            onChange={createInputHandler("Description")}
+          />
+        </div>
         <FormField
           type="select"
           value={form.Category}
@@ -98,31 +98,33 @@ export default function TransactionForm({
           <option value="Transfer">Transfer</option>
         </FormField>
         <FormField
-          placeholder="Subcategory"
-          value={form.Subcategory}
-          onChange={createInputHandler("Subcategory")}
-        />
-        <FormField
           type="number"
           placeholder="Amount (Cr)"
           value={form.Amount}
           onChange={createInputHandler("Amount")}
         />
-        <FormField
-          placeholder="Notes"
-          value={form.Notes}
-          onChange={createInputHandler("Notes")}
-        />
+        <button
+          onClick={handleSubmit}
+          className="btn-hud py-2.5 flex items-center justify-center gap-2 group"
+          type="button"
+        >
+          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Execute</span>
+        </button>
       </div>
-      <Button
-        className="mt-2"
-        onClick={handleSubmit}
-        type="button"
-        data-testid="add-transaction-button"
-        aria-label="Add new transaction to the financial record"
-      >
-        Add Transaction
-      </Button>
-    </SectionCard>
+
+      {errors.length > 0 && (
+        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+          <ul className="text-[10px] space-y-1">
+            {errors.map((error, index) => (
+              <li key={index} className="text-red-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                <div className="w-1 h-1 bg-red-500 rounded-full" />
+                {error}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

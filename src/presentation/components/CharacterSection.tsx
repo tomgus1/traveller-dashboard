@@ -7,6 +7,8 @@ import Inventory from "./Inventory";
 import Ammo from "./Ammo";
 import Weapons from "./Weapons";
 import Armour from "./Armour";
+import Characteristics from "./Characteristics";
+import { User, CreditCard, Activity } from "lucide-react";
 import type {
   FinanceRow,
   InventoryRow,
@@ -34,11 +36,6 @@ interface CharacterSectionProps {
   onReloadWeapon?: (displayName: string, ammoIndex: number) => void;
 }
 
-/**
- * Character management section component
- * Now uses database-driven character management with fallback to legacy system
- * Handles all character-related UI and state management
- */
 export default function CharacterSection({
   campaignId,
   selectedPc,
@@ -58,120 +55,137 @@ export default function CharacterSection({
   onReloadWeapon,
 }: CharacterSectionProps) {
   const [charTab, setCharTab] = useState<
-    "ledger" | "inventory" | "weapons" | "armour" | "ammo"
-  >("ledger");
+    "profile" | "ledger" | "inventory" | "weapons" | "armour" | "ammo"
+  >("profile");
 
-  // Load characters for the current campaign
   const { characters, loading, error } = useCampaignCharacters(campaignId);
 
-  // Find the currently selected character
   const selectedCharacter = characters.find(
     (char) => char.displayName === selectedPc
   );
 
   return (
-    <div className="space-y-4">
-      {/* Character Selection and Balance */}
-      <div className="flex items-center gap-3">
-        <select
-          className="select"
-          value={selectedPc}
-          onChange={(e) => onPcChange(e.target.value)}
-          data-testid="character-select"
-          aria-label="Select character to view and manage"
-          disabled={loading}
-        >
-          {loading ? (
-            <option>Loading characters...</option>
-          ) : (
-            characters.map((character) => (
-              <option key={character.id} value={character.displayName}>
-                {character.displayName}
-              </option>
-            ))
-          )}
-        </select>
+    <div className="space-y-8 animate-hud">
+      {/* Personnel Header & Selector */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-stretch">
+        <div className="hud-glass p-6 flex-grow min-w-0 w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20">
+                <User className="w-8 h-8" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">PERSONNEL_FILE</span>
+                  {error && <span className="text-[10px] text-amber-500 font-bold px-1.5 py-0.5 bg-amber-500/10 rounded">OFFLINE</span>}
+                </div>
+                <select
+                  className="bg-transparent text-2xl font-black tracking-tight border-none p-0 focus:ring-0 cursor-pointer hover:text-primary transition-colors appearance-none"
+                  value={selectedPc}
+                  onChange={(e) => onPcChange(e.target.value)}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <option>Loading Personnel...</option>
+                  ) : (
+                    characters.map((character) => (
+                      <option key={character.id} value={character.displayName} className="bg-surface-high">
+                        {character.displayName}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {selectedCharacter && (
+                  <p className="text-sm text-muted uppercase tracking-widest font-bold mt-1">
+                    {selectedCharacter.characterName || 'Unknown operative'}
+                  </p>
+                )}
+              </div>
+            </div>
 
-        {error && (
-          <span className="text-xs text-yellow-600" title={error}>
-            ⚠️ Offline mode
-          </span>
-        )}
-
-        <div className="text-sm">
-          <span
-            aria-label={`Current character balance: ${fmtCr(characterBalance)}`}
-          >
-            Current Balance:{" "}
-            <span className="font-semibold">{fmtCr(characterBalance)}</span>
-          </span>
+            <div className="flex flex-wrap gap-4">
+              <div className="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-4">
+                <CreditCard className="w-5 h-5 text-emerald-400" />
+                <div>
+                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">Available Credits</p>
+                  <p className="font-bold text-main">{fmtCr(characterBalance)}</p>
+                </div>
+              </div>
+              <div className="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-4">
+                <Activity className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">Status</p>
+                  <p className="font-bold text-main uppercase">Mission Ready</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Show character info if we have database character */}
-      {selectedCharacter && selectedCharacter.id.startsWith("character-") && (
-        <div className="text-xs text-gray-600">
-          Player: {selectedCharacter.playerName} | Character:{" "}
-          {selectedCharacter.characterName}
-        </div>
-      )}
-
-      {/* Character Tab Navigation */}
+      {/* Sub-navigation */}
       <TabsBar
         tabs={[
-          { id: "ledger", label: "Ledger" },
-          { id: "inventory", label: "Inventory" },
-          { id: "weapons", label: "Weapons" },
-          { id: "armour", label: "Armour" },
-          { id: "ammo", label: "Ammo" },
+          { id: "profile", label: "Bio-Profile" },
+          { id: "ledger", label: "Financial Ledger" },
+          { id: "inventory", label: "Gear Manifest" },
+          { id: "weapons", label: "Armory Entry" },
+          { id: "armour", label: "Protection Suite" },
+          { id: "ammo", label: "Ballistics Tracker" },
         ]}
         active={charTab}
         onChange={(id) =>
           setCharTab(
-            id as "ledger" | "inventory" | "weapons" | "armour" | "ammo"
+            id as "profile" | "ledger" | "inventory" | "weapons" | "armour" | "ammo"
           )
         }
       />
 
-      {/* Character Tab Content */}
-      {charTab === "ledger" && (
-        <Characters
-          pc={selectedPc}
-          rows={characterFinance}
-          onAdd={(rows) => onUpdateFinance(selectedPc, rows)}
-        />
-      )}
+      {/* Content Area with Fade Effect */}
+      <div className="transition-all duration-500">
+        {charTab === "profile" && (
+          <Characteristics stats={selectedCharacter?.stats} />
+        )}
 
-      {charTab === "inventory" && (
-        <Inventory
-          rows={characterInventory}
-          onAdd={(item) => onAddInventory(selectedPc, item)}
-        />
-      )}
+        {charTab === "ledger" && (
+          <Characters
+            pc={selectedPc}
+            rows={characterFinance}
+            onAdd={(rows) => onUpdateFinance(selectedPc, rows)}
+          />
+        )}
 
-      {charTab === "weapons" && (
-        <Weapons
-          rows={characterWeapons}
-          onAdd={(weapon) => onAddWeapon(selectedPc, weapon)}
-        />
-      )}
+        {charTab === "inventory" && (
+          <Inventory
+            rows={characterInventory}
+            onAdd={(item) => onAddInventory(selectedPc, item)}
+          />
+        )}
 
-      {charTab === "armour" && (
-        <Armour
-          rows={characterArmour}
-          onAdd={(armour) => onAddArmour(selectedPc, armour)}
-        />
-      )}
+        {charTab === "weapons" && (
+          <Weapons
+            rows={characterWeapons}
+            onAdd={(weapon) => onAddWeapon(selectedPc, weapon)}
+          />
+        )}
 
-      {charTab === "ammo" && (
-        <Ammo
-          rows={characterAmmo}
-          weapons={characterWeapons}
-          onAdd={(ammo) => onAddAmmo(selectedPc, ammo)}
-          onFireRound={(ammoIndex) => onFireRound?.(selectedPc, ammoIndex)}
-          onReload={(ammoIndex) => onReloadWeapon?.(selectedPc, ammoIndex)}
-        />
-      )}
+        {charTab === "armour" && (
+          <Armour
+            rows={characterArmour}
+            onAdd={(armour) => onAddArmour(selectedPc, armour)}
+          />
+        )}
+
+        {charTab === "ammo" && (
+          <Ammo
+            rows={characterAmmo}
+            weapons={characterWeapons}
+            onAdd={(ammo) => onAddAmmo(selectedPc, ammo)}
+            onFireRound={(ammoIndex) => onFireRound?.(selectedPc, ammoIndex)}
+            onReload={(ammoIndex) => onReloadWeapon?.(selectedPc, ammoIndex)}
+          />
+        )}
+      </div>
     </div>
   );
 }

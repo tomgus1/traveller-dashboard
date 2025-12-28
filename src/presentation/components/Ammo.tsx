@@ -1,11 +1,8 @@
-import SectionCard from "./SectionCard";
 import Table from "./Table";
 import FormField from "./FormField";
-import Tooltip from "./Tooltip";
-import { Button } from "./Button";
 import { useForm } from "../hooks/useForm";
 import { useTravellerWeapons } from "../../hooks/useTravellerWeapons";
-import { HelpCircle } from "lucide-react";
+import { Info, Plus, Target, Zap } from "lucide-react";
 import type { AmmoRow, WeaponRow } from "../../types";
 
 type AmmoFormData = Record<string, string> & {
@@ -30,7 +27,6 @@ const INITIAL_FORM: AmmoFormData = {
   Notes: "",
 };
 
-// Component for ammunition action buttons
 function AmmoActions({
   row,
   index,
@@ -42,31 +38,31 @@ function AmmoActions({
   onFireRound?: (index: number) => void;
   onReload?: (index: number) => void;
 }) {
+  const isOutOfAmmo = Number(row["Total Rounds"] || 0) <= 0;
+  const canReload = Number(row["Spare Magazines"] || 0) > 0 || Number(row["Loose Rounds"] || 0) > 0;
+
   return (
     <div className="flex gap-2">
-      <Button
-        variant="danger"
-        size="sm"
+      <button
         onClick={() => onFireRound?.(index)}
-        disabled={Number(row["Total Rounds"] || 0) <= 0}
-        title={`Fire one round from ${row.Weapon}`}
-        aria-label={`Fire one round from ${row.Weapon}`}
+        disabled={isOutOfAmmo}
+        className={`px-3 py-1 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${isOutOfAmmo
+            ? 'bg-white/5 text-muted opacity-50 cursor-not-allowed'
+            : 'bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white shadow-lg shadow-red-500/10'
+          }`}
       >
         Fire
-      </Button>
-      <Button
-        variant="primary"
-        size="sm"
+      </button>
+      <button
         onClick={() => onReload?.(index)}
-        disabled={
-          Number(row["Spare Magazines"] || 0) <= 0 &&
-          Number(row["Loose Rounds"] || 0) <= 0
-        }
-        title={`Reload ${row.Weapon}`}
-        aria-label={`Reload ${row.Weapon}`}
+        disabled={!canReload}
+        className={`px-3 py-1 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${!canReload
+            ? 'bg-white/5 text-muted opacity-50 cursor-not-allowed'
+            : 'bg-primary/10 text-primary hover:bg-primary hover:text-white shadow-lg shadow-primary-glow'
+          }`}
       >
         Reload
-      </Button>
+      </button>
     </div>
   );
 }
@@ -93,10 +89,8 @@ export default function Ammo({
       return;
     }
 
-    // Check if it's from the database
     const weapon = getWeaponByName(weaponName);
     if (weapon && weapon.magazine !== null) {
-      // Auto-fill magazine size from database
       setForm({
         ...form,
         Weapon: weapon.name,
@@ -104,7 +98,6 @@ export default function Ammo({
         "Ammo Type": weapon.type,
       });
     } else {
-      // It's from the character's weapon inventory
       updateField("Weapon", weaponName);
     }
   };
@@ -138,9 +131,17 @@ export default function Ammo({
     updateField("Weapon", value);
   };
 
-  // Enhanced table with ammunition tracking buttons
   const enhancedRows = rows.map((row, index) => ({
     ...row,
+    Weapon: <span className="font-black text-primary uppercase tracking-tight">{row.Weapon}</span>,
+    "Ammo Type": <span className="text-muted font-bold tracking-widest text-[10px] uppercase px-2 py-0.5 bg-white/5 rounded-full border border-white/5">{row["Ammo Type"]}</span>,
+    "Rounds Loaded": (
+      <div className="flex items-center gap-2">
+        <Zap className={`w-3 h-3 ${Number(row["Rounds Loaded"]) > 0 ? 'text-amber-400' : 'text-red-500'}`} />
+        <span className="font-mono font-bold">{row["Rounds Loaded"]}</span>
+      </div>
+    ),
+    "Total Rounds": <span className="font-black text-primary">{row["Total Rounds"]}</span>,
     Actions: (
       <AmmoActions
         row={row}
@@ -152,11 +153,19 @@ export default function Ammo({
   }));
 
   return (
-    <div className="space-y-4">
-      <SectionCard title="Add Ammunition Entry">
-        <div className="space-y-3">
+    <div className="space-y-6">
+      <div className="hud-glass p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Target className="w-5 h-5 text-primary" />
+          <h3 className="text-sm font-black tracking-[0.2em] uppercase text-text-main">
+            Ballistics <span className="text-primary">Registry</span>
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <FormField
             type="select"
+            label="Designation Target"
             value={form.Weapon === "__custom" ? "__custom" : form.Weapon}
             onChange={(e) => {
               const value = e.target.value;
@@ -168,139 +177,111 @@ export default function Ammo({
               }
             }}
           >
-            <option value="">Select Weapon</option>
-            <optgroup label="Your Weapons">
+            <option value="">Select Ordinance Target...</option>
+            <optgroup label="Active Loadout">
               {weapons.map((weapon) => (
                 <option key={weapon.Weapon} value={weapon.Weapon}>
-                  {weapon.Weapon} ({weapon.Type})
+                  {weapon.Weapon}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="Traveller Weapons Database">
+            <optgroup label="Ordinance Database">
               {getAllWeapons()
                 .filter((w) => w.magazine !== null)
                 .map((weapon) => (
                   <option key={weapon.name} value={weapon.name}>
-                    {weapon.name} ({weapon.type}) - Mag: {weapon.magazine}
+                    {weapon.name}
                   </option>
                 ))}
             </optgroup>
-            <optgroup label="Custom">
-              <option value="__custom">Enter Custom Weapon</option>
+            <optgroup label="Manual Override">
+              <option value="__custom">Custom Ordinance Target</option>
             </optgroup>
           </FormField>
 
-          {form.Weapon === "__custom" && (
+          <FormField
+            label="Payload Type"
+            placeholder="e.g., AP, HE, 9mm"
+            value={form["Ammo Type"]}
+            onChange={createInputHandler("Ammo Type")}
+          />
+        </div>
+
+        {form.Weapon === "__custom" && (
+          <div className="mb-4 animate-in">
             <FormField
-              placeholder="Custom Weapon Name"
+              label="Manual Designation"
+              placeholder="Enter Custom Ordinance Name..."
               value=""
               onChange={(e) => handleCustomWeapon(e.target.value)}
             />
-          )}
-
-          <div className="grid md:grid-cols-3 gap-3">
-            <FormField
-              placeholder="Ammo Type (e.g., 9mm, .45 ACP)"
-              value={form["Ammo Type"]}
-              onChange={createInputHandler("Ammo Type")}
-            />
-            <FormField
-              type="number"
-              placeholder="Magazine Size"
-              value={form["Magazine Size"]}
-              onChange={createInputHandler("Magazine Size")}
-            />
-            <FormField
-              type="number"
-              placeholder="Rounds Loaded"
-              value={form["Rounds Loaded"]}
-              onChange={createInputHandler("Rounds Loaded")}
-            />
-            <FormField
-              type="number"
-              placeholder="Spare Magazines"
-              value={form["Spare Magazines"]}
-              onChange={createInputHandler("Spare Magazines")}
-            />
-            <FormField
-              type="number"
-              placeholder="Loose Rounds"
-              value={form["Loose Rounds"]}
-              onChange={createInputHandler("Loose Rounds")}
-            />
-            <FormField
-              type="number"
-              placeholder="Cost (Cr)"
-              value={form.Cost}
-              onChange={createInputHandler("Cost")}
-            />
-            <FormField
-              placeholder="Notes"
-              value={form.Notes}
-              onChange={createInputHandler("Notes")}
-            />
           </div>
-        </div>
-        <Button
-          className="mt-2"
-          onClick={handleSubmit}
-          type="button"
-          data-testid="add-ammo-button"
-          aria-label="Add new ammunition entry to character equipment"
-        >
-          Add Ammunition
-        </Button>
-      </SectionCard>
+        )}
 
-      <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-lg font-semibold">Ammunition Tracking</h3>
-        <Tooltip
-          content={
-            <div>
-              <div className="font-semibold mb-2">Ammunition Tracking</div>
-              <ul className="space-y-1 text-sm">
-                <li>
-                  • <strong>Fire Button:</strong> Consumes one round.
-                  Auto-reloads from spare magazines when current magazine is
-                  empty.
-                </li>
-                <li>
-                  • <strong>Reload Button:</strong> Manually reload from spare
-                  magazines or loose rounds.
-                </li>
-                <li>
-                  • <strong>Ammo Priority:</strong> Loaded rounds → Spare
-                  magazines → Loose rounds
-                </li>
-                <li>
-                  • <strong>Total Rounds:</strong> Automatically calculated and
-                  updated after each action.
-                </li>
-              </ul>
-            </div>
-          }
-          position="right"
-        >
-          <button className="text-gray-400 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-1 transition-colors duration-200">
-            <HelpCircle className="w-5 h-5" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4 border-t border-white/5">
+          <FormField
+            type="number"
+            placeholder="MAG SZ"
+            value={form["Magazine Size"]}
+            onChange={createInputHandler("Magazine Size")}
+          />
+          <FormField
+            type="number"
+            placeholder="LOADED"
+            value={form["Rounds Loaded"]}
+            onChange={createInputHandler("Rounds Loaded")}
+          />
+          <FormField
+            type="number"
+            placeholder="SPARE MAGS"
+            value={form["Spare Magazines"]}
+            onChange={createInputHandler("Spare Magazines")}
+          />
+          <FormField
+            type="number"
+            placeholder="LOOSE"
+            value={form["Loose Rounds"]}
+            onChange={createInputHandler("Loose Rounds")}
+          />
+          <FormField
+            type="number"
+            placeholder="COST"
+            value={form.Cost}
+            onChange={createInputHandler("Cost")}
+          />
+          <button
+            onClick={handleSubmit}
+            className="btn-hud py-2.5 flex items-center justify-center gap-2 group"
+            type="button"
+          >
+            <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Deploy</span>
           </button>
-        </Tooltip>
+        </div>
       </div>
 
-      <Table
-        columns={[
-          "Weapon",
-          "Ammo Type",
-          "Magazine Size",
-          "Rounds Loaded",
-          "Spare Magazines",
-          "Loose Rounds",
-          "Total Rounds",
-          "Notes",
-          "Actions",
-        ]}
-        rows={enhancedRows}
-      />
+      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 mb-6">
+        <Info className="w-4 h-4 text-primary" />
+        <p className="text-[10px] font-bold text-muted uppercase tracking-wider">
+          Priority System: Loaded Rounds <span className="text-primary">→</span> Spare Mags <span className="text-primary">→</span> Loose Rounds
+        </p>
+      </div>
+
+      <div className="hud-glass p-0 overflow-hidden">
+        <Table
+          columns={[
+            "Weapon",
+            "Ammo Type",
+            "Magazine Size",
+            "Rounds Loaded",
+            "Spare Magazines",
+            "Loose Rounds",
+            "Total Rounds",
+            "Actions",
+          ]}
+          rows={enhancedRows}
+        />
+      </div>
     </div>
   );
 }
