@@ -15,12 +15,12 @@ export function Button({
   ...props
 }: ButtonProps) {
   const variantClasses = {
-    default: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700",
+    default: "bg-side text-text-main hover:bg-hud-accent border border-border",
     primary: "bg-primary text-white hover:brightness-110 shadow-lg shadow-primary/20",
-    secondary: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700",
+    secondary: "bg-hud-accent text-text-main hover:bg-side border border-border",
     outline: "border-2 border-primary/20 bg-transparent text-primary hover:bg-primary/5",
     danger: "bg-red-600 hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5 text-white border-red-600",
-    ghost: "bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 text-muted",
+    ghost: "bg-transparent hover:bg-hud-accent text-muted",
     premium: "btn-premium",
   };
 

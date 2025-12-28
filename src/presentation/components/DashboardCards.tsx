@@ -31,17 +31,17 @@ export function QuickActionCard({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="card p-6 text-left hover:shadow-lg hover:shadow-blue-100 dark:hover:shadow-blue-900/20 hover:border-blue-300 dark:hover:border-blue-600 hover:-translate-y-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+      className="card-modern p-6 text-left hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-300"
     >
       <div className="flex items-center space-x-4">
-        <div className="text-blue-600 dark:text-blue-400 transition-transform duration-200 hover:scale-110">
+        <div className="text-primary transition-transform duration-300 hover:scale-110">
           {icon}
         </div>
-        <div>
-          <h3 className="font-semibold text-gray-900 dark:text-zinc-50 transition-colors duration-200">
+        <div className="flex-grow">
+          <h3 className="text-lg font-bold tracking-tight mb-1 text-text-main">
             {title}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-200">
+          <p className="text-sm text-muted">
             {description}
           </p>
         </div>
@@ -59,20 +59,20 @@ export function RecentActivityCard({
     .slice(0, 3);
 
   return (
-    <div className="card p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-50">
+    <div className="card-modern p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-black tracking-tighter uppercase">
           Recent Campaigns
         </h3>
         {campaigns.length > 3 && (
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-xs font-bold text-muted uppercase tracking-widest">
             {campaigns.length} total
           </span>
         )}
       </div>
 
       {recentCampaigns.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
+        <p className="text-muted text-sm italic">
           No campaigns yet. Create your first campaign to get started!
         </p>
       ) : (
@@ -80,28 +80,28 @@ export function RecentActivityCard({
           {recentCampaigns.map((campaign) => (
             <div
               key={campaign.id}
-              className="group flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-zinc-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:shadow-sm cursor-pointer transition-all duration-200"
+              className="group flex items-center justify-between p-4 rounded-2xl border border-border bg-hud-accent hover:bg-surface-mid hover:border-primary/30 cursor-pointer transition-all duration-300"
               onClick={() => onCampaignSelect(campaign.id)}
             >
               <div className="flex-grow">
                 <div className="flex items-center space-x-2">
-                  <h4 className="font-medium text-gray-900 dark:text-zinc-50">
+                  <h4 className="font-bold text-text-main">
                     {campaign.name}
                   </h4>
                   {campaign.userRoles && (
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(getPrimaryRole(campaign.userRoles))}`}
+                      className={`px-2 py-0.5 text-[10px] font-black uppercase rounded-full ${getRoleBadgeClass(getPrimaryRole(campaign.userRoles))}`}
                     >
                       {rolesToDisplayString(campaign.userRoles)}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-[10px] uppercase font-bold text-muted tracking-widest mt-1">
                   {campaign.memberCount || 0} member(s) • Updated{" "}
                   {campaign.updatedAt.toLocaleDateString()}
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 transition-transform duration-200 group-hover:translate-x-1" />
+              <ChevronRight className="w-5 h-5 text-muted transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
             </div>
           ))}
         </div>

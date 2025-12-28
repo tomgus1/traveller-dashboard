@@ -80,14 +80,14 @@ export default function ProfileSetup({
     displayName.trim() && username.trim() && Object.keys(errors).length === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-main transition-colors duration-500">
       {/* Header */}
-      <div className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-700 px-4 py-4">
+      <div className="bg-side border-b border-border px-4 py-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50">
+          <h1 className="text-2xl font-black tracking-tighter uppercase text-text-main">
             Complete Your Profile
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted font-medium">
             Set up your profile to start using Traveller Dashboard
           </p>
         </div>
@@ -97,18 +97,18 @@ export default function ProfileSetup({
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-6">
           <div className="text-center">
-            <div className="mx-auto h-16 w-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
-              <UserPlus className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <div className="mx-auto h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <UserPlus className="h-8 w-8 text-primary shadow-[0_0_15px_var(--color-primary-glow)]" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-50">
+            <h2 className="text-3xl font-black tracking-tighter uppercase text-text-main">
               Welcome to Traveller Dashboard
             </h2>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-muted font-medium">
               Let's set up your profile to get started
             </p>
           </div>
 
-          <div className="card">
+          <div className="card-modern shadow-xl">
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <FormField
@@ -125,7 +125,7 @@ export default function ProfileSetup({
                   placeholder="Enter your first name or full name"
                   error={errors.displayName}
                 />
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted italic ml-1">
                   This is how other players will see you in campaigns
                 </p>
               </div>
@@ -145,14 +145,14 @@ export default function ProfileSetup({
                   placeholder="Choose a unique username"
                   error={errors.username}
                 />
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted italic ml-1">
                   3-30 characters, letters, numbers, hyphens and underscores
                   only
                 </p>
               </div>
 
               {errors.general && (
-                <div className="p-3 rounded-xl text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">
+                <div className="p-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/20">
                   {errors.general}
                 </div>
               )}
@@ -168,7 +168,7 @@ export default function ProfileSetup({
             </form>
           </div>
 
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-center text-[10px] font-black uppercase tracking-widest text-muted mt-6">
             <p>You can always change these settings later in your profile</p>
           </div>
         </div>

@@ -54,23 +54,29 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
         }
       }}
     >
-      <div className={`card w-full ${maxWidthClasses[maxWidth]}`}>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
+      <div className={`card-modern w-full shadow-2xl relative overflow-hidden ${maxWidthClasses[maxWidth]}`}>
+        {/* Glow effect in background of modal */}
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-3xl rounded-full pointer-events-none" />
+
+        <div className="flex justify-between items-center mb-6 relative z-10">
+          <h3 className="text-xl font-bold tracking-tight">{title}</h3>
           <IconButton
             icon={<X size={20} />}
             onClick={onClose}
             aria-label="Close modal"
+            className="hover:rotate-90 transition-transform duration-300"
           />
         </div>
-        {children}
+        <div className="relative z-10">
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -106,12 +112,12 @@ export function ModalFooter({
   }
 
   return (
-    <div className="flex gap-2 mt-6">
+    <div className="flex flex-col sm:flex-row gap-3 mt-8">
       {onCancel && (
         <Button
           onClick={onCancel}
-          variant="ghost"
-          className="flex-1 justify-center"
+          variant="outline"
+          className="flex-1 justify-center py-2.5"
           disabled={isLoading}
         >
           {cancelText}
@@ -120,8 +126,8 @@ export function ModalFooter({
       {(onConfirm || confirmType === "submit") && (
         <Button
           onClick={confirmType === "submit" ? undefined : onConfirm}
-          variant={confirmVariant}
-          className="flex-1 justify-center"
+          variant={confirmVariant === "primary" ? "premium" : confirmVariant}
+          className="flex-1 justify-center py-2.5"
           disabled={isLoading || confirmDisabled}
           type={confirmType}
         >

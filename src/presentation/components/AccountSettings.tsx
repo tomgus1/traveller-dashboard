@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Lock, Mail, User, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, User, AlertTriangle, Eye, EyeOff, Monitor, Sun, Moon } from "lucide-react";
 import { Modal } from "./Modal";
 import FormField from "./FormField";
 import { Button } from "./Button";
+import { useTheme } from "../../context/ThemeContext";
 import {
   validatePassword,
   getPasswordStrengthText,
@@ -33,9 +34,11 @@ export default function AccountSettings({
   onChangePassword,
   onDeleteAccount,
 }: AccountSettingsProps) {
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "danger">(
+  const { theme, setTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "display" | "danger">(
     "profile"
   );
+
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -132,6 +135,7 @@ export default function AccountSettings({
   const tabs = [
     { id: "profile" as const, label: "Profile", icon: User },
     { id: "password" as const, label: "Password", icon: Lock },
+    { id: "display" as const, label: "Display", icon: Monitor },
     { id: "danger" as const, label: "Danger Zone", icon: AlertTriangle },
   ];
 
@@ -152,11 +156,10 @@ export default function AccountSettings({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-800"
-                  }`}
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === tab.id
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted hover:text-text-main hover:bg-hud-accent"
+                    }`}
                 >
                   <Icon className="w-4 h-4 mr-3" />
                   {tab.label}
@@ -170,11 +173,10 @@ export default function AccountSettings({
         <div className="flex-1 pl-8">
           {message && (
             <div
-              className={`mb-4 p-3 rounded-lg text-sm ${
-                message.type === "success"
-                  ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
-                  : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800"
-              }`}
+              className={`mb-4 p-3 rounded-lg text-sm ${message.type === "success"
+                ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
+                : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
+                }`}
             >
               {message.text}
             </div>
@@ -183,16 +185,16 @@ export default function AccountSettings({
           {activeTab === "profile" && (
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-text-main mb-2 uppercase tracking-wider">
                   Email Address
                 </label>
-                <div className="flex items-center px-3 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg">
-                  <Mail className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center px-3 py-2 bg-hud-accent border border-border rounded-lg">
+                  <Mail className="w-4 h-4 text-muted mr-3" />
+                  <span className="text-sm text-muted">
                     {user.email}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted mt-1 italic">
                   Email cannot be changed
                 </p>
               </div>
@@ -276,11 +278,11 @@ export default function AccountSettings({
               {newPassword && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-sm text-muted">
                       Password Strength:
                     </span>
                     <span
-                      className={`text-sm font-medium ${getPasswordStrengthColor(passwordValidation.strength)}`}
+                      className={`text-sm font-bold uppercase tracking-widest ${getPasswordStrengthColor(passwordValidation.strength)}`}
                     >
                       {getPasswordStrengthText(passwordValidation.strength)}
                     </span>
@@ -335,6 +337,68 @@ export default function AccountSettings({
                 {isLoading ? "Changing Password..." : "Change Password"}
               </Button>
             </form>
+          )}
+
+          {activeTab === "display" && (
+            <div className="space-y-6 animate-hud">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-primary mb-4">
+                  Tactical Interface
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    onClick={() => setTheme("light")}
+                    type="button"
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${theme === 'light' ? 'bg-primary/10 border-primary text-primary shadow-lg shadow-primary-glow/10' : 'bg-hud-accent border-border hover:border-primary/50'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 rounded-lg ${theme === 'light' ? 'bg-primary text-white' : 'bg-side text-muted'}`}>
+                        <Sun className="w-5 h-5" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-bold">Light HUD</p>
+                        <p className="text-xs text-muted">Optimized for high-light environments</p>
+                      </div>
+                    </div>
+                    {theme === 'light' && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
+                  </button>
+
+                  <button
+                    onClick={() => setTheme("dark")}
+                    type="button"
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${theme === 'dark' ? 'bg-primary/10 border-primary text-primary shadow-lg shadow-primary-glow/10' : 'bg-hud-accent border-border hover:border-primary/50'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 rounded-lg ${theme === 'dark' ? 'bg-primary text-white' : 'bg-side text-muted'}`}>
+                        <Moon className="w-5 h-5" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-bold">Dark HUD</p>
+                        <p className="text-xs text-muted">Stealth mode for low-light sectors</p>
+                      </div>
+                    </div>
+                    {theme === 'dark' && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
+                  </button>
+
+                  <button
+                    onClick={() => setTheme("system")}
+                    type="button"
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-all ${theme === 'system' ? 'bg-primary/10 border-primary text-primary shadow-lg shadow-primary-glow/10' : 'bg-hud-accent border-border hover:border-primary/50'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 rounded-lg ${theme === 'system' ? 'bg-primary text-white' : 'bg-side text-muted'}`}>
+                        <Monitor className="w-5 h-5" />
+                      </div>
+                      <div className="text-left">
+                        <p className="font-bold">Dynamic Sync</p>
+                        <p className="text-xs text-muted">Inherit system-level display parameters</p>
+                      </div>
+                    </div>
+                    {theme === 'system' && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {activeTab === "danger" && (

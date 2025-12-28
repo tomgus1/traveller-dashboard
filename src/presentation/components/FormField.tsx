@@ -43,6 +43,17 @@ type FormFieldProps =
   | TextareaFormFieldProps
   | SelectFormFieldProps;
 
+const HUD_INPUT_CLASSES = `
+  w-full px-4 py-2.5 
+  bg-hud-accent 
+  border border-border rounded-2xl 
+  text-sm font-bold tracking-tight transition-all duration-300
+  text-text-main
+  placeholder:text-muted placeholder:font-normal
+  focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-surface-mid
+  disabled:opacity-30 disabled:cursor-not-allowed
+`;
+
 const FormField = forwardRef<
   HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
   FormFieldProps
@@ -52,23 +63,15 @@ const FormField = forwardRef<
     ref
   ) => {
     const renderInput = () => {
+      const errorClasses = error ? "border-red-500/50 focus:ring-red-500/20" : "";
+
       if (type === "textarea") {
         const textareaProps = props as TextareaFormFieldProps;
         return (
           <textarea
             id={id}
             ref={ref as React.Ref<HTMLTextAreaElement>}
-            className={`
-              w-full px-4 py-2.5 
-              bg-zinc-50/50 dark:bg-zinc-900/50 
-              border border-border-color rounded-2xl 
-              text-sm transition-all duration-300
-              placeholder:text-zinc-400
-              focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
-              disabled:opacity-50 disabled:bg-zinc-100
-              ${error ? "border-red-500 focus:ring-red-500/20" : ""}
-              ${className || ""}
-            `}
+            className={`${HUD_INPUT_CLASSES} ${errorClasses} ${className || ""}`}
             required={required}
             {...textareaProps}
           />
@@ -81,16 +84,7 @@ const FormField = forwardRef<
           <select
             id={id}
             ref={ref as React.Ref<HTMLSelectElement>}
-            className={`
-              w-full px-4 py-2.5 
-              bg-zinc-50/50 dark:bg-zinc-900/50 
-              border border-border-color rounded-2xl 
-              text-sm transition-all duration-300
-              focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
-              disabled:opacity-50 disabled:bg-zinc-100
-              ${error ? "border-red-500 focus:ring-red-500/20" : ""}
-              ${className || ""}
-            `}
+            className={`${HUD_INPUT_CLASSES} ${errorClasses} ${className || ""}`}
             required={required}
             {...selectProps}
           >
@@ -106,18 +100,8 @@ const FormField = forwardRef<
           id={id}
           ref={ref as React.Ref<HTMLInputElement>}
           type={type}
-          step={type === "number" ? "1" : undefined}
-          className={`
-            w-full px-4 py-2.5 
-            bg-zinc-50/50 dark:bg-zinc-900/50 
-            border border-border-color rounded-2xl 
-            text-sm transition-all duration-300
-            placeholder:text-zinc-400
-            focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
-            disabled:opacity-50 disabled:bg-zinc-100
-            ${error ? "border-red-500 focus:ring-red-500/20" : ""}
-            ${className || ""}
-          `}
+          step={type === "number" ? "any" : undefined}
+          className={`${HUD_INPUT_CLASSES} ${errorClasses} ${className || ""}`}
           required={required}
           {...inputProps}
         />
@@ -125,18 +109,22 @@ const FormField = forwardRef<
     };
 
     return (
-      <div>
+      <div className="space-y-1.5 min-w-0">
         {label && (
           <label
             htmlFor={id}
-            className="block text-xs font-black uppercase tracking-widest text-muted mb-1.5 ml-1"
+            className="block text-[10px] font-black uppercase tracking-[0.2em] text-muted ml-1"
           >
-            {label} {required && "*"}
+            {label} {required && <span className="text-primary">*</span>}
           </label>
         )}
-        {renderInput()}
+        <div className="relative group">
+          {renderInput()}
+          {/* Internal Glow Effect on Focus */}
+          <div className="absolute inset-0 rounded-2xl pointer-events-none border border-primary/0 group-focus-within:border-primary/20 transition-all duration-300 ring-4 ring-primary/0 group-focus-within:ring-primary/5" />
+        </div>
         {error && (
-          <p className="mt-1 text-xs font-bold text-red-500 ml-1 animate-in">
+          <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-pulse">
             {error}
           </p>
         )}

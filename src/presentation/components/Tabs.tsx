@@ -38,32 +38,43 @@ export function TabsBar({
 
   return (
     <div
-      className="flex flex-wrap gap-2 border-b mb-2"
+      className="flex flex-wrap p-1.5 gap-2 hud-glass rounded-2xl w-fit mb-8 shadow-inner"
       role="tablist"
-      aria-label="Main navigation tabs"
+      aria-label="Campaign navigation"
     >
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          className={`px-3 py-2 rounded-t-xl transition-colors cursor-pointer focus-ring
-            ${
-              active === t.id
-                ? "bg-zinc-100 dark:bg-zinc-900 border border-b-0"
-                : "border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800"
-            }`}
-          onClick={() => onChange(t.id)}
-          onKeyDown={handleKeyDown}
-          role="tab"
-          aria-selected={active === t.id}
-          aria-controls={`tabpanel-${t.id}`}
-          id={`tab-${t.id}`}
-          type="button"
-          tabIndex={active === t.id ? 0 : -1}
-          data-testid={`tab-${t.id}`}
-        >
-          {t.label}
-        </button>
-      ))}
+      {tabs.map((t) => {
+        const isActive = active === t.id;
+        return (
+          <button
+            key={t.id}
+            onClick={() => onChange(t.id)}
+            onKeyDown={handleKeyDown}
+            className={`relative px-6 py-2.5 rounded-xl transition-all duration-300 group ${isActive
+                ? 'bg-primary text-white shadow-lg shadow-primary-glow scale-105'
+                : 'text-muted hover:text-text-main hover:bg-white/5'
+              }`}
+            role="tab"
+            aria-selected={isActive}
+            aria-controls={`tabpanel-${t.id}`}
+            id={`tab-${t.id}`}
+            type="button"
+            tabIndex={isActive ? 0 : -1}
+          >
+            <span className="relative z-10 font-black text-[11px] uppercase tracking-[0.15em]">
+              {t.label}
+            </span>
+
+            {/* Active Indicator Decoration */}
+            {isActive && (
+              <div className="absolute inset-0 border border-white/20 rounded-xl" />
+            )}
+
+            {!isActive && (
+              <div className="absolute -bottom-1 left-1.5 right-1.5 h-[1px] bg-primary/0 group-hover:bg-primary/40 transition-all rounded-full" />
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

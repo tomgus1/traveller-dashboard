@@ -18,7 +18,7 @@ export default function Table({
     <div className="overflow-auto glass rounded-2xl border transition-all duration-300">
       <table className="table w-full">
         <thead>
-          <tr className="bg-zinc-50/50 dark:bg-zinc-900/50">
+          <tr className="bg-white/5">
             {columns.map((c) => (
               <th key={c} className="px-4 py-3 text-xs font-bold tracking-wider text-muted uppercase">
                 {c}
@@ -29,7 +29,7 @@ export default function Table({
         <tbody className="animate-in">
           {rows.length === 0 ? (
             <tr>
-              <td className="text-zinc-500 p-8 text-center" colSpan={columns.length}>
+              <td className="text-muted p-8 text-center text-sm font-medium" colSpan={columns.length}>
                 No data available in this section.
               </td>
             </tr>
@@ -37,7 +37,7 @@ export default function Table({
             rows.map((r, i) => (
               <tr
                 key={i}
-                className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 transition-colors duration-200"
+                className="hover:bg-white/5 transition-colors duration-200"
               >
                 {columns.map((c) => (
                   <td key={c} className="px-4 py-3 border-t">
