@@ -6,6 +6,7 @@ import ProfileSetup from "./presentation/components/ProfileSetup";
 import MainDashboard from "./presentation/components/MainDashboard";
 import Dashboard from "./presentation/components/Dashboard";
 import DebugPanel from "./presentation/components/DebugPanel";
+import { AppShell } from "./presentation/components/layout/AppShell";
 
 function AppContent() {
   const { user, loading, completeProfile } = useAuth();
@@ -41,11 +42,15 @@ function AppContent() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<MainDashboard />} />
-      <Route path="/campaign/:campaignId" element={<Dashboard />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <AppShell>
+      <Routes>
+        <Route path="/" element={<MainDashboard />} />
+        <Route path="/campaigns" element={<MainDashboard />} />
+        <Route path="/characters" element={<MainDashboard />} />
+        <Route path="/campaign/:campaignId" element={<Dashboard />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AppShell>
   );
 }
 

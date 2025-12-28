@@ -1,17 +1,16 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Rocket, User, Users } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Rocket,
+  User,
+} from "lucide-react";
 import { useCampaigns } from "../hooks/useCampaigns";
 import { useCampaignMembers } from "../hooks/useCampaignMembers";
-import { useAuth } from "../hooks/useAuth";
 import { LoadingScreen } from "./Loading";
 import { Modal, ModalFooter } from "./Modal";
 import FormField from "./FormField";
 import CampaignSettingsContent from "./CampaignSettingsContent";
-import CharacterManagementContent from "./CharacterManagementContent";
 import StandaloneCharacterManagement from "./StandaloneCharacterManagement";
-import UserProfileDropdown from "./UserProfileDropdown";
-import AccountSettings from "./AccountSettings";
 import CreateCampaignModal from "./CreateCampaignModal";
 import { CampaignInvitations } from "./CampaignInvitations";
 import { QuickActionCard, RecentActivityCard } from "./DashboardCards";
@@ -28,6 +27,7 @@ import { getPrimaryRole } from "../../shared/utils/roleHelpers";
 
 export default function MainDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     campaigns,
     loading,
@@ -38,19 +38,14 @@ export default function MainDashboard() {
   } = useCampaigns();
   const { fetchMembers, addMemberByEmail, removeMember, updateMemberRole } =
     useCampaignMembers();
-  const { signOut, user, updateProfile, changePassword, deleteAccount } =
-    useAuth();
 
   // Modal states
   const [showCreateCampaignModal, setShowCreateCampaignModal] = useState(false);
   const [showEditCampaignModal, setShowEditCampaignModal] = useState(false);
   const [showCampaignSettingsModal, setShowCampaignSettingsModal] =
     useState(false);
-  const [showCharacterManagementModal, setShowCharacterManagementModal] =
-    useState(false);
   const [showStandaloneCharacterModal, setShowStandaloneCharacterModal] =
     useState(false);
-  const [showAccountSettings, setShowAccountSettings] = useState(false);
 
   // Edit campaign state
   const [editingCampaign, setEditingCampaign] =
@@ -156,109 +151,126 @@ export default function MainDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
-      {/* Header */}
-      <div className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-700 px-4 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50">
-              Traveller Dashboard
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Welcome back! Manage your campaigns and characters.
-            </p>
-          </div>
-          {user && (
-            <UserProfileDropdown
-              user={user}
-              onSettings={() => setShowAccountSettings(true)}
-              onSignOut={() => signOut()}
-            />
-          )}
+    <>
+      {/* Page Header (Local contextual header) */}
+      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 animate-hud">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-2">
+            {location.pathname === '/' && <>Mission <span className="text-primary">Control</span></>}
+            {location.pathname === '/campaigns' && <>Tactical <span className="text-primary">Campaigns</span></>}
+            {location.pathname === '/characters' && <>Personnel <span className="text-primary">Roster</span></>}
+          </h1>
+          <p className="text-lg text-muted font-medium">
+            {location.pathname === '/' && "System Online. Welcome back, Commissioner."}
+            {location.pathname === '/campaigns' && "Active theater operations and deployment logs."}
+            {location.pathname === '/characters' && "Active personnel and biological signatures detected."}
+          </p>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-6 space-y-6">
-        <div className="max-w-6xl mx-auto">
+      {/* Main Content Area */}
+      <div className="space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Error Display */}
           {error && (
-            <div className="p-3 text-sm text-red-800 bg-red-100 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-md mb-6">
+            <div className="lg:col-span-12 p-3 text-sm text-red-800 bg-red-100 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-md mb-6">
               {error}
             </div>
           )}
 
-          {/* Campaign Invitations Section */}
-          <div className="mb-8">
-            <CampaignInvitations
-              onInvitationAccepted={() => {
-                // Refresh campaigns when an invitation is accepted
-                // The useCampaigns hook should automatically refetch
-              }}
-            />
+          {/* Left Column: Activity & Overview */}
+          <div className="lg:col-span-8 space-y-8">
+            {(location.pathname === '/' || location.pathname === '/campaigns') && (
+              <>
+                {/* Recent Activity Section */}
+                {location.pathname === '/' && (
+                  <div className="animate-hud delay-100">
+                    <RecentActivityCard
+                      campaigns={campaigns}
+                      onCampaignSelect={(campaignId) =>
+                        navigate(`/campaign/${campaignId}`)
+                      }
+                    />
+                  </div>
+                )}
+
+                {/* Campaign Management */}
+                {campaigns.length > 0 && (
+                  <div className="animate-hud delay-200">
+                    <CampaignManagementGrid
+                      campaigns={campaigns}
+                      onSelect={(campaignId) => navigate(`/campaign/${campaignId}`)}
+                      onEdit={handleEditCampaign}
+                      onSettings={handleCampaignSettings}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+
+            {location.pathname === '/characters' && (
+              <div className="animate-hud">
+                <CharacterManagementGrid
+                  campaigns={campaigns}
+                  onViewCampaign={(campaignId) =>
+                    navigate(`/campaign/${campaignId}`)
+                  }
+                />
+              </div>
+            )}
           </div>
 
-          {/* Recent Activity Section */}
-          <div className="mb-8">
-            <RecentActivityCard
+          {/* Right Column: Actions & Invites */}
+          <div className="lg:col-span-4 space-y-8">
+            {/* Quick Actions */}
+            <div className="animate-hud delay-100">
+              <h2 className="text-lg font-black tracking-tighter uppercase mb-4 px-2">
+                Quick Actions
+              </h2>
+              <div className="grid gap-4">
+                {(location.pathname === '/' || location.pathname === '/campaigns') && (
+                  <QuickActionCard
+                    title="New Campaign"
+                    description="Deploy a new mission"
+                    icon={<Rocket className="w-6 h-6" />}
+                    onClick={() => setShowCreateCampaignModal(true)}
+                  />
+                )}
+                {(location.pathname === '/' || location.pathname === '/characters') && (
+                  <QuickActionCard
+                    title="Characters"
+                    description="Active personnel"
+                    icon={<User className="w-6 h-6" />}
+                    onClick={() => setShowStandaloneCharacterModal(true)}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Campaign Invitations Section */}
+            {location.pathname === '/' && (
+              <div className="animate-hud delay-200">
+                <CampaignInvitations
+                  onInvitationAccepted={() => {
+                    // Refresh happens via hook
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Full Width Footer Section: Character Overview (Only on home) */}
+        {location.pathname === '/' && campaigns.length > 0 && (
+          <div className="animate-hud delay-300">
+            <CharacterManagementGrid
               campaigns={campaigns}
-              onCampaignSelect={(campaignId) =>
+              onViewCampaign={(campaignId) =>
                 navigate(`/campaign/${campaignId}`)
               }
             />
           </div>
-
-          {/* Quick Actions */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-50 mb-4">
-              Quick Actions
-            </h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              <QuickActionCard
-                title="Create Campaign"
-                description="Start a new Traveller campaign and invite players"
-                icon={<Rocket className="w-8 h-8" />}
-                onClick={() => setShowCreateCampaignModal(true)}
-              />
-              <QuickActionCard
-                title="Your Characters"
-                description="Create and manage your standalone characters"
-                icon={<User className="w-8 h-8" />}
-                onClick={() => setShowStandaloneCharacterModal(true)}
-              />
-              <QuickActionCard
-                title="Manage Characters"
-                description="View and manage all characters across campaigns"
-                icon={<Users className="w-8 h-8" />}
-                onClick={() => setShowCharacterManagementModal(true)}
-              />
-            </div>
-          </div>
-
-          {/* Campaign Management */}
-          {campaigns.length > 0 && (
-            <div className="mb-8">
-              <CampaignManagementGrid
-                campaigns={campaigns}
-                onSelect={(campaignId) => navigate(`/campaign/${campaignId}`)}
-                onEdit={handleEditCampaign}
-                onSettings={handleCampaignSettings}
-              />
-            </div>
-          )}
-
-          {/* Character Overview */}
-          {campaigns.length > 0 && (
-            <div className="mb-8">
-              <CharacterManagementGrid
-                campaigns={campaigns}
-                onViewCampaign={(campaignId) =>
-                  navigate(`/campaign/${campaignId}`)
-                }
-              />
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Modals */}
@@ -339,23 +351,7 @@ export default function MainDashboard() {
         </Modal>
       )}
 
-      {/* Character Management Modal */}
-      <Modal
-        isOpen={showCharacterManagementModal}
-        onClose={() => setShowCharacterManagementModal(false)}
-        title="Character Management"
-        maxWidth="xl"
-      >
-        <CharacterManagementContent
-          campaigns={campaigns}
-          onViewCampaign={(campaignId) => {
-            setShowCharacterManagementModal(false);
-            navigate(`/campaign/${campaignId}`);
-          }}
-        />
-      </Modal>
-
-      {/* Standalone Character Management Modal */}
+      {/* Your Characters Modal */}
       <Modal
         isOpen={showStandaloneCharacterModal}
         onClose={() => setShowStandaloneCharacterModal(false)}
@@ -364,32 +360,6 @@ export default function MainDashboard() {
       >
         <StandaloneCharacterManagement campaigns={campaigns} />
       </Modal>
-
-      {/* Account Settings Modal */}
-      {user && (
-        <AccountSettings
-          isOpen={showAccountSettings}
-          onClose={() => setShowAccountSettings(false)}
-          user={user}
-          onUpdateProfile={async (data) => {
-            const result = await updateProfile(data);
-            if (!result.success && result.error) {
-              throw new Error(result.error);
-            }
-          }}
-          onChangePassword={async (data) => {
-            const result = await changePassword(data);
-            if (!result.success && result.error) {
-              throw new Error(result.error);
-            }
-          }}
-          onDeleteAccount={() => {
-            deleteAccount().then(() => {
-              setShowAccountSettings(false);
-            });
-          }}
-        />
-      )}
-    </div>
+    </>
   );
 }

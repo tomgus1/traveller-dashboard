@@ -1,5 +1,4 @@
 import { Upload, Download } from "lucide-react";
-import { Button } from "./Button";
 
 interface AppHeaderProps {
   onImport: (file: File) => Promise<{ success: boolean; error?: string }>;
@@ -22,45 +21,33 @@ export default function AppHeader({ onImport, onExport }: AppHeaderProps) {
     await onExport();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLLabelElement>) => {
-    // Handle Enter and Space key for keyboard accessibility
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      e.currentTarget.click();
-    }
-  };
-
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <h1 className="text-2xl font-bold">Traveller Campaign Dashboard</h1>
-      <div className="flex gap-2" role="group" aria-label="File operations">
+    <div className="flex flex-wrap items-center justify-end gap-3">
+      <div className="flex items-center gap-4" role="group" aria-label="Mission Data Operations">
         <label
-          className="btn"
+          className="btn-hud py-2.5 px-6 !rounded-xl !text-xs cursor-pointer bg-side !text-main hover:bg-hud-accent border border-border transition-all duration-300 shadow-sm"
           data-testid="import-button"
-          onKeyDown={handleKeyDown}
           tabIndex={0}
-          aria-label="Import Excel file containing campaign data"
         >
           <input
             type="file"
             accept=".xlsx,.xls"
-            className="sr-only"
+            className="hidden"
             onChange={handleFileChange}
             data-testid="file-input"
           />
-          <Upload className="w-4 h-4" aria-hidden="true" />
-          Import XLSX
+          <Upload className="w-4 h-4 text-primary" aria-hidden="true" />
+          <span className="font-black uppercase tracking-widest">Import Data</span>
         </label>
-        <Button
+
+        <button
           onClick={handleExport}
-          type="button"
+          className="btn-hud py-2.5 px-6 !rounded-xl !text-xs bg-primary text-white shadow-lg shadow-primary-glow/20 transition-all duration-300 hover:scale-105 active:scale-95"
           data-testid="export-button"
-          aria-label="Export campaign data to Excel file"
-          className="btn-premium"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
-          Export XLSX
-        </Button>
+          <span className="font-black uppercase tracking-widest">Export Data</span>
+        </button>
       </div>
     </div>
   );
