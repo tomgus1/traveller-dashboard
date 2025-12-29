@@ -157,63 +157,70 @@ export default function CampaignSelector({
   }
 
   return (
-    <div className="min-h-screen bg-transparent">
+    <div className="min-h-screen bg-transparent relative">
+      <div className="scanlines" />
+
       {/* Header */}
-      <div className="glass sticky top-0 z-50 px-4 py-4 border-b">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black tracking-tight">
-              Campaign Selection
-            </h1>
-            <p className="text-sm text-muted">
-              Choose a campaign to manage or create a new one
-            </p>
+      <div className="sticky top-0 z-50 bg-side border-b border-white/10 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-primary border border-primary/40 flex items-center justify-center shrink-0">
+              <Rocket className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black tracking-tighter uppercase text-white leading-none">
+                Campaign Selection
+              </h1>
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
+                Subspace Relay // Active Node: DASH-01
+              </p>
+            </div>
           </div>
-          <Button onClick={signOut} variant="outline">Sign Out</Button>
+          <Button onClick={signOut} variant="outline" size="sm">Disconnect Link</Button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="p-6 relative z-10">
+        <div className="max-w-6xl mx-auto">
           {campaigns.length === 0 ? (
-            <div className="card text-center py-12">
-              <div className="text-gray-400 dark:text-gray-500 mb-4">
-                <Rocket className="w-16 h-16 mx-auto" />
+            <div className="card-mgt hud-frame text-center py-20 bg-card/80 backdrop-blur-md">
+              <div className="text-primary mb-6">
+                <Rocket className="w-20 h-20 mx-auto animate-pulse" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-zinc-50 mb-2">
-                No campaigns yet
+              <h3 className="text-xl font-black uppercase tracking-widest text-text-main mb-2">
+                No active sectors detected
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
-                Create your first campaign to get started
+              <p className="text-xs font-bold text-muted uppercase tracking-widest mb-8">
+                Initialize new deployment to begin operations
               </p>
-              <button
+              <Button
                 onClick={() => setShowCreateForm(true)}
-                className="btn bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                variant="premium"
               >
-                Create Campaign
-              </button>
+                INITIALIZE CAMPAIGN
+              </Button>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-black tracking-tighter uppercase">
-                  Your Campaigns
+            <div className="space-y-8">
+              <div className="flex items-center justify-between mgt-header-bar px-6 py-3">
+                <h2 className="text-xs font-black tracking-[0.3em]">
+                  Stellar Operations Log
                 </h2>
                 <Button
                   onClick={() => setShowCreateForm(true)}
                   variant="primary"
+                  size="sm"
                 >
-                  Create New Campaign
+                  NEW DEPLOYMENT
                 </Button>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {campaigns.map((campaign) => (
-                  <div key={campaign.id} className="card-modern relative">
-                    {/* Settings button for admins */}
-                    {campaign.userRoles?.isAdmin && (
-                      <div className="absolute top-4 right-4">
+                  <div key={campaign.id} className="card-mgt hud-frame relative bg-card/80 backdrop-blur-md group hover:border-primary transition-all duration-300">
+                    <div className="absolute top-0 right-0 p-2 opacity-40 group-hover:opacity-100 transition-opacity">
+                      {campaign.userRoles?.isAdmin && (
                         <CampaignSettings
                           campaign={convertToLegacyCampaign(campaign)}
                           onUpdateCampaign={adaptedUpdateCampaign}
@@ -222,37 +229,40 @@ export default function CampaignSelector({
                           onRemoveMember={adaptedRemoveMember}
                           onUpdateMemberRole={adaptedUpdateMemberRole}
                         />
-                      </div>
-                    )}
+                      )}
+                    </div>
 
-                    {/* Campaign card content - clickable area */}
                     <div
-                      className="cursor-pointer"
+                      className="cursor-pointer pt-4"
                       onClick={() => onCampaignSelect(campaign.id)}
                     >
-                      <div className="flex justify-between items-start mb-3 pr-8">
-                        <h3 className="text-lg font-bold tracking-tight truncate">
-                          {campaign.name}
-                        </h3>
+                      <div className="mb-4">
+                        <div className="flex items-baseline justify-between gap-2 mb-2">
+                          <h3 className="text-lg font-black uppercase tracking-tighter text-text-main truncate">
+                            {campaign.name}
+                          </h3>
+                        </div>
                         {campaign.userRoles && (
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadge(campaign.userRoles)}`}
-                          >
-                            {rolesToDisplayString(campaign.userRoles)}
-                          </span>
+                          <div className="flex gap-2">
+                            <span
+                              className={`px-2 py-0.5 text-[8px] font-black uppercase border border-current ${getRoleBadge(campaign.userRoles)}`}
+                            >
+                              {rolesToDisplayString(campaign.userRoles)}
+                            </span>
+                          </div>
                         )}
                       </div>
 
                       {campaign.description && (
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                        <p className="text-text-muted text-[10px] font-bold uppercase tracking-widest mb-6 line-clamp-3 leading-relaxed opacity-80">
                           {campaign.description}
                         </p>
                       )}
 
-                      <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
-                        <span>{campaign.memberCount || 0} member(s)</span>
+                      <div className="border-t border-border pt-4 mt-auto flex justify-between items-center text-[8px] font-black uppercase tracking-[0.2em] text-muted">
+                        <span>Personnel: {campaign.memberCount || 0}</span>
                         <span>
-                          Created {campaign.createdAt.toLocaleDateString()}
+                          Synced: {campaign.createdAt.toLocaleDateString()}
                         </span>
                       </div>
                     </div>

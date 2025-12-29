@@ -46,7 +46,7 @@ export default function Tooltip({
           <div
             className={`absolute z-[9999] ${positionClasses[position]} transition-opacity duration-200`}
           >
-            <div className="bg-slate-800 text-white text-sm rounded-lg p-4 w-80 shadow-2xl border border-slate-600">
+            <div className="bg-slate-800 text-white text-sm  p-4 w-80 shadow-2xl border border-slate-600">
               {content}
             </div>
             <div className={`absolute ${arrowClasses[position]}`} />

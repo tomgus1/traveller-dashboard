@@ -44,13 +44,13 @@ type FormFieldProps =
   | SelectFormFieldProps;
 
 const HUD_INPUT_CLASSES = `
-  w-full px-4 py-2.5 
-  bg-hud-accent 
-  border border-border rounded-2xl 
-  text-sm font-bold tracking-tight transition-all duration-300
-  text-text-main
-  placeholder:text-muted placeholder:font-normal
-  focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-surface-mid
+  w-full px-4 py-2 
+  bg-surface-low
+  border border-border rounded-[2px]
+  text-xs font-black tracking-widest transition-all duration-300
+  text-text-main uppercase
+  placeholder:text-muted/50 placeholder:font-normal placeholder:lowercase
+  focus:outline-none focus:ring-0 focus:border-primary focus:bg-white
   disabled:opacity-30 disabled:cursor-not-allowed
 `;
 
@@ -63,7 +63,7 @@ const FormField = forwardRef<
     ref
   ) => {
     const renderInput = () => {
-      const errorClasses = error ? "border-red-500/50 focus:ring-red-500/20" : "";
+      const errorClasses = error ? "border-accent focus:border-accent" : "";
 
       if (type === "textarea") {
         const textareaProps = props as TextareaFormFieldProps;
@@ -81,15 +81,22 @@ const FormField = forwardRef<
       if (type === "select") {
         const { children, ...selectProps } = props as SelectFormFieldProps;
         return (
-          <select
-            id={id}
-            ref={ref as React.Ref<HTMLSelectElement>}
-            className={`${HUD_INPUT_CLASSES} ${errorClasses} ${className || ""}`}
-            required={required}
-            {...selectProps}
-          >
-            {children}
-          </select>
+          <div className="relative">
+            <select
+              id={id}
+              ref={ref as React.Ref<HTMLSelectElement>}
+              className={`${HUD_INPUT_CLASSES} appearance-none ${errorClasses} ${className || ""}`}
+              required={required}
+              {...selectProps}
+            >
+              {children}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
         );
       }
 
@@ -109,23 +116,23 @@ const FormField = forwardRef<
     };
 
     return (
-      <div className="space-y-1.5 min-w-0">
+      <div className="space-y-1 min-w-0">
         {label && (
           <label
             htmlFor={id}
-            className="block text-[10px] font-black uppercase tracking-[0.2em] text-muted ml-1"
+            className="block text-[8px] font-black uppercase tracking-[0.3em] text-muted ml-0.5"
           >
             {label} {required && <span className="text-primary">*</span>}
           </label>
         )}
         <div className="relative group">
           {renderInput()}
-          {/* Internal Glow Effect on Focus */}
-          <div className="absolute inset-0 rounded-2xl pointer-events-none border border-primary/0 group-focus-within:border-primary/20 transition-all duration-300 ring-4 ring-primary/0 group-focus-within:ring-primary/5" />
+          {/* Subtle Frame Effect on Focus */}
+          <div className="absolute -inset-[1px] rounded-[2px] pointer-events-none border border-primary/0 group-focus-within:border-primary/40 transition-all duration-300" />
         </div>
         {error && (
-          <p className="text-[10px] font-black text-red-500 uppercase tracking-widest ml-1 animate-pulse">
-            {error}
+          <p className="text-[8px] font-black text-accent uppercase tracking-[0.2em] ml-0.5 animate-pulse">
+            ERR: {error}
           </p>
         )}
       </div>

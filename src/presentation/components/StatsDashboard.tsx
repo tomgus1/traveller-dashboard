@@ -46,7 +46,7 @@ export default function StatsDashboard({
               </h3>
             </div>
 
-            <div className={`p-2.5 rounded-xl bg-white/5 ${stat.color} shadow-inner`}>
+            <div className={`p-2.5  bg-white/5 ${stat.color} shadow-inner`}>
               {stat.icon}
             </div>
           </div>

@@ -25,7 +25,7 @@ export default function AppHeader({ onImport, onExport }: AppHeaderProps) {
     <div className="flex flex-wrap items-center justify-end gap-3">
       <div className="flex items-center gap-4" role="group" aria-label="Mission Data Operations">
         <label
-          className="btn-hud py-2.5 px-6 !rounded-xl !text-xs cursor-pointer bg-side !text-main hover:bg-hud-accent border border-border transition-all duration-300 shadow-sm"
+          className="btn-hud py-2.5 px-6 !text-xs cursor-pointer bg-side !text-text-main hover:bg-hud-accent border border-border transition-all duration-300 shadow-sm"
           data-testid="import-button"
           tabIndex={0}
         >
@@ -42,7 +42,7 @@ export default function AppHeader({ onImport, onExport }: AppHeaderProps) {
 
         <button
           onClick={handleExport}
-          className="btn-hud py-2.5 px-6 !rounded-xl !text-xs bg-primary text-white shadow-lg shadow-primary-glow/20 transition-all duration-300 hover:scale-105 active:scale-95"
+          className="btn-hud py-2.5 px-6 !text-xs bg-primary text-white shadow-lg shadow-primary-glow/20 transition-all duration-300 hover:scale-105 active:scale-95"
           data-testid="export-button"
         >
           <Download className="w-4 h-4" aria-hidden="true" />

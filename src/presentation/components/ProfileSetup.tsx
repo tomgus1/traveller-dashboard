@@ -97,7 +97,7 @@ export default function ProfileSetup({
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-6">
           <div className="text-center">
-            <div className="mx-auto h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <div className="mx-auto h-16 w-16 bg-primary/10 border-2 border-primary/40 flex items-center justify-center mb-4">
               <UserPlus className="h-8 w-8 text-primary shadow-[0_0_15px_var(--color-primary-glow)]" />
             </div>
             <h2 className="text-3xl font-black tracking-tighter uppercase text-text-main">
@@ -152,7 +152,7 @@ export default function ProfileSetup({
               </div>
 
               {errors.general && (
-                <div className="p-3 rounded-xl text-xs font-bold uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/20">
+                <div className="p-3 text-xs font-bold uppercase tracking-widest bg-accent/10 text-accent border border-accent">
                   {errors.general}
                 </div>
               )}

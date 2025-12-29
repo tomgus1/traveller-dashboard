@@ -89,7 +89,7 @@ function CharacterList({
         </div>
         {campaign.userRoles && (
           <span
-            className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeClass(campaign.userRoles)}`}
+            className={`px-2 py-1 text-xs font-medium  ${getRoleBadgeClass(campaign.userRoles)}`}
           >
             {rolesToDisplayString(campaign.userRoles)}
           </span>
@@ -108,7 +108,7 @@ function CharacterList({
           {characters.map((character) => (
             <div
               key={character.id}
-              className="flex items-center justify-between p-3 border border-gray-200 dark:border-zinc-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+              className="flex items-center justify-between p-3 border border-gray-200 dark:border-zinc-700  hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
             >
               <div className="flex-grow">
                 <h4 className="font-medium text-gray-900 dark:text-zinc-50">
@@ -244,7 +244,7 @@ function StandaloneCharactersSection({
           {characters.map((character) => (
             <div
               key={character.id}
-              className="border rounded-lg p-3 bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700"
+              className="border  p-3 bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700"
             >
               <div className="font-medium text-gray-900 dark:text-zinc-50 text-sm mb-1">
                 {character.displayName}
@@ -264,7 +264,7 @@ function StandaloneCharactersSection({
       )}
 
       {characters.length > 0 && eligibleCampaigns.length === 0 && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-3">
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800  p-3 mt-3">
           <p className="text-amber-600 dark:text-amber-400 text-sm">
             You have {characters.length} standalone character(s), but you're not
             a member of any campaigns where you can assign them.
@@ -565,7 +565,7 @@ export default function CharacterManagementContent({
         <div className="space-y-4">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30  flex items-center justify-center">
                 <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
             </div>

@@ -209,13 +209,13 @@ export default function CreateCampaignModal({
                 {initialMembers.map((member, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-zinc-800 rounded-lg"
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-zinc-800 "
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-gray-900 dark:text-zinc-50">
                         {member.email}
                       </span>
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-full">
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 ">
                         {member.role}
                       </span>
                     </div>

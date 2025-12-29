@@ -189,7 +189,7 @@ export function CharacterCampaignAssignment({
         </p>
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800  p-4">
             <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
           </div>
         )}
@@ -198,7 +198,7 @@ export function CharacterCampaignAssignment({
           {characters.map((character) => (
             <div
               key={character.id}
-              className="border rounded-lg p-4 bg-white dark:bg-zinc-800 dark:border-zinc-700"
+              className="border  p-4 bg-white dark:bg-zinc-800 dark:border-zinc-700"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -218,7 +218,7 @@ export function CharacterCampaignAssignment({
                 <div className="flex-shrink-0 ml-4">
                   {isAssigning(character.id) ? (
                     <div className="flex items-center text-sm text-blue-600 dark:text-blue-400">
-                      <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full mr-2"></div>
+                      <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent  mr-2"></div>
                       Assigning...
                     </div>
                   ) : (

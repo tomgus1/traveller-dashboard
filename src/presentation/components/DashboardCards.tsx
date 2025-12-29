@@ -31,17 +31,17 @@ export function QuickActionCard({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="card-modern p-6 text-left hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-300"
+      className="card-mgt hud-frame p-6 text-left hover:border-primary transition-all duration-300 group"
     >
       <div className="flex items-center space-x-4">
-        <div className="text-primary transition-transform duration-300 hover:scale-110">
+        <div className="text-primary group-hover:scale-110 transition-transform">
           {icon}
         </div>
         <div className="flex-grow">
-          <h3 className="text-lg font-bold tracking-tight mb-1 text-text-main">
+          <h3 className="text-xs font-black uppercase tracking-widest text-text-main mb-1">
             {title}
           </h3>
-          <p className="text-sm text-muted">
+          <p className="text-[10px] text-muted font-bold uppercase tracking-tighter">
             {description}
           </p>
         </div>
@@ -59,49 +59,48 @@ export function RecentActivityCard({
     .slice(0, 3);
 
   return (
-    <div className="card-modern p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-black tracking-tighter uppercase">
-          Recent Campaigns
-        </h3>
-        {campaigns.length > 3 && (
-          <span className="text-xs font-bold text-muted uppercase tracking-widest">
-            {campaigns.length} total
-          </span>
-        )}
+    <div className="card-mgt">
+      <div className="mgt-header-bar -mx-6 -mt-6 mb-6">
+        <span className="text-xs">Sector Activity Log</span>
+        <span className="text-[8px] font-bold opacity-50 px-2 py-0.5 border border-white/20">LOG // RC-01</span>
       </div>
 
       {recentCampaigns.length === 0 ? (
-        <p className="text-muted text-sm italic">
-          No campaigns yet. Create your first campaign to get started!
+        <p className="text-muted text-[10px] font-black uppercase tracking-widest italic py-8 text-center border-2 border-dashed border-border">
+          No active sectors recorded
         </p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {recentCampaigns.map((campaign) => (
             <div
               key={campaign.id}
-              className="group flex items-center justify-between p-4 rounded-2xl border border-border bg-hud-accent hover:bg-surface-mid hover:border-primary/30 cursor-pointer transition-all duration-300"
+              className="group flex items-center justify-between p-4 border border-border bg-surface-low hover:bg-white hover:border-primary cursor-pointer transition-all duration-300"
+              style={{ clipPath: 'polygon(0 0, 100% 0, 98% 100%, 0% 100%)' }}
               onClick={() => onCampaignSelect(campaign.id)}
             >
               <div className="flex-grow">
-                <div className="flex items-center space-x-2">
-                  <h4 className="font-bold text-text-main">
+                <div className="flex items-center space-x-3">
+                  <h4 className="font-black text-xs uppercase tracking-widest text-text-main">
                     {campaign.name}
                   </h4>
                   {campaign.userRoles && (
                     <span
-                      className={`px-2 py-0.5 text-[10px] font-black uppercase rounded-full ${getRoleBadgeClass(getPrimaryRole(campaign.userRoles))}`}
+                      className={`px-2 py-0.5 text-[8px] font-black uppercase border border-current ${getRoleBadgeClass(getPrimaryRole(campaign.userRoles))}`}
                     >
                       {rolesToDisplayString(campaign.userRoles)}
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] uppercase font-bold text-muted tracking-widest mt-1">
-                  {campaign.memberCount || 0} member(s) • Updated{" "}
-                  {campaign.updatedAt.toLocaleDateString()}
-                </p>
+                <div className="flex items-center gap-3 mt-1.5 opacity-60">
+                  <span className="text-[8px] font-black uppercase tracking-widest">
+                    MEMBERS: {campaign.memberCount || 0}
+                  </span>
+                  <span className="text-[8px] font-black uppercase tracking-widest">
+                    SYNC: {campaign.updatedAt.toLocaleDateString()}
+                  </span>
+                </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-muted transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
+              <ChevronRight className="w-4 h-4 text-muted group-hover:text-primary transition-transform group-hover:translate-x-1" />
             </div>
           ))}
         </div>

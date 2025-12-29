@@ -37,7 +37,7 @@ function StandaloneCharacterList({
       {characters.map((character) => (
         <div
           key={character.id}
-          className="border rounded-lg p-4 bg-white dark:bg-zinc-800 dark:border-zinc-700"
+          className="border  p-4 bg-white dark:bg-zinc-800 dark:border-zinc-700"
         >
           <div className="flex justify-between items-start mb-2">
             <h4 className="font-medium text-gray-900 dark:text-zinc-50 truncate">

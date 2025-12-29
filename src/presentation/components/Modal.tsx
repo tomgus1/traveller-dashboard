@@ -1,7 +1,7 @@
 // Consolidated modal component to eliminate repeated overlay code
 import { useEffect, type ReactNode } from "react";
 import { X } from "lucide-react";
-import { IconButton, Button } from "./Button";
+import { Button } from "./Button";
 
 interface ModalProps {
   isOpen: boolean;
@@ -61,20 +61,17 @@ export function Modal({
         }
       }}
     >
-      <div className={`card-modern w-full shadow-2xl relative overflow-hidden ${maxWidthClasses[maxWidth]}`}>
-        {/* Glow effect in background of modal */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-3xl rounded-full pointer-events-none" />
-
-        <div className="flex justify-between items-center mb-6 relative z-10">
-          <h3 className="text-xl font-bold tracking-tight">{title}</h3>
-          <IconButton
-            icon={<X size={20} />}
+      <div className={`card-mgt hud-frame w-full shadow-2xl relative overflow-hidden bg-card/95 backdrop-blur-md animate-hud ${maxWidthClasses[maxWidth]}`}>
+        <div className="mgt-header-bar -mx-6 -mt-6 mb-6">
+          <span className="text-xs">{title}</span>
+          <button
             onClick={onClose}
-            aria-label="Close modal"
-            className="hover:rotate-90 transition-transform duration-300"
-          />
+            className="p-1 hover:bg-white/10 transition-colors"
+          >
+            <X size={16} />
+          </button>
         </div>
-        <div className="relative z-10">
+        <div className="relative">
           {children}
         </div>
       </div>

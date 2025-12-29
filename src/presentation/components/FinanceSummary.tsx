@@ -26,7 +26,7 @@ export default function FinanceSummary({
   return (
     <div className="hud-glass p-6">
       <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
-        <div className="w-1.5 h-6 bg-primary rounded-full" />
+        <div className="w-1.5 h-6 bg-primary" />
         <h3 className="text-sm font-black tracking-[0.2em] uppercase text-text-main">
           {title} <span className="text-muted">Financial_Audit</span>
         </h3>
@@ -36,7 +36,7 @@ export default function FinanceSummary({
         {items.map((item, idx) => (
           <div key={item.label} className="space-y-3 relative group">
             <div className="flex items-center gap-2">
-              <div className={`p-1.5 rounded-lg bg-white/5 ${item.color}`}>
+              <div className={`p-1.5 bg-surface-low ${item.color}`}>
                 {item.icon}
               </div>
               <p className="text-[10px] font-black uppercase tracking-widest text-muted group-hover:text-text-main transition-colors">

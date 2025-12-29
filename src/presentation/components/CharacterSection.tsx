@@ -71,13 +71,13 @@ export default function CharacterSection({
         <div className="hud-glass p-6 flex-grow min-w-0 w-full lg:w-auto">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20">
+              <div className="w-16 h-16 bg-primary/10 flex items-center justify-center text-primary shadow-inner border-2 border-primary/40">
                 <User className="w-8 h-8" />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">PERSONNEL_FILE</span>
-                  {error && <span className="text-[10px] text-amber-500 font-bold px-1.5 py-0.5 bg-amber-500/10 rounded">OFFLINE</span>}
+                  {error && <span className="text-[10px] text-accent font-bold px-1.5 py-0.5 bg-accent/10 border border-accent">OFFLINE</span>}
                 </div>
                 <select
                   className="bg-transparent text-2xl font-black tracking-tight border-none p-0 focus:ring-0 cursor-pointer hover:text-primary transition-colors appearance-none"
@@ -104,18 +104,18 @@ export default function CharacterSection({
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <div className="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-4">
+              <div className="px-5 py-3 bg-surface-low border border-border flex items-center gap-4">
                 <CreditCard className="w-5 h-5 text-emerald-400" />
                 <div>
                   <p className="text-[10px] font-black text-muted uppercase tracking-widest">Available Credits</p>
-                  <p className="font-bold text-main">{fmtCr(characterBalance)}</p>
+                  <p className="font-bold text-text-main">{fmtCr(characterBalance)}</p>
                 </div>
               </div>
-              <div className="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-4">
+              <div className="px-5 py-3 bg-surface-low border border-border flex items-center gap-4">
                 <Activity className="w-5 h-5 text-primary" />
                 <div>
                   <p className="text-[10px] font-black text-muted uppercase tracking-widest">Status</p>
-                  <p className="font-bold text-main uppercase">Mission Ready</p>
+                  <p className="font-bold text-text-main uppercase">Mission Ready</p>
                 </div>
               </div>
             </div>

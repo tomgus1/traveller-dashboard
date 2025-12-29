@@ -39,107 +39,110 @@ export default function AuthForm() {
     }
   };
 
-  const getButtonText = () => {
-    if (loading) return "Loading...";
-    return view === "sign_in" ? "Sign In" : "Sign Up";
-  };
 
   return (
-    <div className="min-h-screen bg-main transition-colors duration-500 selection:bg-primary/30">
-      {/* Header */}
-      <div className="bg-side border-b border-border px-4 py-8 shadow-sm">
-        <div className="max-w-7xl mx-auto text-center md:text-left">
-          <h1 className="text-3xl font-black tracking-tighter uppercase text-text-main">
-            Traveller Dashboard
-          </h1>
-          <p className="text-sm text-muted font-medium max-w-lg">
-            The ultimate multi-user campaign management system for your stellar operations.
+    <div className="min-h-screen bg-transparent selection:bg-primary/20 relative flex flex-col items-center justify-center p-4">
+      <div className="scanlines" />
+
+      <div className="max-w-md w-full space-y-8 animate-hud relative z-10">
+        <div className="text-center space-y-4 mb-12">
+          <div className="inline-flex flex-col items-center">
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-5xl font-black tracking-tighter uppercase text-text-main leading-none">
+                TRAVELLER
+              </h1>
+              <span className="text-xs font-black text-primary border-2 border-primary px-2 py-0.5">DASH</span>
+            </div>
+            <div className="h-1.5 w-full bg-primary mt-2 flex justify-between px-1">
+              <div className="w-4 h-full bg-white/20" />
+              <div className="w-12 h-full bg-white/20" />
+              <div className="w-4 h-full bg-white/20" />
+            </div>
+          </div>
+          <p className="text-[10px] text-muted font-black uppercase tracking-[0.4em] mt-4">
+            Unified Stellar Operations Framework // RC-01
           </p>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 animate-in">
-          <div className="text-center space-y-2">
-            <h2 className="text-4xl font-black tracking-tighter uppercase text-text-main">
-              {view === "sign_in" ? "WELCOME BACK" : "JOIN THE CREW"}
-            </h2>
-            <p className="text-muted font-medium italic">
-              {view === "sign_in"
-                ? "Authorization required to access campaign logs."
-                : "Register your subspace frequency to begin."}
-            </p>
-          </div>
-
-          <div className="card-modern shadow-2xl">
-            <div className="flex p-1.5 bg-hud-accent backdrop-blur-sm rounded-2xl mb-8 border border-border shadow-inner">
-              <button
-                type="button"
-                onClick={() => setView("sign_in")}
-                className={`flex-1 py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-300 ${view === "sign_in"
-                  ? "bg-side shadow-md text-primary scale-[1.02] border border-border"
-                  : "text-muted hover:text-text-main"
-                  }`}
-              >
-                SIGN IN
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("sign_up")}
-                className={`flex-1 py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-300 ${view === "sign_up"
-                  ? "bg-side shadow-md text-primary scale-[1.02] border border-border"
-                  : "text-muted hover:text-text-main"
-                  }`}
-              >
-                SIGN UP
-              </button>
+        <div className="card-mgt hud-frame shadow-2xl p-8 bg-card/80 backdrop-blur-md">
+          <div className="mgt-header-bar -mx-8 -mt-8 mb-8">
+            <span className="text-xs">{view === "sign_in" ? "AUTH // COMM-LINK" : "REG // ENROLLMENT"}</span>
+            <div className="flex gap-1">
+              <div className="w-2 h-2 bg-primary animate-pulse" />
+              <div className="w-2 h-2 bg-white/40" />
             </div>
-
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <FormField
-                label="Subspace Email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="commander@imperium.org"
-              />
-
-              <FormField
-                label="Security Key"
-                type="password"
-                autoComplete={
-                  view === "sign_up" ? "new-password" : "current-password"
-                }
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-              />
-
-              {message && (
-                <div
-                  className={`p-4 rounded-xl text-xs font-bold border transition-all animate-in uppercase tracking-widest ${message.toLowerCase().includes("error") || message.toLowerCase().includes("failed")
-                    ? "bg-red-500/10 border-red-500/20 text-red-500"
-                    : "bg-green-500/10 border-green-500/20 text-green-500"
-                    }`}
-                >
-                  {message}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={loading}
-                variant="primary"
-                className="btn-premium w-full py-4 text-xs tracking-widest uppercase font-black"
-              >
-                {getButtonText().toUpperCase()}
-              </Button>
-            </form>
           </div>
+
+          <div className="flex border border-border bg-surface-low mb-8 p-1">
+            <button
+              type="button"
+              onClick={() => setView("sign_in")}
+              className={`flex-1 py-2 text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${view === "sign_in"
+                ? "bg-primary text-white"
+                : "text-muted hover:text-text-main"
+                }`}
+            >
+              SIGN IN
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("sign_up")}
+              className={`flex-1 py-2 text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${view === "sign_up"
+                ? "bg-primary text-white"
+                : "text-muted hover:text-text-main"
+                }`}
+            >
+              SIGN UP
+            </button>
+          </div>
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <FormField
+              label="Personnel Identifier (Email)"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="commander@imperium.org"
+            />
+
+            <FormField
+              label="Security Key (Password)"
+              type="password"
+              autoComplete={
+                view === "sign_up" ? "new-password" : "current-password"
+              }
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+
+            {message && (
+              <div
+                className={`p-3 border text-[8px] font-black uppercase tracking-widest transition-all animate-hud ${message.toLowerCase().includes("error") || message.toLowerCase().includes("failed")
+                  ? "border-accent bg-accent/5 text-accent"
+                  : "border-primary bg-primary/5 text-primary"
+                  }`}
+              >
+                {message.toLowerCase().includes("error") ? "INIT_FAILURE: " : ""}{message}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              variant="premium"
+              className="w-full py-4"
+            >
+              {loading ? "INITIALIZING..." : `AUTHORIZE ${view === "sign_in" ? "ACCESS" : "REGISTRATION"}`}
+            </Button>
+          </form>
+        </div>
+
+        <div className="text-center opacity-40">
+          <p className="text-[8px] font-black tracking-[0.5em] uppercase">Mongoose Traveller 2nd Edition Dashboard</p>
         </div>
       </div>
     </div>

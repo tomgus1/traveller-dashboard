@@ -15,24 +15,25 @@ export function Button({
   ...props
 }: ButtonProps) {
   const variantClasses = {
-    default: "bg-side text-text-main hover:bg-hud-accent border border-border",
+    default: "bg-surface-mid text-text-main hover:bg-surface-high border border-border",
     primary: "bg-primary text-white hover:brightness-110 shadow-lg shadow-primary/20",
-    secondary: "bg-hud-accent text-text-main hover:bg-side border border-border",
+    secondary: "bg-side text-white hover:bg-primary border border-white/10",
     outline: "border-2 border-primary/20 bg-transparent text-primary hover:bg-primary/5",
-    danger: "bg-red-600 hover:bg-red-700 hover:shadow-lg hover:-translate-y-0.5 text-white border-red-600",
-    ghost: "bg-transparent hover:bg-hud-accent text-muted",
-    premium: "btn-premium",
+    danger: "bg-accent hover:brightness-110 text-white border-none",
+    ghost: "bg-transparent hover:bg-hud-accent text-text-muted",
+    premium: "btn-mgt",
   };
 
   const sizeClasses = {
-    sm: "px-2 py-1 text-sm",
-    md: "",
+    sm: "px-2 py-1 text-[10px] tracking-widest uppercase",
+    md: "px-6 py-2.5",
     full: "w-full justify-center",
   };
 
   const combinedClasses = `
-    inline-flex items-center gap-2 rounded-xl px-4 py-2 transition-all duration-300
-    active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-bold
+    inline-flex items-center gap-2 transition-all duration-300
+    active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-black uppercase tracking-widest text-xs
+    ${variant === 'premium' ? '' : 'rounded-[2px]'}
     ${variantClasses[variant]}
     ${sizeClasses[size]}
     ${className}

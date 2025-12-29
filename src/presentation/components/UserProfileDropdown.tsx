@@ -51,12 +51,12 @@ export default function UserProfileDropdown({
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 hover:shadow-sm rounded-lg transition-all duration-200"
+        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-muted hover:text-text-main hover:bg-surface-low hover:shadow-sm transition-all duration-200"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-          <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        <div className="w-8 h-8 bg-primary/10 border border-primary flex items-center justify-center">
+          <User className="w-4 h-4 text-primary" />
         </div>
         <span className="hidden sm:block max-w-24 truncate">{displayName}</span>
         <ChevronDown
@@ -66,12 +66,12 @@ export default function UserProfileDropdown({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-700 py-1 z-50">
+        <div className="absolute right-0 mt-2 w-56 bg-card border border-border shadow-lg py-1 z-50">
           {/* User Info Section */}
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-zinc-700">
+          <div className="px-4 py-3 border-b border-border">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div className="w-10 h-10 bg-primary/10 border border-primary flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">

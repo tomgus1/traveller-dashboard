@@ -196,10 +196,10 @@ export default function CampaignSettings({
           e.stopPropagation(); // Prevent campaign selection
           setShowSettings(!showSettings);
         }}
-        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+        className="p-1.5 hover:bg-surface-low transition-colors"
         title="Campaign Settings"
       >
-        <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+        <Settings className="w-3.5 h-3.5 text-muted" />
       </button>
 
       {showSettings && (
@@ -211,26 +211,26 @@ export default function CampaignSettings({
           />
 
           {/* Settings Menu */}
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-lg z-50">
+          <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border shadow-lg z-50">
             <div className="p-2 space-y-1">
               <button
                 onClick={() => {
                   setShowEditForm(true);
                   setShowSettings(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-text-main hover:bg-surface-low transition-colors"
               >
-                <Edit3 className="w-4 h-4" />
-                Edit Campaign
+                <Edit3 className="w-3.5 h-3.5" />
+                Edit
               </button>
 
               <button
                 onClick={handleShowMembers}
                 disabled={loadingMembers}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors disabled:opacity-50"
+                className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-text-main hover:bg-surface-low transition-colors disabled:opacity-50"
               >
-                <Users className="w-4 h-4" />
-                {loadingMembers ? "Loading..." : "Manage Members"}
+                <Users className="w-3.5 h-3.5" />
+                {loadingMembers ? "Loading..." : "Members"}
               </button>
 
               <button
@@ -238,10 +238,10 @@ export default function CampaignSettings({
                   setShowDeleteConfirm(true);
                   setShowSettings(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-accent hover:bg-accent/10 transition-colors"
               >
-                <Trash2 className="w-4 h-4" />
-                Delete Campaign
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
               </button>
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function CampaignSettings({
                         {secondaryInfo}
                       </p>
                       <span
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${getRoleStyles(member.roles)}`}
+                        className={`inline-block px-2 py-0.5 text-[8px] font-black uppercase border border-current mt-1 ${getRoleStyles(member.roles)}`}
                       >
                         {getRoleDisplay(member.roles)}
                       </span>
@@ -414,11 +414,10 @@ export default function CampaignSettings({
         <Modal
           isOpen={true}
           onClose={() => setEditingMember(null)}
-          title={`Edit Roles - ${
-            editingMember.user_profiles.display_name ||
+          title={`Edit Roles - ${editingMember.user_profiles.display_name ||
             editingMember.user_profiles.username ||
             editingMember.user_profiles.email
-          }`}
+            }`}
         >
           <div className="space-y-4">
             <div>

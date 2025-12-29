@@ -62,9 +62,9 @@ export default function Characteristics({ stats }: CharacteristicsProps) {
                                     <span className="text-[10px] font-black uppercase tracking-widest text-muted group-hover:text-primary transition-colors">
                                         {STAT_LABELS[key] || key}
                                     </span>
-                                    <div className="text-xl font-black text-main">
+                                    <div className="text-xl font-black text-text-main">
                                         {value.toString().padStart(2, '0')}
-                                        <span className="ml-2 text-[10px] text-primary/60 font-bold bg-primary/5 px-2 py-0.5 rounded border border-primary/10">
+                                        <span className="ml-2 text-[10px] text-primary font-bold bg-primary/5 px-2 py-0.5 border border-primary">
                                             MOD {mod >= 0 ? '+' : ''}{mod}
                                         </span>
                                     </div>
@@ -74,10 +74,10 @@ export default function Characteristics({ stats }: CharacteristicsProps) {
                                 </div>
                             </div>
 
-                            <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5 relative">
+                            <div className="h-2 bg-surface-low overflow-hidden border border-border relative">
                                 {/* Progress Bar */}
                                 <div
-                                    className="h-full bg-primary shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)] transition-all duration-1000 ease-out relative"
+                                    className="h-full bg-primary shadow-[0_0_10px_var(--color-primary)] transition-all duration-1000 ease-out relative"
                                     style={{ width: `${Math.min(percentage, 100)}%` }}
                                 >
                                     {/* Subtle Grain Overlay on Bar */}
@@ -85,9 +85,9 @@ export default function Characteristics({ stats }: CharacteristicsProps) {
                                 </div>
 
                                 {/* Marker Lines */}
-                                <div className="absolute inset-0 flex justify-between px-1 pointer-events-none opacity-20">
+                                <div className="absolute inset-0 flex justify-between px-1 pointer-events-none opacity-30">
                                     {[...Array(5)].map((_, i) => (
-                                        <div key={i} className="w-[1px] h-full bg-white" />
+                                        <div key={i} className="w-[1px] h-full bg-border" />
                                     ))}
                                 </div>
                             </div>
@@ -99,11 +99,11 @@ export default function Characteristics({ stats }: CharacteristicsProps) {
             <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
                 <div className="flex gap-4">
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        <div className="w-2 h-2 bg-primary animate-pulse" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-muted">Core Criticality: Stable</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                        <div className="w-2 h-2 bg-emerald-500 animate-pulse" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-muted">Operative Status: Prime</span>
                     </div>
                 </div>

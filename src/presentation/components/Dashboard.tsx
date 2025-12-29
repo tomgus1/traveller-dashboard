@@ -144,7 +144,7 @@ export default function Dashboard() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20">
+              <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary">
                 ACTIVE_MISSION
               </span>
               <span className="text-muted text-[10px] font-black uppercase tracking-widest">

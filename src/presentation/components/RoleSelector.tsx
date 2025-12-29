@@ -82,10 +82,10 @@ export default function RoleSelector({
       </div>
 
       {/* Current role display */}
-      <div className="px-3 py-2 bg-gray-50 dark:bg-zinc-800 rounded-lg">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+      <div className="px-3 py-2 bg-surface-low border border-border">
+        <p className="text-sm text-muted">
           Current roles:{" "}
-          <span className="font-medium text-gray-900 dark:text-zinc-50">
+          <span className="font-medium text-text-main">
             {rolesToDisplayString(roles)}
           </span>
         </p>
@@ -93,7 +93,7 @@ export default function RoleSelector({
 
       {/* Validation errors */}
       {showError && !isValid && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="p-3 bg-accent/10 border border-accent">
           <p className="text-sm text-red-600 dark:text-red-400">
             {!roles.isAdmin &&
               !roles.isGm &&

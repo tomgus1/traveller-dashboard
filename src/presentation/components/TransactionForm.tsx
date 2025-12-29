@@ -114,11 +114,11 @@ export default function TransactionForm({
       </div>
 
       {errors.length > 0 && (
-        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+        <div className="mt-4 p-3 bg-accent/10 border border-accent ">
           <ul className="text-[10px] space-y-1">
             {errors.map((error, index) => (
               <li key={index} className="text-red-400 font-bold uppercase tracking-wider flex items-center gap-2">
-                <div className="w-1 h-1 bg-red-500 rounded-full" />
+                <div className="w-1 h-1 bg-accent" />
                 {error}
               </li>
             ))}

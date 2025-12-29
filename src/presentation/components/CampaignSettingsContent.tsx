@@ -377,7 +377,7 @@ export default function CampaignSettingsContent({
               {members.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-3 border border-gray-200 dark:border-zinc-700 rounded-lg"
+                  className="flex items-center justify-between p-3 border border-gray-200 dark:border-zinc-700 "
                 >
                   <div>
                     <p className="font-medium text-gray-900 dark:text-zinc-50">
@@ -391,7 +391,7 @@ export default function CampaignSettingsContent({
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex flex-wrap gap-1">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
+                      <span className="px-2 py-1 text-xs font-medium  bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
                         {rolesToDisplayString(member.roles)}
                       </span>
                     </div>
@@ -477,7 +477,7 @@ export default function CampaignSettingsContent({
           </div>
 
           {addMemberError && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 ">
               <p className="text-sm text-red-600 dark:text-red-400">
                 {addMemberError}
               </p>

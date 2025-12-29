@@ -16,18 +16,20 @@ export function AppShell({ children }: AppShellProps) {
     const { user, updateProfile, changePassword, deleteAccount } = useAuth();
 
     return (
-        <div className="min-h-screen bg-transparent selection:bg-primary/20">
+        <div className="min-h-screen bg-transparent selection:bg-primary/20 relative">
+            <div className="scanlines" />
+
             {/* Mobile Header */}
-            <div className="lg:hidden glass fixed top-0 w-full z-50 px-6 py-4 flex items-center justify-between border-b">
+            <div className="lg:hidden bg-side fixed top-0 w-full z-50 px-6 py-4 flex items-center justify-between border-b border-white/10">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary rounded-lg shadow-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-primary border border-primary/40 flex items-center justify-center">
                         <span className="text-white text-xs font-black">T</span>
                     </div>
-                    <span className="font-black tracking-tighter uppercase">TRAVELLER</span>
+                    <span className="font-black tracking-tighter uppercase text-white">TRAVELLER</span>
                 </div>
                 <button
                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="p-2 hover:bg-hud-accent rounded-xl text-primary"
+                    className="p-2 hover:bg-hud-accent  text-primary"
                 >
                     {mobileMenuOpen ? <X /> : <Menu />}
                 </button>

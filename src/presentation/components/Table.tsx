@@ -15,7 +15,7 @@ export default function Table({
   };
 
   return (
-    <div className="overflow-auto glass rounded-2xl border transition-all duration-300">
+    <div className="overflow-auto glass border border-border transition-all duration-300">
       <table className="table w-full">
         <thead>
           <tr className="bg-white/5">

@@ -46,9 +46,9 @@ function AmmoActions({
       <button
         onClick={() => onFireRound?.(index)}
         disabled={isOutOfAmmo}
-        className={`px-3 py-1 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${isOutOfAmmo
-            ? 'bg-white/5 text-muted opacity-50 cursor-not-allowed'
-            : 'bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white shadow-lg shadow-red-500/10'
+        className={`px-3 py-1.5 font-black text-[10px] uppercase tracking-widest transition-all border ${isOutOfAmmo
+          ? 'bg-surface-low text-muted border-border opacity-50 cursor-not-allowed'
+          : 'bg-accent/10 text-accent hover:bg-accent hover:text-white border-accent shadow-lg shadow-accent/10'
           }`}
       >
         Fire
@@ -56,9 +56,9 @@ function AmmoActions({
       <button
         onClick={() => onReload?.(index)}
         disabled={!canReload}
-        className={`px-3 py-1 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all ${!canReload
-            ? 'bg-white/5 text-muted opacity-50 cursor-not-allowed'
-            : 'bg-primary/10 text-primary hover:bg-primary hover:text-white shadow-lg shadow-primary-glow'
+        className={`px-3 py-1.5 font-black text-[10px] uppercase tracking-widest transition-all border ${!canReload
+          ? 'bg-surface-low text-muted border-border opacity-50 cursor-not-allowed'
+          : 'bg-primary/10 text-primary hover:bg-primary hover:text-white border-primary shadow-lg shadow-primary-glow'
           }`}
       >
         Reload
@@ -134,7 +134,7 @@ export default function Ammo({
   const enhancedRows = rows.map((row, index) => ({
     ...row,
     Weapon: <span className="font-black text-primary uppercase tracking-tight">{row.Weapon}</span>,
-    "Ammo Type": <span className="text-muted font-bold tracking-widest text-[10px] uppercase px-2 py-0.5 bg-white/5 rounded-full border border-white/5">{row["Ammo Type"]}</span>,
+    "Ammo Type": <span className="text-muted font-bold tracking-widest text-[10px] uppercase px-2 py-0.5 bg-surface-low border border-border">{row["Ammo Type"]}</span>,
     "Rounds Loaded": (
       <div className="flex items-center gap-2">
         <Zap className={`w-3 h-3 ${Number(row["Rounds Loaded"]) > 0 ? 'text-amber-400' : 'text-red-500'}`} />
@@ -260,7 +260,7 @@ export default function Ammo({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 mb-6">
+      <div className="flex items-center gap-3 p-3 bg-surface-low border border-border mb-6">
         <Info className="w-4 h-4 text-primary" />
         <p className="text-[10px] font-bold text-muted uppercase tracking-wider">
           Priority System: Loaded Rounds <span className="text-primary">→</span> Spare Mags <span className="text-primary">→</span> Loose Rounds

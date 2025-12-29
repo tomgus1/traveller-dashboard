@@ -38,7 +38,7 @@ export function TabsBar({
 
   return (
     <div
-      className="flex flex-wrap p-1.5 gap-2 hud-glass rounded-2xl w-fit mb-8 shadow-inner"
+      className="flex flex-wrap p-1.5 gap-2 hud-glass w-fit mb-8 shadow-inner border border-border"
       role="tablist"
       aria-label="Campaign navigation"
     >
@@ -49,9 +49,9 @@ export function TabsBar({
             key={t.id}
             onClick={() => onChange(t.id)}
             onKeyDown={handleKeyDown}
-            className={`relative px-6 py-2.5 rounded-xl transition-all duration-300 group ${isActive
-                ? 'bg-primary text-white shadow-lg shadow-primary-glow scale-105'
-                : 'text-muted hover:text-text-main hover:bg-white/5'
+            className={`relative px-6 py-2.5 transition-all duration-300 group ${isActive
+              ? 'bg-primary text-white shadow-lg shadow-primary-glow scale-[1.02]'
+              : 'text-muted hover:text-text-main hover:bg-surface-low'
               }`}
             role="tab"
             aria-selected={isActive}
@@ -66,11 +66,11 @@ export function TabsBar({
 
             {/* Active Indicator Decoration */}
             {isActive && (
-              <div className="absolute inset-0 border border-white/20 rounded-xl" />
+              <div className="absolute inset-0 border-2 border-white/30" />
             )}
 
             {!isActive && (
-              <div className="absolute -bottom-1 left-1.5 right-1.5 h-[1px] bg-primary/0 group-hover:bg-primary/40 transition-all rounded-full" />
+              <div className="absolute bottom-0 left-1.5 right-1.5 h-[2px] bg-primary/0 group-hover:bg-primary transition-all" />
             )}
           </button>
         );

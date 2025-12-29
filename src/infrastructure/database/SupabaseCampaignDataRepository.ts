@@ -47,7 +47,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
         const { data, error } = await this.supabase
             .from('campaign_finances')
             .insert({
-                campaign_id: campaign_id,
+                campaign_id,
                 transaction_date: finance.Date,
                 description: finance.Description,
                 category: finance.Category,
@@ -135,7 +135,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
         const { data, error } = await this.supabase
             .from('ship_finances')
             .insert({
-                campaign_id: campaign_id,
+                campaign_id,
                 transaction_date: finance.Date,
                 description: finance.Description,
                 category: finance.Category,
@@ -223,7 +223,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
         const { data, error } = await this.supabase
             .from('ship_cargo')
             .insert({
-                campaign_id: campaign_id,
+                campaign_id,
                 leg_route: cargo['Leg/Route'],
                 item: cargo.Item,
                 tons: cargo.Tons,
@@ -311,7 +311,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
         const { data, error } = await this.supabase
             .from('ship_maintenance')
             .insert({
-                campaign_id: campaign_id,
+                campaign_id,
                 maintenance_date: maintenance.Date,
                 type: maintenance.Type,
                 description: maintenance.Description,
@@ -387,7 +387,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
         const { data, error } = await this.supabase
             .from('campaign_loans')
             .insert({
-                campaign_id: campaign_id,
+                campaign_id,
                 loan_type: loan['Loan Type'],
                 principal: loan.Principal,
                 interest_rate: loan['Interest Rate'],
@@ -465,7 +465,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
         const { data, error } = await this.supabase
             .from('party_inventory')
             .insert({
-                campaign_id: campaign_id,
+                campaign_id,
                 item: item.Item,
                 quantity: item.Qty,
                 unit_mass_kg: item['Unit Mass (kg)'],
@@ -550,7 +550,7 @@ export class SupabaseCampaignDataRepository implements CampaignDataRepository {
         const { data, error } = await this.supabase
             .from('campaign_ammo')
             .insert({
-                campaign_id: campaign_id,
+                campaign_id,
                 weapon: ammo.Weapon,
                 ammo_type: ammo['Ammo Type'],
                 magazine_size: ammo['Magazine Size']?.toString(),

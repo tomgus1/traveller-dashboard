@@ -58,7 +58,7 @@ export default function FinanceManager({
       </span>
     ),
     Category: (
-      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${getCategoryStyles(row.Category)}`}>
+      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${getCategoryStyles(row.Category)}`}>
         {row.Category}
       </span>
     )

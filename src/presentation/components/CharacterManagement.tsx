@@ -29,7 +29,7 @@ function CharacterList({ characters }: CharacterListProps) {
       {characters.map((character) => (
         <div
           key={character.id}
-          className="flex items-center justify-between p-3 border rounded-lg"
+          className="flex items-center justify-between p-3 border "
         >
           <div>
             <div className="font-medium text-gray-900">
@@ -111,7 +111,7 @@ export default function CharacterManagement({
   return (
     <div className="space-y-4">
       {/* Character List */}
-      <div className="bg-white rounded-lg border p-4">
+      <div className="bg-white  border p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
             Campaign Characters

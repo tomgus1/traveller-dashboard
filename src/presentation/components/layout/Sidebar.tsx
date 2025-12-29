@@ -30,38 +30,41 @@ export function Sidebar({ onCollapse, onOpenSettings }: SidebarProps) {
     };
 
     const navItems = [
-        { id: "/", label: "Mission Control", icon: <LayoutDashboard className="w-5 h-5" /> },
-        { id: "/campaigns", label: "Campaigns", icon: <Users className="w-5 h-5" /> },
-        { id: "/characters", label: "Characters", icon: <User className="w-5 h-5" /> },
-        { id: "settings", label: "Diagnostics", icon: <Settings className="w-5 h-5" />, action: onOpenSettings },
+        { id: "/", label: "Bridge", icon: <LayoutDashboard className="w-5 h-5" /> },
+        { id: "/campaigns", label: "Sector Ops", icon: <Users className="w-5 h-5" /> },
+        { id: "/characters", label: "Personnel", icon: <User className="w-5 h-5" /> },
+        { id: "settings", label: "Systems Management", icon: <Settings className="w-5 h-5" />, action: onOpenSettings },
     ];
 
     return (
         <aside
-            className={`sidebar-hud ${collapsed ? 'w-20' : 'w-72'} flex flex-col transition-all duration-500 overflow-hidden`}
+            className={`bg-side ${collapsed ? 'w-20' : 'w-72'} flex flex-col transition-all duration-500 overflow-hidden border-r border-border`}
         >
             {/* Sidebar Header */}
-            <div className={`p-6 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+            <div className={`p-4 mb-4 ${collapsed ? 'justify-center' : ''}`}>
+                <div className="mgt-header-bar mb-2">
+                    {!collapsed && <span className="text-xs">System ID: DASH-01</span>}
+                    <Rocket className="w-4 h-4" />
+                </div>
                 {!collapsed && (
-                    <div className="flex items-center gap-3 animate-hud">
-                        <div className="p-2 bg-primary rounded-xl shadow-lg shadow-primary-glow">
-                            <Rocket className="w-6 h-6 text-white" />
+                    <div className="px-2 py-4 animate-hud">
+                        <div className="flex items-baseline gap-2">
+                            <span className="font-black text-3xl tracking-tighter text-white">TRAVELLER</span>
+                            <span className="text-[10px] font-bold text-primary px-1 border border-primary">v2.1</span>
                         </div>
-                        <span className="font-black text-xl tracking-tighter uppercase whitespace-nowrap">
-                            TRAVELLER
-                        </span>
+                        <div className="h-1 bg-primary w-full mt-1 opacity-50" />
                     </div>
                 )}
                 <button
                     onClick={toggleCollapse}
-                    className="p-2 hover:bg-hud-accent rounded-xl transition-colors text-muted hover:text-primary shrink-0"
+                    className="absolute top-4 right-[-12px] z-50 p-1.5 bg-primary text-white shadow-lg hover:scale-110 transition-transform lg:flex hidden border border-white/20"
                 >
-                    {collapsed ? <ChevronRight className="w-6 h-6" /> : <ChevronLeft className="w-6 h-6" />}
+                    {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
                 </button>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-grow px-4 mt-8 space-y-2">
+            <nav className="flex-grow px-3 space-y-1">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.id;
                     const handleClick = () => {
@@ -75,16 +78,20 @@ export function Sidebar({ onCollapse, onOpenSettings }: SidebarProps) {
                         <button
                             key={item.id}
                             onClick={handleClick}
-                            className={`w-full flex items-center rounded-2xl transition-all duration-300 group ${collapsed ? 'justify-center p-3.5' : 'gap-4 px-4 py-3.5'} ${isActive
-                                ? 'bg-primary text-white shadow-lg shadow-primary-glow scale-[1.02]'
-                                : 'text-muted hover:text-text-main hover:bg-hud-accent'
+                            className={`w-full flex items-center transition-all duration-200 group relative ${collapsed ? 'justify-center py-4' : 'gap-4 px-4 py-3'} ${isActive
+                                ? 'bg-primary text-white'
+                                : 'text-slate-400 hover:text-white hover:bg-white/5'
                                 }`}
+                            style={{ clipPath: collapsed ? '' : 'polygon(0 0, 100% 0, 95% 100%, 0% 100%)' }}
                         >
+                            {isActive && !collapsed && (
+                                <div className="absolute left-0 top-0 w-1 h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+                            )}
                             <div className={`${isActive ? 'text-white' : 'group-hover:text-primary'} transition-colors shrink-0`}>
                                 {item.icon}
                             </div>
                             {!collapsed && (
-                                <span className="font-bold text-sm uppercase tracking-wider animate-hud whitespace-nowrap overflow-hidden">
+                                <span className="font-black text-xs uppercase tracking-[0.2em] animate-hud whitespace-nowrap overflow-hidden">
                                     {item.label}
                                 </span>
                             )}
@@ -94,27 +101,30 @@ export function Sidebar({ onCollapse, onOpenSettings }: SidebarProps) {
             </nav>
 
             {/* Profile & Footer */}
-            <div className="p-4 border-t border-border-color">
-                <div className={`flex items-center gap-4 p-3 rounded-2xl ${collapsed ? 'justify-center' : 'bg-hud-accent'}`}>
-                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-black uppercase shadow-inner">
+            <div className="p-4 border-t border-white/10 bg-black/20">
+                <div className={`flex items-center gap-4 p-2 ${collapsed ? 'justify-center' : ''}`}>
+                    <div className="w-8 h-8 bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-black uppercase text-xs">
                         {user?.email?.[0] || 'U'}
                     </div>
                     {!collapsed && (
                         <div className="flex-grow min-w-0 animate-hud">
-                            <p className="text-sm font-bold truncate tracking-tight">{user?.displayName || 'User'}</p>
-                            <p className="text-[10px] text-muted truncate uppercase tracking-widest font-black">Logged In</p>
+                            <p className="text-[10px] font-black text-white/90 truncate uppercase tracking-widest leading-none mb-1">{user?.displayName || 'User'}</p>
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
+                                <span className="text-[8px] text-slate-400 uppercase font-bold tracking-widest">Active Link</span>
+                            </div>
                         </div>
                     )}
                 </div>
 
                 <button
                     onClick={() => signOut()}
-                    className={`w-full flex items-center text-muted hover:text-red-500 transition-colors rounded-2xl group ${collapsed ? 'justify-center p-4 mt-4' : 'gap-4 px-4 py-4 mt-6'}`}
+                    className={`w-full flex items-center text-slate-500 hover:text-accent transition-colors group mt-4 ${collapsed ? 'justify-center py-2' : 'gap-4 px-4 py-2'}`}
                 >
-                    <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform shrink-0" />
+                    <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform shrink-0" />
                     {!collapsed && (
-                        <span className="font-bold text-sm uppercase tracking-wider animate-hud whitespace-nowrap overflow-hidden">
-                            Sign Out
+                        <span className="font-black text-[10px] uppercase tracking-widest animate-hud whitespace-nowrap overflow-hidden">
+                            Disconnect
                         </span>
                     )}
                 </button>

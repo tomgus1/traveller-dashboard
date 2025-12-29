@@ -146,7 +146,7 @@ export const CampaignInvitations: React.FC<CampaignInvitationsProps> = ({
       {invitations.map((invitation) => (
         <div
           key={invitation.id}
-          className="border rounded-lg p-4 bg-white shadow-sm"
+          className="border  p-4 bg-white shadow-sm"
         >
           <div className="flex justify-between items-start mb-3">
             <div>
