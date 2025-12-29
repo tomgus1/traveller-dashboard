@@ -6,6 +6,8 @@ import {
   getPrimaryRole,
   getRoleBadgeClass,
 } from "../../shared/utils/roleHelpers";
+import { MgTCard } from "./MgTCard";
+import { MgTHeader } from "./MgTHeader";
 
 interface CampaignCardProps {
   campaign: CampaignWithMeta;
@@ -40,7 +42,7 @@ export function CampaignCard({
   const primaryRole = getPrimaryRole(campaign.userRoles);
 
   return (
-    <div className="card-mgt hud-frame group hover:border-primary transition-all duration-300">
+    <MgTCard className="group hover:border-primary transition-all duration-300">
       <div className="flex items-start justify-between mb-4 pt-4">
         <div className="flex-grow min-w-0">
           <h3 className="text-sm font-black uppercase tracking-widest text-text-main truncate">
@@ -86,7 +88,7 @@ export function CampaignCard({
           </button>
         </div>
       </div>
-    </div>
+    </MgTCard>
   );
 }
 
@@ -97,11 +99,11 @@ export function CharacterCard({
   const { characters } = useCampaignCharacters(campaign.id);
 
   return (
-    <div className="card-mgt hud-frame group hover:border-primary transition-all duration-300">
-      <div className="mgt-header-bar -mx-6 -mt-6 mb-4">
-        <span className="text-[10px]">{campaign.name}</span>
-        <span className="text-[8px] opacity-60 px-1 border border-white/20">MANIFEST</span>
-      </div>
+    <MgTCard className="group hover:border-primary transition-all duration-300">
+      <MgTHeader
+        title={campaign.name}
+        subtitle="MANIFEST"
+      />
 
       <div className="flex items-center justify-between mb-4">
         <span className="text-[8px] font-black uppercase text-muted tracking-widest">Crew Manifest Status</span>
@@ -143,7 +145,7 @@ export function CharacterCard({
       >
         ACCESS LOGS
       </button>
-    </div>
+    </MgTCard>
   );
 }
 
