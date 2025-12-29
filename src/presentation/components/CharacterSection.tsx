@@ -8,6 +8,7 @@ import Ammo from "./Ammo";
 import Weapons from "./Weapons";
 import Armour from "./Armour";
 import Characteristics from "./Characteristics";
+import SkillsCard from "./SkillsCard";
 import { User, CreditCard, Activity } from "lucide-react";
 import type {
   FinanceRow,
@@ -58,7 +59,7 @@ export default function CharacterSection({
     "profile" | "ledger" | "inventory" | "weapons" | "armour" | "ammo"
   >("profile");
 
-  const { characters, loading, error } = useCampaignCharacters(campaignId);
+  const { characters, loading, error, updateCharacter } = useCampaignCharacters(campaignId);
 
   const selectedCharacter = characters.find(
     (char) => char.displayName === selectedPc
@@ -144,7 +145,34 @@ export default function CharacterSection({
       {/* Content Area with Fade Effect */}
       <div className="transition-all duration-500">
         {charTab === "profile" && (
-          <Characteristics stats={selectedCharacter?.stats} />
+          <>
+            {/* Bio-Profile / Characteristics */}
+            <Characteristics
+              stats={selectedCharacter?.stats || {
+                STR: { value: 0, xp: 0 },
+                DEX: { value: 0, xp: 0 },
+                END: { value: 0, xp: 0 },
+                INT: { value: 0, xp: 0 },
+                EDU: { value: 0, xp: 0 },
+                SOC: { value: 0, xp: 0 },
+              }}
+              onUpdate={(newStats) => selectedCharacter && updateCharacter(selectedCharacter.id, { characteristics: newStats })}
+              readonly={false} // Allow editing for now, validation happens on backend
+            />
+            <div className="mt-8">
+              <SkillsCard
+                skills={selectedCharacter?.skills}
+                onUpdate={(newSkills) => {
+                  if (selectedCharacter) {
+                    updateCharacter(selectedCharacter.id, {
+                      name: selectedCharacter.displayName,
+                      skills: newSkills
+                    });
+                  }
+                }}
+              />
+            </div>
+          </>
         )}
 
         {charTab === "ledger" && (

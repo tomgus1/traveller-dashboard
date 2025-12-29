@@ -19,6 +19,10 @@ export class CharacterMapper {
             ownerId: (raw.owner_id as string) || undefined,
             createdAt: raw.created_at ? new Date(raw.created_at as string) : new Date(),
             updatedAt: raw.updated_at ? new Date(raw.updated_at as string) : new Date(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            characteristics: (raw.characteristics as any) || { STR: 0, DEX: 0, END: 0, INT: 0, EDU: 0, SOC: 0 },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            skills: (raw.skills as any) || [],
         };
     }
 

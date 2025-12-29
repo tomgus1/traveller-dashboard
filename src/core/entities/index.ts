@@ -91,6 +91,26 @@ export interface MemberInfo {
 }
 
 // Character entities
+export interface CharacterSkill {
+  name: string;
+  level: number;
+  xp?: number;
+}
+
+export interface CharacteristicValue {
+  value: number;
+  xp: number;
+}
+
+export interface CharacterCharacteristics {
+  STR: CharacteristicValue;
+  DEX: CharacteristicValue;
+  END: CharacteristicValue;
+  INT: CharacteristicValue;
+  EDU: CharacteristicValue;
+  SOC: CharacteristicValue;
+}
+
 export interface Character {
   id: string;
   campaignId: string | null; // NULL for standalone characters
@@ -98,6 +118,8 @@ export interface Character {
   playerName?: string; // Real player name
   characterName?: string; // Character name
   ownerId?: string;
+  characteristics: CharacterCharacteristics;
+  skills: CharacterSkill[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -107,6 +129,8 @@ export interface CreateCharacterRequest {
   name: string;
   playerName?: string;
   characterName?: string;
+  characteristics?: CharacterCharacteristics;
+  skills?: CharacterSkill[];
 }
 
 export interface CampaignInvitation {
@@ -182,6 +206,8 @@ export interface UpdateCharacterRequest {
   name?: string;
   playerName?: string;
   characterName?: string;
+  characteristics?: CharacterCharacteristics;
+  skills?: CharacterSkill[];
 }
 
 // User profile operations

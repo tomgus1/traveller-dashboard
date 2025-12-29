@@ -8,11 +8,15 @@ export interface SimpleCharacter {
   ownerId?: string;
   // Traveller Characteristics (0-15 standard range)
   stats?: {
-    STR: number;
-    DEX: number;
-    END: number;
-    INT: number;
-    EDU: number;
-    SOC: number;
+    STR: { value: number; xp: number };
+    DEX: { value: number; xp: number };
+    END: { value: number; xp: number };
+    INT: { value: number; xp: number };
+    EDU: { value: number; xp: number };
+    SOC: { value: number; xp: number };
   };
+  skills?: Array<{
+    name: string;
+    level: number;
+  }>;
 }

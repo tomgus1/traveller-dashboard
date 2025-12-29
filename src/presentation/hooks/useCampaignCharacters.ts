@@ -34,6 +34,10 @@ export function useCampaignCharacters(campaignId?: string) {
               player_name?: string | null;
               character_name?: string | null;
               owner_id?: string | null;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              characteristics?: any;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              skills?: any;
             }) => ({
               id: char.id,
               campaignId: char.campaign_id || "",
@@ -41,6 +45,9 @@ export function useCampaignCharacters(campaignId?: string) {
               playerName: char.player_name || "",
               characterName: char.character_name || "",
               ownerId: char.owner_id || undefined,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              stats: char.characteristics as any,
+              skills: char.skills as Array<{ name: string; level: number; xp?: number }>,
             })
           );
           return { success: true, data: dbCharacters };
@@ -126,6 +133,66 @@ export function useCampaignCharacters(campaignId?: string) {
     [campaignRepo, setCharacters]
   );
 
+  // Update a character
+  const updateCharacter = useCallback(
+    async (
+      characterId: string,
+      updates: Partial<{
+        name: string;
+        characteristics: {
+          STR: { value: number; xp: number };
+          DEX: { value: number; xp: number };
+          END: { value: number; xp: number };
+          INT: { value: number; xp: number };
+          EDU: { value: number; xp: number };
+          SOC: { value: number; xp: number };
+        };
+        skills: Array<{ name: string; level: number; xp?: number }>;
+      }>
+    ) => {
+      try {
+        const result = await campaignRepo.updateCharacter(characterId, updates);
+
+        if (result.success) {
+          // Update local state
+          setCharacters((prev) =>
+            prev.map((char) =>
+              char.id === characterId
+                ? {
+                  ...char,
+                  displayName: updates.name || char.displayName,
+                  stats: updates.characteristics
+                    ? updates.characteristics
+                    : char.stats || { // Fallback to default structure if not provided
+                      STR: { value: 0, xp: 0 },
+                      DEX: { value: 0, xp: 0 },
+                      END: { value: 0, xp: 0 },
+                      INT: { value: 0, xp: 0 },
+                      EDU: { value: 0, xp: 0 },
+                      SOC: { value: 0, xp: 0 },
+                    },
+                  skills: updates.skills || char.skills,
+                }
+                : char
+            )
+          );
+          return { success: true };
+        }
+
+        return {
+          success: false,
+          error: result.error || "Failed to update character",
+        };
+      } catch {
+        return {
+          success: false,
+          error: "An error occurred while updating the character",
+        };
+      }
+    },
+    [campaignRepo, setCharacters]
+  );
+
   // Load characters when campaign changes
   useEffect(() => {
     if (campaignId) {
@@ -140,6 +207,7 @@ export function useCampaignCharacters(campaignId?: string) {
     loading,
     error,
     createCharacter,
+    updateCharacter,
     deleteCharacter,
     refreshCharacters: () => campaignId && loadCharacters(campaignId),
   };

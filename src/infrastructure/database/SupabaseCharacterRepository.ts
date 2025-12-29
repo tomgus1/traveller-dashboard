@@ -46,6 +46,15 @@ export class SupabaseCharacterRepository implements CharacterRepository {
         ownerId: row.owner_id,
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
+        characteristics: row.characteristics || {
+          STR: { value: 0, xp: 0 },
+          DEX: { value: 0, xp: 0 },
+          END: { value: 0, xp: 0 },
+          INT: { value: 0, xp: 0 },
+          EDU: { value: 0, xp: 0 },
+          SOC: { value: 0, xp: 0 },
+        },
+        skills: row.skills || [],
       }));
 
       return { success: true, data: characters };
@@ -76,6 +85,15 @@ export class SupabaseCharacterRepository implements CharacterRepository {
         ownerId: data.owner_id,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
+        characteristics: data.characteristics || {
+          STR: { value: 0, xp: 0 },
+          DEX: { value: 0, xp: 0 },
+          END: { value: 0, xp: 0 },
+          INT: { value: 0, xp: 0 },
+          EDU: { value: 0, xp: 0 },
+          SOC: { value: 0, xp: 0 },
+        },
+        skills: data.skills || [],
       };
 
       return { success: true, data: character };
@@ -100,6 +118,15 @@ export class SupabaseCharacterRepository implements CharacterRepository {
           player_name: request.playerName,
           character_name: request.characterName,
           owner_id: userId,
+          characteristics: request.characteristics || {
+            STR: { value: 0, xp: 0 },
+            DEX: { value: 0, xp: 0 },
+            END: { value: 0, xp: 0 },
+            INT: { value: 0, xp: 0 },
+            EDU: { value: 0, xp: 0 },
+            SOC: { value: 0, xp: 0 },
+          },
+          skills: request.skills || [],
         })
         .select()
         .single();
@@ -115,6 +142,8 @@ export class SupabaseCharacterRepository implements CharacterRepository {
         ownerId: data.owner_id,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
+        characteristics: data.characteristics || { STR: 0, DEX: 0, END: 0, INT: 0, EDU: 0, SOC: 0 },
+        skills: data.skills || [],
       };
 
       return { success: true, data: character };
@@ -138,6 +167,8 @@ export class SupabaseCharacterRepository implements CharacterRepository {
       if (request.name !== undefined) updates.name = request.name;
       if (request.playerName !== undefined) updates.player_name = request.playerName;
       if (request.characterName !== undefined) updates.character_name = request.characterName;
+      if (request.characteristics !== undefined) updates.characteristics = request.characteristics;
+      if (request.skills !== undefined) updates.skills = request.skills;
 
       const { error } = await this.supabase
         .from('characters')
@@ -393,7 +424,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
 
   async deleteCharacterInventory(inventoryId: string): Promise<OperationResult> {
     try {
-      const { error} = await this.supabase
+      const { error } = await this.supabase
         .from('character_inventory')
         .delete()
         .eq('id', inventoryId);

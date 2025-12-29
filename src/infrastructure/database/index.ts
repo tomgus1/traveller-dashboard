@@ -1288,6 +1288,8 @@ export class SupabaseCampaignRepository implements CampaignRepository {
           player_name: playerName,
           character_name: characterName,
           owner_id: userId,
+          characteristics: { STR: 0, DEX: 0, END: 0, INT: 0, EDU: 0, SOC: 0 },
+          skills: [],
         })
         .select()
         .single();
@@ -1297,6 +1299,42 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       }
 
       return { success: true, data };
+    } catch {
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  }
+
+  async updateCharacter(
+    characterId: string,
+    updates: Partial<{
+      name: string;
+      player_name: string;
+      character_name: string;
+      characteristics: {
+        STR: { value: number; xp: number };
+        DEX: { value: number; xp: number };
+        END: { value: number; xp: number };
+        INT: { value: number; xp: number };
+        EDU: { value: number; xp: number };
+        SOC: { value: number; xp: number };
+      };
+      skills: Array<{ name: string; level: number; xp?: number }>;
+    }>
+  ) {
+    try {
+      const { error } = await supabase
+        .from("characters")
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", characterId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
     } catch {
       return { success: false, error: "An unexpected error occurred" };
     }
