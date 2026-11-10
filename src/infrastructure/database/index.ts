@@ -20,8 +20,32 @@ import type {
   CampaignRepository,
 } from "../../core/repositories";
 
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { UserMapper } from "../mappers/UserMapper";
 import { CharacterMapper } from "../mappers/CharacterMapper";
+
+/**
+ * Edge Functions return `{ error: string }` with a user-safe message on
+ * non-2xx responses; supabase-js only exposes that via the raw Response.
+ */
+async function functionErrorMessage(error: unknown): Promise<string> {
+  const fallback = "Failed to send invitation. Please try again.";
+  if (!(error instanceof FunctionsHttpError)) return fallback;
+  try {
+    const body: unknown = await error.context.json();
+    if (
+      body &&
+      typeof body === "object" &&
+      "error" in body &&
+      typeof body.error === "string"
+    ) {
+      return body.error;
+    }
+  } catch {
+    // non-JSON body
+  }
+  return fallback;
+}
 
 // Internal interface for Supabase pending invitation response
 interface SupabasePendingInvitationResponse {
@@ -718,94 +742,24 @@ export class SupabaseCampaignRepository implements CampaignRepository {
     email: string,
     role: CampaignRole
   ): Promise<OperationResult> {
+    // Everyone joins by accepting an invitation, including existing users,
+    // so nobody is added to a campaign without consent. The invite-user
+    // Edge Function authorises the caller, records the invitation and emails it
+    // when an email provider is configured.
     try {
-      // First, find the user by email
-      const { data: profile, error: profileError } = await supabase
-        .from("user_profiles")
-        .select("id")
-        .eq("email", email)
-        .single();
-
-      if (profileError || !profile) {
-        // User not found - send invitation via Edge Function
-        // The Edge Function will create the database record AND send the email
-        const currentUser = await supabase.auth.getUser();
-        if (!currentUser.data.user) {
-          return {
-            success: false,
-            error: "You must be logged in to send invitations",
-          };
-        }
-
-        try {
-          const { data, error: emailError } = await supabase.functions.invoke(
-            "invite-user",
-            {
-              body: {
-                email,
-                campaignId,
-                role,
-                campaignName: undefined, // Will be fetched in Edge Function
-              },
-            }
-          );
-
-          if (emailError) {
-            return {
-              success: false,
-              error: `Failed to send invitation: ${emailError.message || JSON.stringify(emailError)}`,
-            };
-          }
-
-          if (data?.error) {
-            // Edge Function returned an error in the response
-            return {
-              success: false,
-              error: `${data.error}${data.details ? `: ${data.details}` : ""}`,
-            };
-          }
-
-          // Success - both database record and email sent by Edge Function
-          return {
-            success: true,
-          };
-        } catch (err) {
-          return {
-            success: false,
-            error: `Failed to send invitation: ${err instanceof Error ? err.message : "Unknown error"}`,
-          };
-        }
-      }
-
-      // Check if user is already a member
-      const { data: existingMember } = await supabase
-        .from("campaign_members")
-        .select("id")
-        .eq("campaign_id", campaignId)
-        .eq("user_id", profile.id)
-        .single();
-
-      if (existingMember) {
-        return {
-          success: false,
-          error: "User is already a member of this campaign",
-        };
-      }
-
-      // Add the member
-      const { error } = await supabase.from("campaign_members").insert({
-        campaign_id: campaignId,
-        user_id: profile.id,
-        role,
-      });
+      const { data, error } = await supabase.functions.invoke<{
+        success?: boolean;
+      }>("invite-user", { body: { email, campaignId, role } });
 
       if (error) {
-        return { success: false, error: "Failed to add member to campaign" };
+        return { success: false, error: await functionErrorMessage(error) };
       }
-
+      if (!data?.success) {
+        return { success: false, error: "Failed to send invitation" };
+      }
       return { success: true };
     } catch {
-      return { success: false, error: "An unexpected error occurred" };
+      return { success: false, error: "Failed to send invitation" };
     }
   }
 

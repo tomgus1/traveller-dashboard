@@ -22,6 +22,8 @@ import {
   isValidCampaignRole,
 } from "../../shared/utils/validation";
 import {
+  canAdministerMembers,
+  canInviteRole,
   canManageMembers,
   canUpdateCampaign,
   canDeleteCampaign,
@@ -383,22 +385,6 @@ export class CampaignService {
       return { success: false, error: "User not authenticated" };
     }
 
-    // Check admin or GM permission
-    const roleResult = await this.campaignRepository.getUserRole(
-      campaignId,
-      user.id
-    );
-    if (
-      !roleResult.success ||
-      !roleResult.data ||
-      !canManageMembers(roleResult.data)
-    ) {
-      return {
-        success: false,
-        error: getPermissionError("add members", ["admin", "gm"]),
-      };
-    }
-
     // Validate input
     if (!email?.trim()) {
       return { success: false, error: "Email is required" };
@@ -410,6 +396,28 @@ export class CampaignService {
 
     if (!isValidCampaignRole(role)) {
       return { success: false, error: "Invalid role specified" };
+    }
+
+    // Admins can invite any role, GMs players only (enforced again server-side)
+    const roleResult = await this.campaignRepository.getUserRole(
+      campaignId,
+      user.id
+    );
+    if (
+      !roleResult.success ||
+      !roleResult.data ||
+      !canManageMembers(roleResult.data)
+    ) {
+      return {
+        success: false,
+        error: getPermissionError("invite members", ["admin", "gm"]),
+      };
+    }
+    if (!canInviteRole(roleResult.data, role)) {
+      return {
+        success: false,
+        error: "Game Masters can only invite players",
+      };
     }
 
     return this.campaignRepository.addMemberByEmail(
@@ -429,7 +437,7 @@ export class CampaignService {
       return { success: false, error: "User not authenticated" };
     }
 
-    // Check admin or GM permission
+    // Admin only (matches campaign_members RLS)
     const roleResult = await this.campaignRepository.getUserRole(
       campaignId,
       user.id
@@ -437,11 +445,11 @@ export class CampaignService {
     if (
       !roleResult.success ||
       !roleResult.data ||
-      !canManageMembers(roleResult.data)
+      !canAdministerMembers(roleResult.data)
     ) {
       return {
         success: false,
-        error: getPermissionError("update member roles", ["admin", "gm"]),
+        error: getPermissionError("update member roles", ["admin"]),
       };
     }
 
@@ -466,7 +474,7 @@ export class CampaignService {
       return { success: false, error: "User not authenticated" };
     }
 
-    // Check admin or GM permission
+    // Admin only (matches campaign_members RLS)
     const roleResult = await this.campaignRepository.getUserRole(
       campaignId,
       user.id
@@ -474,11 +482,11 @@ export class CampaignService {
     if (
       !roleResult.success ||
       !roleResult.data ||
-      !canManageMembers(roleResult.data)
+      !canAdministerMembers(roleResult.data)
     ) {
       return {
         success: false,
-        error: getPermissionError("remove members", ["admin", "gm"]),
+        error: getPermissionError("remove members", ["admin"]),
       };
     }
 
