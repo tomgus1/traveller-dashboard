@@ -11,6 +11,7 @@ import type {
   OperationResult,
 } from "../../core/entities";
 import type { CharacterRepository } from "../../core/repositories";
+import { userMessage } from "../../shared/utils/userMessage";
 
 /**
  * Supabase implementation of CharacterRepository
@@ -63,8 +64,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to get characters",
+        error: userMessage(error, "Failed to get characters"),
       };
     }
   }
@@ -103,8 +103,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to get character",
+        error: userMessage(error, "Failed to get character"),
       };
     }
   }
@@ -161,8 +160,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to create character",
+        error: userMessage(error, "Failed to create character"),
       };
     }
   }
@@ -196,8 +194,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to update character",
+        error: userMessage(error, "Failed to update character"),
       };
     }
   }
@@ -215,8 +212,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to delete character",
+        error: userMessage(error, "Failed to delete character"),
       };
     }
   }
@@ -250,10 +246,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to get character finances",
+        error: userMessage(error, "Failed to get character finances"),
       };
     }
   }
@@ -289,10 +282,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to add character finance",
+        error: userMessage(error, "Failed to add character finance"),
       };
     }
   }
@@ -318,10 +308,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update character finance",
+        error: userMessage(error, "Failed to update character finance"),
       };
     }
   }
@@ -339,10 +326,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete character finance",
+        error: userMessage(error, "Failed to delete character finance"),
       };
     }
   }
@@ -378,10 +362,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to get character inventory",
+        error: userMessage(error, "Failed to get character inventory"),
       };
     }
   }
@@ -421,10 +402,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to add character inventory",
+        error: userMessage(error, "Failed to add character inventory"),
       };
     }
   }
@@ -456,10 +434,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update character inventory",
+        error: userMessage(error, "Failed to update character inventory"),
       };
     }
   }
@@ -479,10 +454,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete character inventory",
+        error: userMessage(error, "Failed to delete character inventory"),
       };
     }
   }
@@ -519,10 +491,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to get character weapons",
+        error: userMessage(error, "Failed to get character weapons"),
       };
     }
   }
@@ -564,10 +533,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to add character weapon",
+        error: userMessage(error, "Failed to add character weapon"),
       };
     }
   }
@@ -596,10 +562,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update character weapon",
+        error: userMessage(error, "Failed to update character weapon"),
       };
     }
   }
@@ -617,10 +580,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete character weapon",
+        error: userMessage(error, "Failed to delete character weapon"),
       };
     }
   }
@@ -656,10 +616,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to get character armour",
+        error: userMessage(error, "Failed to get character armour"),
       };
     }
   }
@@ -699,10 +656,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to add character armour",
+        error: userMessage(error, "Failed to add character armour"),
       };
     }
   }
@@ -731,10 +685,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update character armour",
+        error: userMessage(error, "Failed to update character armour"),
       };
     }
   }
@@ -752,10 +703,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete character armour",
+        error: userMessage(error, "Failed to delete character armour"),
       };
     }
   }
@@ -791,10 +739,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to get character ammo",
+        error: userMessage(error, "Failed to get character ammo"),
       };
     }
   }
@@ -834,10 +779,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to add character ammo",
+        error: userMessage(error, "Failed to add character ammo"),
       };
     }
   }
@@ -867,10 +809,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to update character ammo",
+        error: userMessage(error, "Failed to update character ammo"),
       };
     }
   }
@@ -888,10 +827,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to delete character ammo",
+        error: userMessage(error, "Failed to delete character ammo"),
       };
     }
   }

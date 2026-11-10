@@ -23,6 +23,7 @@ import type {
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { UserMapper } from "../mappers/UserMapper";
 import { CharacterMapper } from "../mappers/CharacterMapper";
+import { userMessage } from "../../shared/utils/userMessage";
 
 /**
  * Edge Functions return `{ error: string }` with a user-safe message on
@@ -118,7 +119,10 @@ export class SupabaseAuthRepository implements AuthRepository {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to sign in"),
+        };
       }
 
       const user: User = {
@@ -155,7 +159,10 @@ export class SupabaseAuthRepository implements AuthRepository {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to sign up"),
+        };
       }
 
       if (!data.user) {
@@ -186,7 +193,10 @@ export class SupabaseAuthRepository implements AuthRepository {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to sign out"),
+        };
       }
 
       return { success: true };
@@ -236,7 +246,10 @@ export class SupabaseAuthRepository implements AuthRepository {
         if (profileError.code === "23505") {
           return { success: false, error: "Username is already taken" };
         }
-        return { success: false, error: profileError.message };
+        return {
+          success: false,
+          error: userMessage(profileError, "Failed to complete profile"),
+        };
       }
 
       // Update auth user metadata
@@ -250,7 +263,10 @@ export class SupabaseAuthRepository implements AuthRepository {
         });
 
       if (authError) {
-        return { success: false, error: authError.message };
+        return {
+          success: false,
+          error: userMessage(authError, "Failed to complete profile"),
+        };
       }
 
       const user: User = {
@@ -266,8 +282,7 @@ export class SupabaseAuthRepository implements AuthRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to complete profile",
+        error: userMessage(error, "Failed to complete profile"),
       };
     }
   }
@@ -323,7 +338,10 @@ export class SupabaseAuthRepository implements AuthRepository {
         if (profileError.code === "23505") {
           return { success: false, error: "Username is already taken" };
         }
-        return { success: false, error: profileError.message };
+        return {
+          success: false,
+          error: userMessage(profileError, "Failed to update profile"),
+        };
       }
 
       // Update auth user metadata
@@ -334,7 +352,10 @@ export class SupabaseAuthRepository implements AuthRepository {
         });
 
       if (authError) {
-        return { success: false, error: authError.message };
+        return {
+          success: false,
+          error: userMessage(authError, "Failed to update profile"),
+        };
       }
 
       // Get updated profile data
@@ -371,8 +392,7 @@ export class SupabaseAuthRepository implements AuthRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to update profile",
+        error: userMessage(error, "Failed to update profile"),
       };
     }
   }
@@ -404,15 +424,17 @@ export class SupabaseAuthRepository implements AuthRepository {
       });
 
       if (updateError) {
-        return { success: false, error: updateError.message };
+        return {
+          success: false,
+          error: userMessage(updateError, "Failed to change password"),
+        };
       }
 
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to change password",
+        error: userMessage(error, "Failed to change password"),
       };
     }
   }
@@ -426,7 +448,10 @@ export class SupabaseAuthRepository implements AuthRepository {
         .eq("id", userId);
 
       if (profileError) {
-        return { success: false, error: profileError.message };
+        return {
+          success: false,
+          error: userMessage(profileError, "Failed to delete account"),
+        };
       }
 
       // Delete auth user (this is usually restricted in Supabase)
@@ -437,8 +462,7 @@ export class SupabaseAuthRepository implements AuthRepository {
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to delete account",
+        error: userMessage(error, "Failed to delete account"),
       };
     }
   }
@@ -553,7 +577,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       if (error) {
         return {
           success: false,
-          error: `Failed to create campaign: ${error.message}`,
+          error: userMessage(error, "Failed to create campaign"),
         };
       }
 
@@ -571,7 +595,7 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         await supabase.from("campaigns").delete().eq("id", data.id);
         return {
           success: false,
-          error: `Failed to set up campaign admin: ${adminError.message}`,
+          error: userMessage(adminError, "Failed to create campaign"),
         };
       }
 
@@ -1216,7 +1240,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .order("created_at", { ascending: true });
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to load characters"),
+        };
       }
 
       return { success: true, data: data || [] };
@@ -1248,7 +1275,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .single();
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to create character"),
+        };
       }
 
       return { success: true, data };
@@ -1284,7 +1314,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .eq("id", characterId);
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to update character"),
+        };
       }
 
       return { success: true };
@@ -1310,7 +1343,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       );
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to create character"),
+        };
       }
 
       return {
@@ -1334,7 +1370,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .order("created_at", { ascending: false });
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to load characters"),
+        };
       }
 
       return { success: true, data: CharacterMapper.toDomainList(data || []) };
@@ -1377,7 +1416,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .eq("id", characterId);
 
       if (deleteError) {
-        return { success: false, error: deleteError.message };
+        return {
+          success: false,
+          error: userMessage(deleteError, "Failed to delete character"),
+        };
       }
 
       return { success: true };
@@ -1440,7 +1482,13 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .eq("id", characterId);
 
       if (updateError) {
-        return { success: false, error: updateError.message };
+        return {
+          success: false,
+          error: userMessage(
+            updateError,
+            "Failed to assign character to campaign"
+          ),
+        };
       }
 
       return { success: true };
@@ -1465,7 +1513,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to create invitation"),
+        };
       }
 
       return { success: true, data: data as string };
@@ -1483,7 +1534,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to load invitations"),
+        };
       }
 
       // Transform the raw data to match our CampaignInvitation interface
@@ -1531,7 +1585,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to accept invitation"),
+        };
       }
 
       return { success: true, data: data as boolean };
@@ -1552,7 +1609,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
       );
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to decline invitation"),
+        };
       }
 
       return { success: true, data: data as boolean };
@@ -1591,7 +1651,10 @@ export class SupabaseCampaignRepository implements CampaignRepository {
         .eq("id", characterId);
 
       if (error) {
-        return { success: false, error: error.message };
+        return {
+          success: false,
+          error: userMessage(error, "Failed to delete character"),
+        };
       }
 
       return { success: true };

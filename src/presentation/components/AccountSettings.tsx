@@ -23,6 +23,7 @@ import type {
   User as UserType,
   ChangePasswordRequest,
 } from "../../core/entities";
+import { userMessage } from "../../shared/utils/userMessage";
 
 interface AccountSettingsProps {
   isOpen: boolean;
@@ -83,8 +84,7 @@ export default function AccountSettings({
     } catch (error) {
       setMessage({
         type: "error",
-        text:
-          error instanceof Error ? error.message : "Failed to update profile",
+        text: userMessage(error, "Failed to update profile"),
       });
     } finally {
       setIsLoading(false);
@@ -123,8 +123,7 @@ export default function AccountSettings({
     } catch (error) {
       setMessage({
         type: "error",
-        text:
-          error instanceof Error ? error.message : "Failed to change password",
+        text: userMessage(error, "Failed to change password"),
       });
     } finally {
       setIsLoading(false);

@@ -6,6 +6,7 @@ import { Button } from "./Button";
 import { Modal, ModalFooter } from "./Modal";
 import RoleSelector from "./RoleSelector";
 import { rolesToDisplayString } from "../../shared/utils/permissions";
+import { userMessage } from "../../shared/utils/userMessage";
 
 type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
   userRoles?: CampaignRoles;
@@ -175,9 +176,7 @@ export default function CampaignSettingsContent({
         setAddMemberError(result.error || "Failed to add member");
       }
     } catch (error) {
-      setAddMemberError(
-        error instanceof Error ? error.message : "Failed to add member"
-      );
+      setAddMemberError(userMessage(error, "Failed to invite member"));
     } finally {
       setAddingMember(false);
     }

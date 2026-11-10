@@ -6,7 +6,6 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error?: Error;
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
@@ -15,8 +14,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
@@ -33,12 +32,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <h2 className="text-xl font-bold text-red-600 mb-4">
               Something went wrong
             </h2>
-            <pre className="text-sm bg-gray-100 p-4 rounded overflow-auto">
-              {this.state.error?.message}
-            </pre>
-            <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto mt-2">
-              {this.state.error?.stack}
-            </pre>
+            {/* Details are in the console (componentDidCatch), not on screen. */}
+            <p className="text-sm text-gray-700">
+              An unexpected error stopped this page from loading. Reloading
+              usually fixes it.
+            </p>
             <button
               onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
