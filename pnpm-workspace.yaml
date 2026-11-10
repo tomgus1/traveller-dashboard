@@ -3,8 +3,8 @@
 # Dependency install scripts are denied unless listed true here. These three ship
 # prebuilt binaries via optional deps, so their scripts aren't needed.
 allowBuilds:
-  '@parcel/watcher': false
-  '@swc/core': false
+  "@parcel/watcher": false
+  "@swc/core": false
   esbuild: false
 
 # Supply-chain hardening: don't install versions published less than a day ago.

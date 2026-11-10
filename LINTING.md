@@ -1,124 +1,65 @@
-# Linting and Code Quality Setup
+# Linting and Formatting
 
-This project has been configured with comprehensive linting and code quality tools.
+Linting uses [oxlint](https://oxc.rs/docs/guide/usage/linter) and formatting uses
+[oxfmt](https://oxc.rs/docs/guide/usage/formatter), both from the Oxc toolchain.
+Both run in milliseconds on the whole repo.
 
-## 🚀 Features Added
+- Lint config: [`.oxlintrc.json`](.oxlintrc.json)
+- Format config: [`.oxfmtrc.json`](.oxfmtrc.json) (Prettier-compatible options)
 
-### ESLint Configuration
-
-- **Strict TypeScript rules**: No `any` types, consistent imports, proper typing
-- **React best practices**: Hooks dependencies, component export patterns
-- **Code quality rules**: Complexity limits, function length warnings, parameter limits
-- **Formatting rules**: Consistent spacing, quotes, semicolons (via Prettier integration)
-
-### Prettier Integration
-
-- **Automatic formatting**: Code is formatted consistently across the project
-- **Double quotes**: Consistent string formatting
-- **Semicolons**: Always included for clarity
-- **80-character line width**: Optimal readability
-
-### Build Integration
-
-- **Pre-build linting**: Build fails if there are linting errors
-- **Type checking**: Full TypeScript validation before build
-- **Warning tolerance**: Build allows up to 5 warnings (configurable)
-
-## 📝 Available Scripts
-
-### Linting
+## Scripts
 
 ```bash
-pnpm lint               # Strict linting with 0 warnings allowed
-pnpm lint:fix           # Auto-fix linting issues where possible
-pnpm lint:check         # Linting with up to 5 warnings allowed (used in build)
+pnpm lint            # Lint, 0 warnings allowed
+pnpm lint:check      # Lint, up to 5 warnings allowed (used by `pnpm build`)
+pnpm lint:fix        # Apply safe auto-fixes
+pnpm format          # Format all files
+pnpm format:check    # Check formatting without writing
+pnpm type-check      # tsc, no emit
+pnpm build           # lint:check → type-check → tests → vite build
 ```
 
-### Formatting
+## Rules
 
-```bash
-pnpm format             # Format all files with Prettier
-pnpm format:check       # Check if files are properly formatted
+`correctness` is enabled as errors (code that is almost certainly wrong). On top of that:
+
+**TypeScript**: `no-explicit-any` and `consistent-type-imports` are errors.
+`no-non-null-assertion` and `ban-ts-comment` are warnings.
+
+**React**: `rules-of-hooks` is an error. `exhaustive-deps` and `only-export-components`
+are warnings. The React Compiler rules (`purity`, `refs`, `immutability`, …) are enabled.
+`set-state-in-effect` and `preserve-manual-memoization` are currently off because
+existing code violates them. See the TODO below.
+
+**General**: `eqeqeq`, `prefer-const`, `prefer-template`, `no-var`, `no-eval`, and
+others are errors. `no-console` and `no-alert` are warnings.
+
+**Complexity** (warnings): cyclomatic complexity 20, nesting depth 4,
+500 lines per function, 5 parameters.
+
+Test files (`__tests__/`, `*.test.*`) allow `any`, `console`, and long functions.
+
+Suppression comments use the ESLint syntax, which oxlint understands:
+`// eslint-disable-next-line no-console` (or `// oxlint-disable-next-line ...`).
+
+## Editor setup (VS Code)
+
+Install the **Oxc** extension (`oxc.oxc-vscode`) for inline lint errors and
+format-on-save. Remove or disable the ESLint and Prettier extensions for this
+workspace.
+
+```jsonc
+// .vscode/settings.json
+{
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
+}
 ```
 
-### Type Checking
+## TODO
 
-```bash
-pnpm type-check         # Run TypeScript compiler without emitting files
-```
-
-### Build
-
-```bash
-pnpm build              # Full build with linting, type checking, and bundling
-```
-
-## 🛠️ Rules Summary
-
-### TypeScript Rules
-
-- ❌ **no-explicit-any**: Prevents `any` types
-- ❌ **no-unused-vars**: Removes unused variables
-- ⚠️ **no-non-null-assertion**: Warns about `!` operator usage
-- ❌ **consistent-type-imports**: Enforces `type` imports
-- ❌ **no-inferrable-types**: Removes redundant type annotations
-
-### Code Quality Rules
-
-- ⚠️ **complexity**: Max cyclomatic complexity of 15
-- ⚠️ **max-depth**: Max nesting depth of 4
-- ⚠️ **max-lines-per-function**: Max 150 lines per function
-- ⚠️ **max-params**: Max 5 parameters per function
-
-### General Rules
-
-- ❌ **eqeqeq**: Requires `===` instead of `==`
-- ❌ **no-console**: Warns about console usage
-- ❌ **no-debugger**: Prevents debugger statements
-- ❌ **prefer-const**: Prefers `const` over `let` when possible
-
-## 🔧 VS Code Integration
-
-### Auto-configured settings:
-
-- **Format on save**: Automatically formats files when saved
-- **ESLint auto-fix**: Fixes linting issues on save
-- **Import organization**: Keeps imports clean and organized
-
-### Recommended extensions:
-
-- Prettier - Code formatter
-- ESLint
-- Tailwind CSS IntelliSense
-- TypeScript and JavaScript Language Features
-- Path Intellisense
-- Auto Rename Tag
-- npm Intellisense
-
-## 🎯 Benefits
-
-1. **Consistent Code Style**: All team members write code in the same style
-2. **Type Safety**: Prevents runtime errors through strict typing
-3. **Performance**: Code quality rules help maintain readable, efficient code
-4. **Developer Experience**: Auto-formatting and auto-fixing reduce manual work
-5. **Build Safety**: Linting in build process catches issues before deployment
-
-## 🚨 Error Prevention
-
-The setup prevents common issues:
-
-- Runtime type errors (no `any` types)
-- Memory leaks (proper React hooks usage)
-- Unused code (dead code elimination)
-- Inconsistent formatting
-- Complex, hard-to-maintain functions
-
-## 📊 Current Status
-
-✅ **All TypeScript `any` types eliminated**  
-✅ **Comprehensive linting rules active**  
-✅ **Prettier formatting configured**  
-✅ **Build integration working**  
-✅ **VS Code integration complete**
-
-Build passes with 1 warning (large App component - acceptable for main component).
+- Fix the 4 places that violate `react/set-state-in-effect` /
+  `react/preserve-manual-memoization` (run `pnpm exec oxlint -A all -D react/set-state-in-effect -D react/preserve-manual-memoization`
+  to list them), then turn the rules back on.
+- Run `pnpm format` once as a standalone commit. About 78 files predate the
+  formatter being enforced.

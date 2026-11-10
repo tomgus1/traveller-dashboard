@@ -51,7 +51,7 @@ async function runTest() {
     // Step 1: Sign in or create admin user
     console.log("📝 Step 1: Authenticating admin user...");
 
-    let authResult = await supabase.auth.signInWithPassword({
+    const authResult = await supabase.auth.signInWithPassword({
       email: adminEmail,
       password: "TestPassword123!", // You'll need to use your actual password
     });
@@ -72,7 +72,7 @@ async function runTest() {
     const { data: campaign, error: campaignError } = await supabase
       .from("campaigns")
       .insert({
-        name: "Test Campaign - " + new Date().toISOString(),
+        name: `Test Campaign - ${new Date().toISOString()}`,
         description: "Automated test campaign for Brevo invitations",
         created_by: userId,
       })
@@ -154,7 +154,7 @@ async function runTest() {
     }
 
     // Success!
-    console.log("\n" + "═".repeat(60));
+    console.log(`\n${"═".repeat(60)}`);
     console.log("✅ ALL TESTS PASSED!");
     console.log("═".repeat(60));
     console.log("\n📧 Next Steps:");
