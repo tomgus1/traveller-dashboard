@@ -84,13 +84,18 @@ src/
 
 ## Quick Start
 
+Requires Node 24+ and pnpm 12+ (`corepack enable` picks up the version pinned in `package.json`).
+npm and yarn are not supported — only `pnpm-lock.yaml` is committed.
+
 ```bash
-npm create vite@latest traveller-dashboard -- --template react-swc-ts
+git clone https://github.com/<you>/traveller-dashboard.git
 cd traveller-dashboard
-npm i exceljs lucide-react
-npm i -D @tailwindcss/vite
-npm run dev
+pnpm install
+cp .env.example .env.local   # add your Supabase URL + anon key
+pnpm dev
 ```
+
+Dependency install scripts are blocked by default; see `allowBuilds` in `pnpm-workspace.yaml`.
 
 **Required configs:**
 
@@ -147,7 +152,7 @@ export default defineConfig({
 });
 
 # Deploy
-npm run build && npx gh-pages -d dist
+pnpm deploy:pages
 ```
 
 ---

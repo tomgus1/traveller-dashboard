@@ -4,8 +4,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+# pnpm-lock.yaml is committed; other lockfiles mean the wrong package manager was used
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
 
 # Vite / build output & caches

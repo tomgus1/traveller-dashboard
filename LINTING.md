@@ -29,28 +29,28 @@ This project has been configured with comprehensive linting and code quality too
 ### Linting
 
 ```bash
-npm run lint          # Strict linting with 0 warnings allowed
-npm run lint:fix      # Auto-fix linting issues where possible
-npm run lint:check    # Linting with up to 5 warnings allowed (used in build)
+pnpm lint               # Strict linting with 0 warnings allowed
+pnpm lint:fix           # Auto-fix linting issues where possible
+pnpm lint:check         # Linting with up to 5 warnings allowed (used in build)
 ```
 
 ### Formatting
 
 ```bash
-npm run format        # Format all files with Prettier
-npm run format:check  # Check if files are properly formatted
+pnpm format             # Format all files with Prettier
+pnpm format:check       # Check if files are properly formatted
 ```
 
 ### Type Checking
 
 ```bash
-npm run type-check    # Run TypeScript compiler without emitting files
+pnpm type-check         # Run TypeScript compiler without emitting files
 ```
 
 ### Build
 
 ```bash
-npm run build         # Full build with linting, type checking, and bundling
+pnpm build              # Full build with linting, type checking, and bundling
 ```
 
 ## 🛠️ Rules Summary
