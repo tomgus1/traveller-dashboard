@@ -3031,6 +3031,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "traveller-model"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "traveller-rules",
+]
+
+[[package]]
 name = "traveller-rules"
 version = "0.1.0"
 
