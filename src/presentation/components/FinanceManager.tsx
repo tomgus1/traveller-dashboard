@@ -37,31 +37,37 @@ export default function FinanceManager({
   const getCategoryStyles = (category: string) => {
     switch (category) {
       case "Expense":
-        return 'bg-red-500/10 border-red-500/20 text-red-500';
+        return "bg-red-500/10 border-red-500/20 text-red-500";
       case "Income":
-        return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500';
+        return "bg-emerald-500/10 border-emerald-500/20 text-emerald-500";
       default:
-        return 'bg-primary/10 border-primary/20 text-primary';
+        return "bg-primary/10 border-primary/20 text-primary";
     }
   };
 
   const displayRows = rows.map((row) => ({
     ...row,
     "Amount (Cr)": (
-      <span className={`font-mono font-bold ${row.Category === "Expense" ? 'text-red-400' : 'text-emerald-400'}`}>
-        {row.Category === "Expense" ? '-' : '+'}{Math.abs(row["Amount (Cr)"]).toLocaleString()}
+      <span
+        className={`font-mono font-bold ${row.Category === "Expense" ? "text-red-400" : "text-emerald-400"}`}
+      >
+        {row.Category === "Expense" ? "-" : "+"}
+        {Math.abs(row["Amount (Cr)"]).toLocaleString()}
       </span>
     ),
     "Running Total": (
       <span className="font-black text-primary">
-        {(row["Running Total"] || 0).toLocaleString()} <span className="text-[10px] opacity-70">CR</span>
+        {(row["Running Total"] || 0).toLocaleString()}{" "}
+        <span className="text-[10px] opacity-70">CR</span>
       </span>
     ),
     Category: (
-      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${getCategoryStyles(row.Category)}`}>
+      <span
+        className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${getCategoryStyles(row.Category)}`}
+      >
         {row.Category}
       </span>
-    )
+    ),
   }));
 
   return (

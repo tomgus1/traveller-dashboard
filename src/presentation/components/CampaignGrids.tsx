@@ -100,13 +100,12 @@ export function CharacterCard({
 
   return (
     <MgTCard className="group hover:border-primary transition-all duration-300">
-      <MgTHeader
-        title={campaign.name}
-        subtitle="MANIFEST"
-      />
+      <MgTHeader title={campaign.name} subtitle="MANIFEST" />
 
       <div className="flex items-center justify-between mb-4">
-        <span className="text-[8px] font-black uppercase text-muted tracking-widest">Crew Manifest Status</span>
+        <span className="text-[8px] font-black uppercase text-muted tracking-widest">
+          Crew Manifest Status
+        </span>
         <span className="px-2 py-0.5 text-[8px] font-black uppercase border border-primary text-primary">
           {characters.length} ACTIVE
         </span>
@@ -122,7 +121,10 @@ export function CharacterCard({
         <div className="mb-4 bg-surface-low p-3 border border-border">
           <div className="space-y-2">
             {characters.slice(0, 3).map((character) => (
-              <div key={character.id} className="flex items-center justify-between text-[10px] font-black uppercase tracking-tighter">
+              <div
+                key={character.id}
+                className="flex items-center justify-between text-[10px] font-black uppercase tracking-tighter"
+              >
                 <span className="text-text-main">
                   - {character.characterName || character.displayName}
                 </span>
@@ -141,7 +143,7 @@ export function CharacterCard({
       <button
         onClick={() => onViewCampaign(campaign.id)}
         className="w-full text-[10px] font-black uppercase tracking-[0.3em] bg-side text-white hover:bg-primary py-3 transition-all"
-        style={{ clipPath: 'polygon(0 0, 100% 0, 95% 100%, 5% 100%)' }}
+        style={{ clipPath: "polygon(0 0, 100% 0, 95% 100%, 5% 100%)" }}
       >
         ACCESS LOGS
       </button>
@@ -158,8 +160,12 @@ export function CampaignManagementGrid({
   return (
     <div>
       <div className="mgt-header-bar mb-6">
-        <h2 className="text-xs font-black tracking-[0.3em]">Fleet Management</h2>
-        <span className="text-[8px] opacity-50 px-2 py-0.5 border border-white/20">SYS // ADM-02</span>
+        <h2 className="text-xs font-black tracking-[0.3em]">
+          Fleet Management
+        </h2>
+        <span className="text-[8px] opacity-50 px-2 py-0.5 border border-white/20">
+          SYS // ADM-02
+        </span>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {campaigns.map((campaign) => (
@@ -187,8 +193,12 @@ export function CharacterManagementGrid({
   return (
     <div>
       <div className="mgt-header-bar mb-6">
-        <h2 className="text-xs font-black tracking-[0.3em]">Personnel Database</h2>
-        <span className="text-[8px] opacity-50 px-2 py-0.5 border border-white/20">SYS // PERS-01</span>
+        <h2 className="text-xs font-black tracking-[0.3em]">
+          Personnel Database
+        </h2>
+        <span className="text-[8px] opacity-50 px-2 py-0.5 border border-white/20">
+          SYS // PERS-01
+        </span>
       </div>
       {campaignsWithCharacters.length === 0 ? (
         <div className="card-mgt hud-frame p-12 text-center bg-card/50">

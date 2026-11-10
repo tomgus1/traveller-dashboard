@@ -23,7 +23,11 @@ export default function AppHeader({ onImport, onExport }: AppHeaderProps) {
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-3">
-      <div className="flex items-center gap-4" role="group" aria-label="Mission Data Operations">
+      <div
+        className="flex items-center gap-4"
+        role="group"
+        aria-label="Mission Data Operations"
+      >
         <label
           className="btn-hud py-2.5 px-6 !text-xs cursor-pointer bg-side !text-text-main hover:bg-hud-accent border border-border transition-all duration-300 shadow-sm"
           data-testid="import-button"
@@ -37,7 +41,9 @@ export default function AppHeader({ onImport, onExport }: AppHeaderProps) {
             data-testid="file-input"
           />
           <Upload className="w-4 h-4 text-primary" aria-hidden="true" />
-          <span className="font-black uppercase tracking-widest">Import Data</span>
+          <span className="font-black uppercase tracking-widest">
+            Import Data
+          </span>
         </label>
 
         <button
@@ -46,7 +52,9 @@ export default function AppHeader({ onImport, onExport }: AppHeaderProps) {
           data-testid="export-button"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
-          <span className="font-black uppercase tracking-widest">Export Data</span>
+          <span className="font-black uppercase tracking-widest">
+            Export Data
+          </span>
         </button>
       </div>
     </div>

@@ -176,7 +176,9 @@ export default function CampaignSelector({
               </p>
             </div>
           </div>
-          <Button onClick={signOut} variant="outline" size="sm">Disconnect Link</Button>
+          <Button onClick={signOut} variant="outline" size="sm">
+            Disconnect Link
+          </Button>
         </div>
       </div>
 
@@ -194,10 +196,7 @@ export default function CampaignSelector({
               <p className="text-xs font-bold text-muted uppercase tracking-widest mb-8">
                 Initialize new deployment to begin operations
               </p>
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                variant="premium"
-              >
+              <Button onClick={() => setShowCreateForm(true)} variant="premium">
                 INITIALIZE CAMPAIGN
               </Button>
             </div>
@@ -218,7 +217,10 @@ export default function CampaignSelector({
 
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {campaigns.map((campaign) => (
-                  <div key={campaign.id} className="card-mgt hud-frame relative bg-card/80 backdrop-blur-md group hover:border-primary transition-all duration-300">
+                  <div
+                    key={campaign.id}
+                    className="card-mgt hud-frame relative bg-card/80 backdrop-blur-md group hover:border-primary transition-all duration-300"
+                  >
                     <div className="absolute top-0 right-0 p-2 opacity-40 group-hover:opacity-100 transition-opacity">
                       {campaign.userRoles?.isAdmin && (
                         <CampaignSettings

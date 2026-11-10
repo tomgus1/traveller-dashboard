@@ -35,7 +35,9 @@ const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error("❌ Missing environment variables:");
-  console.error("Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set");
+  console.error(
+    "Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set"
+  );
   process.exit(1);
 }
 

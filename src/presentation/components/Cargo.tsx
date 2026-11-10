@@ -72,7 +72,10 @@ export default function Cargo({
   };
 
   const totalTonnage = rows.reduce((acc, row) => acc + (row.Tons || 0), 0);
-  const totalProfit = rows.reduce((acc, row) => acc + (row["Profit (Cr)"] || 0), 0);
+  const totalProfit = rows.reduce(
+    (acc, row) => acc + (row["Profit (Cr)"] || 0),
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -86,15 +89,29 @@ export default function Cargo({
           </div>
           <div className="flex gap-4">
             <div className="text-right">
-              <p className="text-[10px] font-black text-muted uppercase tracking-widest">Hold Usage</p>
-              <p className="text-xs font-bold">{totalTonnage.toFixed(1)} <span className="text-[10px] text-muted font-black">TONS</span></p>
+              <p className="text-[10px] font-black text-muted uppercase tracking-widest">
+                Hold Usage
+              </p>
+              <p className="text-xs font-bold">
+                {totalTonnage.toFixed(1)}{" "}
+                <span className="text-[10px] text-muted font-black">TONS</span>
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-black text-muted uppercase tracking-widest">Net Outcome</p>
+              <p className="text-[10px] font-black text-muted uppercase tracking-widest">
+                Net Outcome
+              </p>
               <div className="flex items-center gap-1.5 justify-end">
-                {totalProfit >= 0 ? <TrendingUp className="w-3 h-3 text-emerald-400" /> : <TrendingDown className="w-3 h-3 text-red-500" />}
-                <p className={`text-xs font-bold ${totalProfit >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
-                  {totalProfit.toLocaleString()} <span className="text-[10px] opacity-70 font-black">CR</span>
+                {totalProfit >= 0 ? (
+                  <TrendingUp className="w-3 h-3 text-emerald-400" />
+                ) : (
+                  <TrendingDown className="w-3 h-3 text-red-500" />
+                )}
+                <p
+                  className={`text-xs font-bold ${totalProfit >= 0 ? "text-emerald-400" : "text-red-500"}`}
+                >
+                  {totalProfit.toLocaleString()}{" "}
+                  <span className="text-[10px] opacity-70 font-black">CR</span>
                 </p>
               </div>
             </div>
@@ -155,7 +172,9 @@ export default function Cargo({
             type="button"
           >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Manifest</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Manifest
+            </span>
           </button>
         </div>
       </div>
@@ -170,17 +189,52 @@ export default function Cargo({
             "Sale",
             "Profit (Cr)",
           ]}
-          rows={rows.map(row => ({
+          rows={rows.map((row) => ({
             ...row,
-            "Leg/Route": <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-2">{row["Leg/Route"]}</span>,
-            Item: <span className="font-black text-primary uppercase tracking-tight">{row.Item}</span>,
-            Purchase: <div className="text-[10px]"><p className="text-muted uppercase font-black">From {row["Purchase World"]}</p><p className="font-mono">{row["Purchase Price (Cr/ton)"].toLocaleString()} Cr</p></div>,
-            Sale: row["Sale Price (Cr/ton)"] ? <div className="text-[10px]"><p className="text-muted uppercase font-black">To {row["Sale World"]}</p><p className="font-mono">{row["Sale Price (Cr/ton)"].toLocaleString()} Cr</p></div> : <span className="text-muted italic">In Transit</span>,
-            "Profit (Cr)": row["Profit (Cr)"] !== undefined && row["Profit (Cr)"] !== null ? (
-              <span className={`font-black tracking-tight ${row["Profit (Cr)"] >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
-                {row["Profit (Cr)"] > 0 ? '+' : ''}{row["Profit (Cr)"].toLocaleString()}
+            "Leg/Route": (
+              <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-2">
+                {row["Leg/Route"]}
               </span>
-            ) : <span className="text-muted">Calculating...</span>
+            ),
+            Item: (
+              <span className="font-black text-primary uppercase tracking-tight">
+                {row.Item}
+              </span>
+            ),
+            Purchase: (
+              <div className="text-[10px]">
+                <p className="text-muted uppercase font-black">
+                  From {row["Purchase World"]}
+                </p>
+                <p className="font-mono">
+                  {row["Purchase Price (Cr/ton)"].toLocaleString()} Cr
+                </p>
+              </div>
+            ),
+            Sale: row["Sale Price (Cr/ton)"] ? (
+              <div className="text-[10px]">
+                <p className="text-muted uppercase font-black">
+                  To {row["Sale World"]}
+                </p>
+                <p className="font-mono">
+                  {row["Sale Price (Cr/ton)"].toLocaleString()} Cr
+                </p>
+              </div>
+            ) : (
+              <span className="text-muted italic">In Transit</span>
+            ),
+            "Profit (Cr)":
+              row["Profit (Cr)"] !== undefined &&
+              row["Profit (Cr)"] !== null ? (
+                <span
+                  className={`font-black tracking-tight ${row["Profit (Cr)"] >= 0 ? "text-emerald-400" : "text-red-500"}`}
+                >
+                  {row["Profit (Cr)"] > 0 ? "+" : ""}
+                  {row["Profit (Cr)"].toLocaleString()}
+                </span>
+              ) : (
+                <span className="text-muted">Calculating...</span>
+              ),
           }))}
         />
       </div>

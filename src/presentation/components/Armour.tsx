@@ -105,7 +105,9 @@ export default function Armour({
             <option value="All">All Protection Manuals</option>
             <option value="Core Rulebook">Core Rulebook</option>
             <option value="High Guard">High Guard</option>
-            <option value="Central Supply Catalogue">Central Supply Catalogue</option>
+            <option value="Central Supply Catalogue">
+              Central Supply Catalogue
+            </option>
             <option value="Mercenary">Mercenary</option>
             <option value="Other">Other</option>
           </FormField>
@@ -163,7 +165,9 @@ export default function Armour({
           >
             <option value="">Class</option>
             {getArmourTypes().map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>
+                {type}
+              </option>
             ))}
           </FormField>
           <FormField
@@ -190,7 +194,9 @@ export default function Armour({
             aria-label="Add new armour entry to character equipment"
           >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Assign</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Assign
+            </span>
           </button>
         </div>
       </div>
@@ -200,8 +206,16 @@ export default function Armour({
           columns={["Armour", "Type", "Protection", "Mass", "Cost", "Notes"]}
           rows={rows.map((row) => ({
             ...row,
-            Armour: <span className="font-black text-blue-400 uppercase tracking-tight">{row.Armour}</span>,
-            Protection: <span className="font-bold flex items-center gap-2"><Lock className="w-3 h-3 text-blue-400" /> {row.Protection}</span>,
+            Armour: (
+              <span className="font-black text-blue-400 uppercase tracking-tight">
+                {row.Armour}
+              </span>
+            ),
+            Protection: (
+              <span className="font-bold flex items-center gap-2">
+                <Lock className="w-3 h-3 text-blue-400" /> {row.Protection}
+              </span>
+            ),
             Mass: row.Mass ? `${row.Mass} kg` : "0 kg",
           }))}
         />

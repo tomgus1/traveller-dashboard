@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   Character,
   CharacterFinance,
@@ -9,8 +9,8 @@ import type {
   CreateCharacterRequest,
   UpdateCharacterRequest,
   OperationResult,
-} from '../../core/entities';
-import type { CharacterRepository } from '../../core/repositories';
+} from "../../core/entities";
+import type { CharacterRepository } from "../../core/repositories";
 
 /**
  * Supabase implementation of CharacterRepository
@@ -27,17 +27,19 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   // CHARACTER MANAGEMENT
   // ===================================================================
 
-  async getCharacters(campaignId: string): Promise<OperationResult<Character[]>> {
+  async getCharacters(
+    campaignId: string
+  ): Promise<OperationResult<Character[]>> {
     try {
       const { data, error } = await this.supabase
-        .from('characters')
-        .select('*')
-        .eq('campaign_id', campaignId)
-        .order('created_at', { ascending: false });
+        .from("characters")
+        .select("*")
+        .eq("campaign_id", campaignId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const characters: Character[] = (data || []).map(row => ({
+      const characters: Character[] = (data || []).map((row) => ({
         id: row.id,
         campaignId: row.campaign_id,
         name: row.name,
@@ -61,7 +63,8 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get characters',
+        error:
+          error instanceof Error ? error.message : "Failed to get characters",
       };
     }
   }
@@ -69,9 +72,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   async getCharacter(characterId: string): Promise<OperationResult<Character>> {
     try {
       const { data, error } = await this.supabase
-        .from('characters')
-        .select('*')
-        .eq('id', characterId)
+        .from("characters")
+        .select("*")
+        .eq("id", characterId)
         .single();
 
       if (error) throw error;
@@ -100,7 +103,8 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get character',
+        error:
+          error instanceof Error ? error.message : "Failed to get character",
       };
     }
   }
@@ -111,7 +115,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   ): Promise<OperationResult<Character>> {
     try {
       const { data, error } = await this.supabase
-        .from('characters')
+        .from("characters")
         .insert({
           campaign_id: request.campaignId,
           name: request.name,
@@ -142,7 +146,14 @@ export class SupabaseCharacterRepository implements CharacterRepository {
         ownerId: data.owner_id,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
-        characteristics: data.characteristics || { STR: 0, DEX: 0, END: 0, INT: 0, EDU: 0, SOC: 0 },
+        characteristics: data.characteristics || {
+          STR: 0,
+          DEX: 0,
+          END: 0,
+          INT: 0,
+          EDU: 0,
+          SOC: 0,
+        },
         skills: data.skills || [],
       };
 
@@ -150,7 +161,8 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create character',
+        error:
+          error instanceof Error ? error.message : "Failed to create character",
       };
     }
   }
@@ -165,15 +177,18 @@ export class SupabaseCharacterRepository implements CharacterRepository {
       };
 
       if (request.name !== undefined) updates.name = request.name;
-      if (request.playerName !== undefined) updates.player_name = request.playerName;
-      if (request.characterName !== undefined) updates.character_name = request.characterName;
-      if (request.characteristics !== undefined) updates.characteristics = request.characteristics;
+      if (request.playerName !== undefined)
+        updates.player_name = request.playerName;
+      if (request.characterName !== undefined)
+        updates.character_name = request.characterName;
+      if (request.characteristics !== undefined)
+        updates.characteristics = request.characteristics;
       if (request.skills !== undefined) updates.skills = request.skills;
 
       const { error } = await this.supabase
-        .from('characters')
+        .from("characters")
         .update(updates)
-        .eq('id', characterId);
+        .eq("id", characterId);
 
       if (error) throw error;
 
@@ -181,7 +196,8 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update character',
+        error:
+          error instanceof Error ? error.message : "Failed to update character",
       };
     }
   }
@@ -189,9 +205,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   async deleteCharacter(characterId: string): Promise<OperationResult> {
     try {
       const { error } = await this.supabase
-        .from('characters')
+        .from("characters")
         .delete()
-        .eq('id', characterId);
+        .eq("id", characterId);
 
       if (error) throw error;
 
@@ -199,7 +215,8 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete character',
+        error:
+          error instanceof Error ? error.message : "Failed to delete character",
       };
     }
   }
@@ -213,14 +230,14 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   ): Promise<OperationResult<CharacterFinance[]>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_finance')
-        .select('*')
-        .eq('character_id', characterId)
-        .order('transaction_date', { ascending: false });
+        .from("character_finance")
+        .select("*")
+        .eq("character_id", characterId)
+        .order("transaction_date", { ascending: false });
 
       if (error) throw error;
 
-      const finances: CharacterFinance[] = (data || []).map(row => ({
+      const finances: CharacterFinance[] = (data || []).map((row) => ({
         id: row.id,
         characterId: row.character_id,
         description: row.description,
@@ -233,7 +250,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get character finances',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get character finances",
       };
     }
   }
@@ -245,7 +265,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   ): Promise<OperationResult<CharacterFinance>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_finance')
+        .from("character_finance")
         .insert({
           character_id: characterId,
           description,
@@ -269,7 +289,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to add character finance',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to add character finance",
       };
     }
   }
@@ -285,9 +308,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
       if (amount !== undefined) updates.amount = amount;
 
       const { error } = await this.supabase
-        .from('character_finance')
+        .from("character_finance")
         .update(updates)
-        .eq('id', financeId);
+        .eq("id", financeId);
 
       if (error) throw error;
 
@@ -295,7 +318,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update character finance',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update character finance",
       };
     }
   }
@@ -303,9 +329,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   async deleteCharacterFinance(financeId: string): Promise<OperationResult> {
     try {
       const { error } = await this.supabase
-        .from('character_finance')
+        .from("character_finance")
         .delete()
-        .eq('id', financeId);
+        .eq("id", financeId);
 
       if (error) throw error;
 
@@ -313,7 +339,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete character finance',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete character finance",
       };
     }
   }
@@ -327,14 +356,14 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   ): Promise<OperationResult<CharacterInventory[]>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_inventory')
-        .select('*')
-        .eq('character_id', characterId)
-        .order('created_at', { ascending: false });
+        .from("character_inventory")
+        .select("*")
+        .eq("character_id", characterId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const inventory: CharacterInventory[] = (data || []).map(row => ({
+      const inventory: CharacterInventory[] = (data || []).map((row) => ({
         id: row.id,
         characterId: row.character_id,
         itemName: row.item_name,
@@ -349,18 +378,21 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get character inventory',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get character inventory",
       };
     }
   }
 
   async addCharacterInventory(
     characterId: string,
-    item: Omit<CharacterInventory, 'id' | 'characterId' | 'createdAt'>
+    item: Omit<CharacterInventory, "id" | "characterId" | "createdAt">
   ): Promise<OperationResult<CharacterInventory>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_inventory')
+        .from("character_inventory")
         .insert({
           character_id: characterId,
           item_name: item.itemName,
@@ -389,27 +421,34 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to add character inventory',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to add character inventory",
       };
     }
   }
 
   async updateCharacterInventory(
     inventoryId: string,
-    updates: Partial<Omit<CharacterInventory, 'id' | 'characterId' | 'createdAt'>>
+    updates: Partial<
+      Omit<CharacterInventory, "id" | "characterId" | "createdAt">
+    >
   ): Promise<OperationResult> {
     try {
       const dbUpdates: Record<string, unknown> = {};
-      if (updates.itemName !== undefined) dbUpdates.item_name = updates.itemName;
+      if (updates.itemName !== undefined)
+        dbUpdates.item_name = updates.itemName;
       if (updates.quantity !== undefined) dbUpdates.quantity = updates.quantity;
       if (updates.weight !== undefined) dbUpdates.weight = updates.weight;
       if (updates.value !== undefined) dbUpdates.value = updates.value;
-      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.description !== undefined)
+        dbUpdates.description = updates.description;
 
       const { error } = await this.supabase
-        .from('character_inventory')
+        .from("character_inventory")
         .update(dbUpdates)
-        .eq('id', inventoryId);
+        .eq("id", inventoryId);
 
       if (error) throw error;
 
@@ -417,17 +456,22 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update character inventory',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update character inventory",
       };
     }
   }
 
-  async deleteCharacterInventory(inventoryId: string): Promise<OperationResult> {
+  async deleteCharacterInventory(
+    inventoryId: string
+  ): Promise<OperationResult> {
     try {
       const { error } = await this.supabase
-        .from('character_inventory')
+        .from("character_inventory")
         .delete()
-        .eq('id', inventoryId);
+        .eq("id", inventoryId);
 
       if (error) throw error;
 
@@ -435,7 +479,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete character inventory',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete character inventory",
       };
     }
   }
@@ -449,14 +496,14 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   ): Promise<OperationResult<CharacterWeapon[]>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_weapons')
-        .select('*')
-        .eq('character_id', characterId)
-        .order('created_at', { ascending: false });
+        .from("character_weapons")
+        .select("*")
+        .eq("character_id", characterId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const weapons: CharacterWeapon[] = (data || []).map(row => ({
+      const weapons: CharacterWeapon[] = (data || []).map((row) => ({
         id: row.id,
         characterId: row.character_id,
         name: row.name,
@@ -472,18 +519,21 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get character weapons',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get character weapons",
       };
     }
   }
 
   async addCharacterWeapon(
     characterId: string,
-    weapon: Omit<CharacterWeapon, 'id' | 'characterId' | 'createdAt'>
+    weapon: Omit<CharacterWeapon, "id" | "characterId" | "createdAt">
   ): Promise<OperationResult<CharacterWeapon>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_weapons')
+        .from("character_weapons")
         .insert({
           character_id: characterId,
           name: weapon.name,
@@ -514,14 +564,17 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to add character weapon',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to add character weapon",
       };
     }
   }
 
   async updateCharacterWeapon(
     weaponId: string,
-    updates: Partial<Omit<CharacterWeapon, 'id' | 'characterId' | 'createdAt'>>
+    updates: Partial<Omit<CharacterWeapon, "id" | "characterId" | "createdAt">>
   ): Promise<OperationResult> {
     try {
       const dbUpdates: Record<string, unknown> = {};
@@ -533,9 +586,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
 
       const { error } = await this.supabase
-        .from('character_weapons')
+        .from("character_weapons")
         .update(dbUpdates)
-        .eq('id', weaponId);
+        .eq("id", weaponId);
 
       if (error) throw error;
 
@@ -543,7 +596,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update character weapon',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update character weapon",
       };
     }
   }
@@ -551,9 +607,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   async deleteCharacterWeapon(weaponId: string): Promise<OperationResult> {
     try {
       const { error } = await this.supabase
-        .from('character_weapons')
+        .from("character_weapons")
         .delete()
-        .eq('id', weaponId);
+        .eq("id", weaponId);
 
       if (error) throw error;
 
@@ -561,7 +617,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete character weapon',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete character weapon",
       };
     }
   }
@@ -575,14 +634,14 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   ): Promise<OperationResult<CharacterArmour[]>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_armour')
-        .select('*')
-        .eq('character_id', characterId)
-        .order('created_at', { ascending: false });
+        .from("character_armour")
+        .select("*")
+        .eq("character_id", characterId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const armour: CharacterArmour[] = (data || []).map(row => ({
+      const armour: CharacterArmour[] = (data || []).map((row) => ({
         id: row.id,
         characterId: row.character_id,
         name: row.name,
@@ -597,18 +656,21 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get character armour',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get character armour",
       };
     }
   }
 
   async addCharacterArmour(
     characterId: string,
-    armour: Omit<CharacterArmour, 'id' | 'characterId' | 'createdAt'>
+    armour: Omit<CharacterArmour, "id" | "characterId" | "createdAt">
   ): Promise<OperationResult<CharacterArmour>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_armour')
+        .from("character_armour")
         .insert({
           character_id: characterId,
           name: armour.name,
@@ -637,27 +699,31 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to add character armour',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to add character armour",
       };
     }
   }
 
   async updateCharacterArmour(
     armourId: string,
-    updates: Partial<Omit<CharacterArmour, 'id' | 'characterId' | 'createdAt'>>
+    updates: Partial<Omit<CharacterArmour, "id" | "characterId" | "createdAt">>
   ): Promise<OperationResult> {
     try {
       const dbUpdates: Record<string, unknown> = {};
       if (updates.name !== undefined) dbUpdates.name = updates.name;
-      if (updates.protection !== undefined) dbUpdates.protection = updates.protection;
+      if (updates.protection !== undefined)
+        dbUpdates.protection = updates.protection;
       if (updates.weight !== undefined) dbUpdates.weight = updates.weight;
       if (updates.cost !== undefined) dbUpdates.cost = updates.cost;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
 
       const { error } = await this.supabase
-        .from('character_armour')
+        .from("character_armour")
         .update(dbUpdates)
-        .eq('id', armourId);
+        .eq("id", armourId);
 
       if (error) throw error;
 
@@ -665,7 +731,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update character armour',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update character armour",
       };
     }
   }
@@ -673,9 +742,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   async deleteCharacterArmour(armourId: string): Promise<OperationResult> {
     try {
       const { error } = await this.supabase
-        .from('character_armour')
+        .from("character_armour")
         .delete()
-        .eq('id', armourId);
+        .eq("id", armourId);
 
       if (error) throw error;
 
@@ -683,7 +752,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete character armour',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete character armour",
       };
     }
   }
@@ -697,14 +769,14 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   ): Promise<OperationResult<CharacterAmmo[]>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_ammo')
-        .select('*')
-        .eq('character_id', characterId)
-        .order('created_at', { ascending: false });
+        .from("character_ammo")
+        .select("*")
+        .eq("character_id", characterId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const ammo: CharacterAmmo[] = (data || []).map(row => ({
+      const ammo: CharacterAmmo[] = (data || []).map((row) => ({
         id: row.id,
         characterId: row.character_id,
         type: row.type,
@@ -719,18 +791,21 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get character ammo',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get character ammo",
       };
     }
   }
 
   async addCharacterAmmo(
     characterId: string,
-    ammo: Omit<CharacterAmmo, 'id' | 'characterId' | 'createdAt'>
+    ammo: Omit<CharacterAmmo, "id" | "characterId" | "createdAt">
   ): Promise<OperationResult<CharacterAmmo>> {
     try {
       const { data, error } = await this.supabase
-        .from('character_ammo')
+        .from("character_ammo")
         .insert({
           character_id: characterId,
           type: ammo.type,
@@ -759,27 +834,32 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to add character ammo',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to add character ammo",
       };
     }
   }
 
   async updateCharacterAmmo(
     ammoId: string,
-    updates: Partial<Omit<CharacterAmmo, 'id' | 'characterId' | 'createdAt'>>
+    updates: Partial<Omit<CharacterAmmo, "id" | "characterId" | "createdAt">>
   ): Promise<OperationResult> {
     try {
       const dbUpdates: Record<string, unknown> = {};
       if (updates.type !== undefined) dbUpdates.type = updates.type;
       if (updates.quantity !== undefined) dbUpdates.quantity = updates.quantity;
-      if (updates.maxQuantity !== undefined) dbUpdates.max_quantity = updates.maxQuantity;
-      if (updates.weaponCompatibility !== undefined) dbUpdates.weapon_compatibility = updates.weaponCompatibility;
+      if (updates.maxQuantity !== undefined)
+        dbUpdates.max_quantity = updates.maxQuantity;
+      if (updates.weaponCompatibility !== undefined)
+        dbUpdates.weapon_compatibility = updates.weaponCompatibility;
       if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
 
       const { error } = await this.supabase
-        .from('character_ammo')
+        .from("character_ammo")
         .update(dbUpdates)
-        .eq('id', ammoId);
+        .eq("id", ammoId);
 
       if (error) throw error;
 
@@ -787,7 +867,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update character ammo',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update character ammo",
       };
     }
   }
@@ -795,9 +878,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   async deleteCharacterAmmo(ammoId: string): Promise<OperationResult> {
     try {
       const { error } = await this.supabase
-        .from('character_ammo')
+        .from("character_ammo")
         .delete()
-        .eq('id', ammoId);
+        .eq("id", ammoId);
 
       if (error) throw error;
 
@@ -805,7 +888,10 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete character ammo',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete character ammo",
       };
     }
   }

@@ -47,7 +47,11 @@ export function useCampaignCharacters(campaignId?: string) {
               ownerId: char.owner_id || undefined,
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               stats: char.characteristics as any,
-              skills: char.skills as Array<{ name: string; level: number; xp?: number }>,
+              skills: char.skills as Array<{
+                name: string;
+                level: number;
+                xp?: number;
+              }>,
             })
           );
           return { success: true, data: dbCharacters };
@@ -159,20 +163,21 @@ export function useCampaignCharacters(campaignId?: string) {
             prev.map((char) =>
               char.id === characterId
                 ? {
-                  ...char,
-                  displayName: updates.name || char.displayName,
-                  stats: updates.characteristics
-                    ? updates.characteristics
-                    : char.stats || { // Fallback to default structure if not provided
-                      STR: { value: 0, xp: 0 },
-                      DEX: { value: 0, xp: 0 },
-                      END: { value: 0, xp: 0 },
-                      INT: { value: 0, xp: 0 },
-                      EDU: { value: 0, xp: 0 },
-                      SOC: { value: 0, xp: 0 },
-                    },
-                  skills: updates.skills || char.skills,
-                }
+                    ...char,
+                    displayName: updates.name || char.displayName,
+                    stats: updates.characteristics
+                      ? updates.characteristics
+                      : char.stats || {
+                          // Fallback to default structure if not provided
+                          STR: { value: 0, xp: 0 },
+                          DEX: { value: 0, xp: 0 },
+                          END: { value: 0, xp: 0 },
+                          INT: { value: 0, xp: 0 },
+                          EDU: { value: 0, xp: 0 },
+                          SOC: { value: 0, xp: 0 },
+                        },
+                    skills: updates.skills || char.skills,
+                  }
                 : char
             )
           );

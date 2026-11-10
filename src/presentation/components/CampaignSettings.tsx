@@ -414,10 +414,11 @@ export default function CampaignSettings({
         <Modal
           isOpen={true}
           onClose={() => setEditingMember(null)}
-          title={`Edit Roles - ${editingMember.user_profiles.display_name ||
+          title={`Edit Roles - ${
+            editingMember.user_profiles.display_name ||
             editingMember.user_profiles.username ||
             editingMember.user_profiles.email
-            }`}
+          }`}
         >
           <div className="space-y-4">
             <div>

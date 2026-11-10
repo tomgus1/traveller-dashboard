@@ -1,6 +1,12 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import type { FinanceRow, InventoryRow, AmmoRow, WeaponRow, ArmourRow } from "../../types";
+import type {
+  FinanceRow,
+  InventoryRow,
+  AmmoRow,
+  WeaponRow,
+  ArmourRow,
+} from "../../types";
 import { useAppState } from "../hooks/useAppState";
 import { useCampaignData } from "../hooks/useCampaignData";
 import { useCharacterData } from "../hooks/useCharacterData";
@@ -33,7 +39,9 @@ export default function Dashboard() {
 
   // Find the character ID for the selected character
   const selectedCharacterId = useMemo(() => {
-    const character = characters.find(c => c.displayName === actualSelectedCharacter);
+    const character = characters.find(
+      (c) => c.displayName === actualSelectedCharacter
+    );
     return character?.id;
   }, [characters, actualSelectedCharacter]);
 
@@ -83,27 +91,43 @@ export default function Dashboard() {
         Ammo: characterAmmo,
       },
     };
-  }, [actualSelectedCharacter, characterFinance, characterInventory, characterWeapons, characterArmour, characterAmmo]);
+  }, [
+    actualSelectedCharacter,
+    characterFinance,
+    characterInventory,
+    characterWeapons,
+    characterArmour,
+    characterAmmo,
+  ]);
 
-  const balances = useBalanceCalculations({
-    Party_Finances: partyFinances,
-    Ship_Accounts: shipFinances,
-    Ship_Cargo: shipCargo,
-    Ship_Maintenance_Log: shipMaintenance,
-    Loans_Mortgage: loans,
-    Party_Inventory: partyInventory,
-    Ammo_Tracker: campaignAmmo,
-    PCs: characterData,
-  }, actualSelectedCharacter);
+  const balances = useBalanceCalculations(
+    {
+      Party_Finances: partyFinances,
+      Ship_Accounts: shipFinances,
+      Ship_Cargo: shipCargo,
+      Ship_Maintenance_Log: shipMaintenance,
+      Loans_Mortgage: loans,
+      Party_Inventory: partyInventory,
+      Ammo_Tracker: campaignAmmo,
+      PCs: characterData,
+    },
+    actualSelectedCharacter
+  );
   const { handleImport, handleExport } = useImportExport(setState, state);
 
   // Wrapper functions to match expected callback signatures
   // (they ignore the characterDisplayName param since we already know the character)
-  const handleUpdateCharacterFinance = (_displayName: string, rows: FinanceRow[]) => {
+  const handleUpdateCharacterFinance = (
+    _displayName: string,
+    rows: FinanceRow[]
+  ) => {
     updateCharacterFinance(rows);
   };
 
-  const handleAddCharacterInventory = (_displayName: string, item: InventoryRow) => {
+  const handleAddCharacterInventory = (
+    _displayName: string,
+    item: InventoryRow
+  ) => {
     addCharacterInventory(item);
   };
 
@@ -111,11 +135,17 @@ export default function Dashboard() {
     addCharacterAmmo(ammo);
   };
 
-  const handleAddCharacterWeapon = (_displayName: string, weapon: WeaponRow) => {
+  const handleAddCharacterWeapon = (
+    _displayName: string,
+    weapon: WeaponRow
+  ) => {
     addCharacterWeapon(weapon);
   };
 
-  const handleAddCharacterArmour = (_displayName: string, armour: ArmourRow) => {
+  const handleAddCharacterArmour = (
+    _displayName: string,
+    armour: ArmourRow
+  ) => {
     addCharacterArmour(armour);
   };
 
@@ -135,7 +165,7 @@ export default function Dashboard() {
     return null;
   }
 
-  const campaignMetadata = campaigns.find(c => c.id === campaignId);
+  const campaignMetadata = campaigns.find((c) => c.id === campaignId);
 
   return (
     <>
@@ -152,7 +182,8 @@ export default function Dashboard() {
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">
-              {campaignMetadata?.name || 'Campaign'} <span className="text-primary">Dashboard</span>
+              {campaignMetadata?.name || "Campaign"}{" "}
+              <span className="text-primary">Dashboard</span>
             </h1>
           </div>
 
@@ -189,7 +220,7 @@ export default function Dashboard() {
 
           <div className="mt-8 transition-all duration-500">
             <TabContent
-              campaignId={campaignId || ''}
+              campaignId={campaignId || ""}
               activeTab={tab}
               partyFinances={partyFinances}
               shipFinances={shipFinances}

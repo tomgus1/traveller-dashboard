@@ -1,9 +1,9 @@
 import { ServiceContainer } from "../core/container";
 import {
-    SupabaseAuthRepository,
-    SupabaseCampaignRepository,
-    SupabaseCharacterRepository,
-    SupabaseCampaignDataRepository,
+  SupabaseAuthRepository,
+  SupabaseCampaignRepository,
+  SupabaseCharacterRepository,
+  SupabaseCampaignDataRepository,
 } from "./database";
 import { supabase } from "./database/supabase";
 
@@ -12,12 +12,12 @@ import { supabase } from "./database/supabase";
  * This is the composition root of the application.
  */
 export function initInfrastructure(): void {
-    const container = ServiceContainer.getInstance();
+  const container = ServiceContainer.getInstance();
 
-    container.init({
-        authRepository: new SupabaseAuthRepository(),
-        campaignRepository: new SupabaseCampaignRepository(),
-        characterRepository: new SupabaseCharacterRepository(supabase),
-        campaignDataRepository: new SupabaseCampaignDataRepository(supabase),
-    });
+  container.init({
+    authRepository: new SupabaseAuthRepository(),
+    campaignRepository: new SupabaseCampaignRepository(),
+    characterRepository: new SupabaseCharacterRepository(supabase),
+    campaignDataRepository: new SupabaseCampaignDataRepository(supabase),
+  });
 }

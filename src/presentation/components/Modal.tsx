@@ -61,7 +61,9 @@ export function Modal({
         }
       }}
     >
-      <div className={`card-mgt hud-frame w-full shadow-2xl relative overflow-hidden bg-card/95 backdrop-blur-md animate-hud ${maxWidthClasses[maxWidth]}`}>
+      <div
+        className={`card-mgt hud-frame w-full shadow-2xl relative overflow-hidden bg-card/95 backdrop-blur-md animate-hud ${maxWidthClasses[maxWidth]}`}
+      >
         <div className="mgt-header-bar -mx-6 -mt-6 mb-6">
           <span className="text-xs">{title}</span>
           <button
@@ -71,9 +73,7 @@ export function Modal({
             <X size={16} />
           </button>
         </div>
-        <div className="relative">
-          {children}
-        </div>
+        <div className="relative">{children}</div>
       </div>
     </div>
   );

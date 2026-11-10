@@ -110,9 +110,8 @@ export const useCampaignInvitations = () => {
         }
 
         // Assign character to the campaign (using direct Supabase call for now)
-        const { supabase } = await import(
-          "../../infrastructure/database/supabase"
-        );
+        const { supabase } =
+          await import("../../infrastructure/database/supabase");
         const { error: assignError } = await supabase
           .from("characters")
           .update({ campaign_id: invitation.campaignId })

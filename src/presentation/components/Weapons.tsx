@@ -102,7 +102,9 @@ export default function Weapons({
             <option value="All">All Mission Datasheets</option>
             <option value="Core Rulebook">Core Rulebook</option>
             <option value="High Guard">High Guard</option>
-            <option value="Central Supply Catalogue">Central Supply Catalogue</option>
+            <option value="Central Supply Catalogue">
+              Central Supply Catalogue
+            </option>
             <option value="Mercenary">Mercenary</option>
             <option value="Other">Other</option>
           </FormField>
@@ -160,7 +162,9 @@ export default function Weapons({
           >
             <option value="">Class</option>
             {getWeaponTypes().map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>
+                {type}
+              </option>
             ))}
           </FormField>
           <FormField
@@ -193,18 +197,34 @@ export default function Weapons({
             aria-label="Add new weapon entry to character equipment"
           >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Equip</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Equip
+            </span>
           </button>
         </div>
       </div>
 
       <div className="hud-glass p-0 overflow-hidden">
         <Table
-          columns={["Weapon", "Type", "Damage", "Range", "Mass", "Cost", "Notes"]}
+          columns={[
+            "Weapon",
+            "Type",
+            "Damage",
+            "Range",
+            "Mass",
+            "Cost",
+            "Notes",
+          ]}
           rows={rows.map((row) => ({
             ...row,
-            Weapon: <span className="font-black text-primary uppercase tracking-tight">{row.Weapon}</span>,
-            Damage: <span className="text-red-400 font-bold">{row.Damage}</span>,
+            Weapon: (
+              <span className="font-black text-primary uppercase tracking-tight">
+                {row.Weapon}
+              </span>
+            ),
+            Damage: (
+              <span className="text-red-400 font-bold">{row.Damage}</span>
+            ),
             Range: row.Range ? `${row.Range}` : "N/A",
             Mass: row.Mass ? `${row.Mass} kg` : "0 kg",
           }))}

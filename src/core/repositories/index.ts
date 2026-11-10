@@ -236,4 +236,4 @@ export interface CharacterRepository {
 }
 
 // Export CampaignDataRepository
-export type { CampaignDataRepository } from './CampaignDataRepository';
+export type { CampaignDataRepository } from "./CampaignDataRepository";

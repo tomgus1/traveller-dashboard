@@ -17,10 +17,30 @@ export default function FinanceSummary({
   currentBalance,
 }: FinanceSummaryProps) {
   const items = [
-    { label: "Total Revenue", value: totalIncome, icon: <TrendingUp className="w-4 h-4" />, color: "text-emerald-400" },
-    { label: "Total Outflow", value: totalExpenses, icon: <TrendingDown className="w-4 h-4" />, color: "text-red-400" },
-    { label: "Net Variance", value: netChange, icon: <RefreshCcw className="w-4 h-4" />, color: netChange >= 0 ? "text-emerald-400" : "text-red-400" },
-    { label: "Current Assets", value: currentBalance, icon: <Landmark className="w-4 h-4" />, color: currentBalance >= 0 ? "text-emerald-400" : "text-red-400" },
+    {
+      label: "Total Revenue",
+      value: totalIncome,
+      icon: <TrendingUp className="w-4 h-4" />,
+      color: "text-emerald-400",
+    },
+    {
+      label: "Total Outflow",
+      value: totalExpenses,
+      icon: <TrendingDown className="w-4 h-4" />,
+      color: "text-red-400",
+    },
+    {
+      label: "Net Variance",
+      value: netChange,
+      icon: <RefreshCcw className="w-4 h-4" />,
+      color: netChange >= 0 ? "text-emerald-400" : "text-red-400",
+    },
+    {
+      label: "Current Assets",
+      value: currentBalance,
+      icon: <Landmark className="w-4 h-4" />,
+      color: currentBalance >= 0 ? "text-emerald-400" : "text-red-400",
+    },
   ];
 
   return (
@@ -45,7 +65,9 @@ export default function FinanceSummary({
             </div>
 
             <div className="pl-1">
-              <h4 className={`text-2xl font-black tracking-tight ${item.color}`}>
+              <h4
+                className={`text-2xl font-black tracking-tight ${item.color}`}
+              >
                 {formatCurrency(item.value)}
               </h4>
             </div>
