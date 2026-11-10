@@ -36,3 +36,10 @@ Thumbs.db
 
 # Books references
 books/
+
+# Rust
+/target/
+
+# Catalogue data extracted from the rulebooks (copyrighted; private, loaded into
+# Supabase). The schema and import tool are committed, the data is not.
+/data/catalogue/*.json

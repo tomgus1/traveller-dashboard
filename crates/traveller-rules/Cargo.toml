@@ -1,0 +1,11 @@
+[package]
+name = "traveller-rules"
+version = "0.1.0"
+description = "Mongoose Traveller 2nd edition rules, as pure functions with page-referenced tests"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
