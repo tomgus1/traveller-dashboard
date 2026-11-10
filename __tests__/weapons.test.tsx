@@ -64,16 +64,10 @@ describe("Weapons Component", () => {
     render(<Weapons rows={mockWeapons} onAdd={mockOnAdd} />);
 
     // Check form fields are present
-    expect(
-      screen.getByText("Registry")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Registry")).toBeInTheDocument();
     expect(screen.getByText("Class")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("DMG")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("RNG")
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("DMG")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("RNG")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("WT (kg)")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("CR")).toBeInTheDocument();
 
@@ -112,7 +106,9 @@ describe("Weapons Component", () => {
   it("displays empty state when no weapons", () => {
     render(<Weapons rows={[]} onAdd={mockOnAdd} />);
 
-    expect(screen.getByText("No data available in this section.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No data available in this section.")
+    ).toBeInTheDocument();
   });
 
   it("has proper accessibility attributes", () => {

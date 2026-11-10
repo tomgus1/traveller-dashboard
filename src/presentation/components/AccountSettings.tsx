@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Lock, Mail, User, AlertTriangle, Eye, EyeOff, Monitor, Sun, Moon } from "lucide-react";
+import {
+  Lock,
+  Mail,
+  User,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  Monitor,
+  Sun,
+  Moon,
+} from "lucide-react";
 import { Modal } from "./Modal";
 import FormField from "./FormField";
 import { Button } from "./Button";
@@ -35,9 +45,9 @@ export default function AccountSettings({
   onDeleteAccount,
 }: AccountSettingsProps) {
   const { theme, setTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "display" | "danger">(
-    "profile"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "password" | "display" | "danger"
+  >("profile");
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -156,10 +166,11 @@ export default function AccountSettings({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors border-l-2 ${activeTab === tab.id
-                    ? "bg-primary/10 text-primary border-primary"
-                    : "text-muted hover:text-text-main hover:bg-surface-low border-transparent"
-                    }`}
+                  className={`w-full flex items-center px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors border-l-2 ${
+                    activeTab === tab.id
+                      ? "bg-primary/10 text-primary border-primary"
+                      : "text-muted hover:text-text-main hover:bg-surface-low border-transparent"
+                  }`}
                 >
                   <Icon className="w-3.5 h-3.5 mr-2" />
                   {tab.label}
@@ -173,10 +184,11 @@ export default function AccountSettings({
         <div className="flex-1 pl-8">
           {message && (
             <div
-              className={`mb-4 p-3 text-[10px] font-black uppercase tracking-widest ${message.type === "success"
-                ? "bg-primary/5 text-primary border border-primary"
-                : "bg-accent/5 text-accent border border-accent"
-                }`}
+              className={`mb-4 p-3 text-[10px] font-black uppercase tracking-widest ${
+                message.type === "success"
+                  ? "bg-primary/5 text-primary border border-primary"
+                  : "bg-accent/5 text-accent border border-accent"
+              }`}
             >
               {message.text}
             </div>
@@ -349,52 +361,76 @@ export default function AccountSettings({
                   <button
                     onClick={() => setTheme("light")}
                     type="button"
-                    className={`flex items-center justify-between p-4 border transition-all ${theme === 'light' ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-low border-border hover:border-primary'}`}
+                    className={`flex items-center justify-between p-4 border transition-all ${theme === "light" ? "bg-primary/10 border-primary text-primary" : "bg-surface-low border-border hover:border-primary"}`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`p-2 ${theme === 'light' ? 'bg-primary text-white' : 'bg-side text-muted'}`}>
+                      <div
+                        className={`p-2 ${theme === "light" ? "bg-primary text-white" : "bg-side text-muted"}`}
+                      >
                         <Sun className="w-5 h-5" />
                       </div>
                       <div className="text-left">
-                        <p className="font-black text-xs uppercase tracking-widest">Light HUD</p>
-                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">Optimized for high-light environments</p>
+                        <p className="font-black text-xs uppercase tracking-widest">
+                          Light HUD
+                        </p>
+                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">
+                          Optimized for high-light environments
+                        </p>
                       </div>
                     </div>
-                    {theme === 'light' && <div className="w-1.5 h-1.5 bg-primary animate-pulse" />}
+                    {theme === "light" && (
+                      <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
+                    )}
                   </button>
 
                   <button
                     onClick={() => setTheme("dark")}
                     type="button"
-                    className={`flex items-center justify-between p-4 border transition-all ${theme === 'dark' ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-low border-border hover:border-primary'}`}
+                    className={`flex items-center justify-between p-4 border transition-all ${theme === "dark" ? "bg-primary/10 border-primary text-primary" : "bg-surface-low border-border hover:border-primary"}`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`p-2 ${theme === 'dark' ? 'bg-primary text-white' : 'bg-side text-muted'}`}>
+                      <div
+                        className={`p-2 ${theme === "dark" ? "bg-primary text-white" : "bg-side text-muted"}`}
+                      >
                         <Moon className="w-5 h-5" />
                       </div>
                       <div className="text-left">
-                        <p className="font-black text-xs uppercase tracking-widest">Dark HUD</p>
-                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">Stealth mode for low-light sectors</p>
+                        <p className="font-black text-xs uppercase tracking-widest">
+                          Dark HUD
+                        </p>
+                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">
+                          Stealth mode for low-light sectors
+                        </p>
                       </div>
                     </div>
-                    {theme === 'dark' && <div className="w-1.5 h-1.5 bg-primary animate-pulse" />}
+                    {theme === "dark" && (
+                      <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
+                    )}
                   </button>
 
                   <button
                     onClick={() => setTheme("system")}
                     type="button"
-                    className={`flex items-center justify-between p-4 border transition-all ${theme === 'system' ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-low border-border hover:border-primary'}`}
+                    className={`flex items-center justify-between p-4 border transition-all ${theme === "system" ? "bg-primary/10 border-primary text-primary" : "bg-surface-low border-border hover:border-primary"}`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`p-2 ${theme === 'system' ? 'bg-primary text-white' : 'bg-side text-muted'}`}>
+                      <div
+                        className={`p-2 ${theme === "system" ? "bg-primary text-white" : "bg-side text-muted"}`}
+                      >
                         <Monitor className="w-5 h-5" />
                       </div>
                       <div className="text-left">
-                        <p className="font-black text-xs uppercase tracking-widest">Dynamic Sync</p>
-                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">Inherit system-level display parameters</p>
+                        <p className="font-black text-xs uppercase tracking-widest">
+                          Dynamic Sync
+                        </p>
+                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">
+                          Inherit system-level display parameters
+                        </p>
                       </div>
                     </div>
-                    {theme === 'system' && <div className="w-1.5 h-1.5 bg-primary animate-pulse" />}
+                    {theme === "system" && (
+                      <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
+                    )}
                   </button>
                 </div>
               </div>

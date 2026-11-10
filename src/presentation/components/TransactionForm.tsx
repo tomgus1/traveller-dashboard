@@ -109,7 +109,9 @@ export default function TransactionForm({
           type="button"
         >
           <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Execute</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            Execute
+          </span>
         </button>
       </div>
 
@@ -117,7 +119,10 @@ export default function TransactionForm({
         <div className="mt-4 p-3 bg-accent/10 border border-accent ">
           <ul className="text-[10px] space-y-1">
             {errors.map((error, index) => (
-              <li key={index} className="text-red-400 font-bold uppercase tracking-wider flex items-center gap-2">
+              <li
+                key={index}
+                className="text-red-400 font-bold uppercase tracking-wider flex items-center gap-2"
+              >
                 <div className="w-1 h-1 bg-accent" />
                 {error}
               </li>

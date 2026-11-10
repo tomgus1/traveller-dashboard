@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -7,8 +7,17 @@
   --color-primary-s: 45%;
   --color-primary-l: 35%;
 
-  --color-primary: hsl(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l));
-  --color-primary-glow: hsla(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l), 0.3);
+  --color-primary: hsl(
+    var(--color-primary-h),
+    var(--color-primary-s),
+    var(--color-primary-l)
+  );
+  --color-primary-glow: hsla(
+    var(--color-primary-h),
+    var(--color-primary-s),
+    var(--color-primary-l),
+    0.3
+  );
   --color-accent: #d32f2f;
   /* Red for warnings/errors */
 
@@ -44,8 +53,18 @@
   /* Black text on white cards */
 
   /* HUD Accents */
-  --color-hud-accent: hsla(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l), 0.08);
-  --color-hud-line: hsla(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l), 0.15);
+  --color-hud-accent: hsla(
+    var(--color-primary-h),
+    var(--color-primary-s),
+    var(--color-primary-l),
+    0.08
+  );
+  --color-hud-line: hsla(
+    var(--color-primary-h),
+    var(--color-primary-s),
+    var(--color-primary-l),
+    0.15
+  );
 }
 
 .dark {
@@ -81,20 +100,37 @@
   --color-text-on-surface: #f5f5f5;
   --color-text-on-card: #f5f5f5;
 
-  --color-hud-accent: hsla(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l), 0.12);
-  --color-hud-line: hsla(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l), 0.25);
+  --color-hud-accent: hsla(
+    var(--color-primary-h),
+    var(--color-primary-s),
+    var(--color-primary-l),
+    0.12
+  );
+  --color-hud-line: hsla(
+    var(--color-primary-h),
+    var(--color-primary-s),
+    var(--color-primary-l),
+    0.25
+  );
 }
 
 body {
   @apply bg-white transition-colors duration-500 min-h-screen selection:bg-primary/30;
   background-color: var(--color-main);
   background-image:
-    radial-gradient(circle at 50% 50%, var(--color-hud-accent) 0%, transparent 100%),
+    radial-gradient(
+      circle at 50% 50%,
+      var(--color-hud-accent) 0%,
+      transparent 100%
+    ),
     linear-gradient(var(--color-hud-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-hud-line) 1px, transparent 1px);
-  background-size: 100% 100%, 40px 40px, 40px 40px;
+  background-size:
+    100% 100%,
+    40px 40px,
+    40px 40px;
   color: var(--color-text-main);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
 }
@@ -104,7 +140,7 @@ h2,
 h3,
 h4,
 .font-heading {
-  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   font-weight: 800;
@@ -116,12 +152,12 @@ h4,
   @apply border-2 border-border relative;
 
   &::before {
-    content: '';
+    content: "";
     @apply absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-primary;
   }
 
   &::after {
-    content: '';
+    content: "";
     @apply absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-primary;
   }
 }
@@ -155,8 +191,7 @@ h4,
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%,
-      rgba(0, 0, 0, 0.05) 50%);
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%);
   background-size: 100% 4px;
   z-index: 100;
   opacity: 0.3;

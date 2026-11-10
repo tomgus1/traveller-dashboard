@@ -39,27 +39,31 @@ function AmmoActions({
   onReload?: (index: number) => void;
 }) {
   const isOutOfAmmo = Number(row["Total Rounds"] || 0) <= 0;
-  const canReload = Number(row["Spare Magazines"] || 0) > 0 || Number(row["Loose Rounds"] || 0) > 0;
+  const canReload =
+    Number(row["Spare Magazines"] || 0) > 0 ||
+    Number(row["Loose Rounds"] || 0) > 0;
 
   return (
     <div className="flex gap-2">
       <button
         onClick={() => onFireRound?.(index)}
         disabled={isOutOfAmmo}
-        className={`px-3 py-1.5 font-black text-[10px] uppercase tracking-widest transition-all border ${isOutOfAmmo
-          ? 'bg-surface-low text-muted border-border opacity-50 cursor-not-allowed'
-          : 'bg-accent/10 text-accent hover:bg-accent hover:text-white border-accent shadow-lg shadow-accent/10'
-          }`}
+        className={`px-3 py-1.5 font-black text-[10px] uppercase tracking-widest transition-all border ${
+          isOutOfAmmo
+            ? "bg-surface-low text-muted border-border opacity-50 cursor-not-allowed"
+            : "bg-accent/10 text-accent hover:bg-accent hover:text-white border-accent shadow-lg shadow-accent/10"
+        }`}
       >
         Fire
       </button>
       <button
         onClick={() => onReload?.(index)}
         disabled={!canReload}
-        className={`px-3 py-1.5 font-black text-[10px] uppercase tracking-widest transition-all border ${!canReload
-          ? 'bg-surface-low text-muted border-border opacity-50 cursor-not-allowed'
-          : 'bg-primary/10 text-primary hover:bg-primary hover:text-white border-primary shadow-lg shadow-primary-glow'
-          }`}
+        className={`px-3 py-1.5 font-black text-[10px] uppercase tracking-widest transition-all border ${
+          !canReload
+            ? "bg-surface-low text-muted border-border opacity-50 cursor-not-allowed"
+            : "bg-primary/10 text-primary hover:bg-primary hover:text-white border-primary shadow-lg shadow-primary-glow"
+        }`}
       >
         Reload
       </button>
@@ -133,15 +137,27 @@ export default function Ammo({
 
   const enhancedRows = rows.map((row, index) => ({
     ...row,
-    Weapon: <span className="font-black text-primary uppercase tracking-tight">{row.Weapon}</span>,
-    "Ammo Type": <span className="text-muted font-bold tracking-widest text-[10px] uppercase px-2 py-0.5 bg-surface-low border border-border">{row["Ammo Type"]}</span>,
+    Weapon: (
+      <span className="font-black text-primary uppercase tracking-tight">
+        {row.Weapon}
+      </span>
+    ),
+    "Ammo Type": (
+      <span className="text-muted font-bold tracking-widest text-[10px] uppercase px-2 py-0.5 bg-surface-low border border-border">
+        {row["Ammo Type"]}
+      </span>
+    ),
     "Rounds Loaded": (
       <div className="flex items-center gap-2">
-        <Zap className={`w-3 h-3 ${Number(row["Rounds Loaded"]) > 0 ? 'text-amber-400' : 'text-red-500'}`} />
+        <Zap
+          className={`w-3 h-3 ${Number(row["Rounds Loaded"]) > 0 ? "text-amber-400" : "text-red-500"}`}
+        />
         <span className="font-mono font-bold">{row["Rounds Loaded"]}</span>
       </div>
     ),
-    "Total Rounds": <span className="font-black text-primary">{row["Total Rounds"]}</span>,
+    "Total Rounds": (
+      <span className="font-black text-primary">{row["Total Rounds"]}</span>
+    ),
     Actions: (
       <AmmoActions
         row={row}
@@ -255,7 +271,9 @@ export default function Ammo({
             type="button"
           >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Deploy</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Deploy
+            </span>
           </button>
         </div>
       </div>
@@ -263,7 +281,8 @@ export default function Ammo({
       <div className="flex items-center gap-3 p-3 bg-surface-low border border-border mb-6">
         <Info className="w-4 h-4 text-primary" />
         <p className="text-[10px] font-bold text-muted uppercase tracking-wider">
-          Priority System: Loaded Rounds <span className="text-primary">→</span> Spare Mags <span className="text-primary">→</span> Loose Rounds
+          Priority System: Loaded Rounds <span className="text-primary">→</span>{" "}
+          Spare Mags <span className="text-primary">→</span> Loose Rounds
         </p>
       </div>
 

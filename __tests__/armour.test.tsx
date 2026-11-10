@@ -57,13 +57,9 @@ describe("Armour Component", () => {
     render(<Armour rows={mockArmour} onAdd={mockOnAdd} />);
 
     // Check form fields are present
-    expect(
-      screen.getByText("Registry")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Registry")).toBeInTheDocument();
     expect(screen.getByText("Class")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("PROT")
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("PROT")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("WT (kg)")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("CR")).toBeInTheDocument();
 
@@ -101,7 +97,9 @@ describe("Armour Component", () => {
   it("displays empty state when no armour", () => {
     render(<Armour rows={[]} onAdd={mockOnAdd} />);
 
-    expect(screen.getByText("No data available in this section.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No data available in this section.")
+    ).toBeInTheDocument();
   });
 
   it("handles mixed protection value types (string and number)", () => {

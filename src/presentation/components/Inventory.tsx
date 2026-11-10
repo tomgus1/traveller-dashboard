@@ -52,8 +52,14 @@ export default function Inventory({
     resetForm();
   };
 
-  const totalWeight = rows.reduce((acc, row) => acc + (row["Total Mass (kg)"] || 0), 0);
-  const totalValue = rows.reduce((acc, row) => acc + (row["Total Value (Cr)"] || 0), 0);
+  const totalWeight = rows.reduce(
+    (acc, row) => acc + (row["Total Mass (kg)"] || 0),
+    0
+  );
+  const totalValue = rows.reduce(
+    (acc, row) => acc + (row["Total Value (Cr)"] || 0),
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -67,12 +73,24 @@ export default function Inventory({
           </div>
           <div className="flex gap-4">
             <div className="text-right">
-              <p className="text-[10px] font-black text-muted uppercase tracking-widest">Payload</p>
-              <p className="text-xs font-bold">{totalWeight.toFixed(1)} <span className="text-[10px] text-muted font-black">KG</span></p>
+              <p className="text-[10px] font-black text-muted uppercase tracking-widest">
+                Payload
+              </p>
+              <p className="text-xs font-bold">
+                {totalWeight.toFixed(1)}{" "}
+                <span className="text-[10px] text-muted font-black">KG</span>
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-black text-muted uppercase tracking-widest">Valuation</p>
-              <p className="text-xs font-bold text-emerald-400">{totalValue.toLocaleString()} <span className="text-[10px] text-emerald-500 font-black">CR</span></p>
+              <p className="text-[10px] font-black text-muted uppercase tracking-widest">
+                Valuation
+              </p>
+              <p className="text-xs font-bold text-emerald-400">
+                {totalValue.toLocaleString()}{" "}
+                <span className="text-[10px] text-emerald-500 font-black">
+                  CR
+                </span>
+              </p>
             </div>
           </div>
         </div>
@@ -103,7 +121,9 @@ export default function Inventory({
             type="button"
           >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Register</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              Register
+            </span>
           </button>
         </div>
       </div>

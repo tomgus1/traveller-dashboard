@@ -2,7 +2,14 @@
 import { type ReactNode, type ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "primary" | "secondary" | "outline" | "danger" | "ghost" | "premium";
+  variant?:
+    | "default"
+    | "primary"
+    | "secondary"
+    | "outline"
+    | "danger"
+    | "ghost"
+    | "premium";
   size?: "sm" | "md" | "full";
   children: ReactNode;
 }
@@ -15,10 +22,13 @@ export function Button({
   ...props
 }: ButtonProps) {
   const variantClasses = {
-    default: "bg-surface-mid text-text-main hover:bg-surface-high border border-border",
-    primary: "bg-primary text-white hover:brightness-110 shadow-lg shadow-primary/20",
+    default:
+      "bg-surface-mid text-text-main hover:bg-surface-high border border-border",
+    primary:
+      "bg-primary text-white hover:brightness-110 shadow-lg shadow-primary/20",
     secondary: "bg-side text-white hover:bg-primary border border-white/10",
-    outline: "border-2 border-primary/20 bg-transparent text-primary hover:bg-primary/5",
+    outline:
+      "border-2 border-primary/20 bg-transparent text-primary hover:bg-primary/5",
     danger: "bg-accent hover:brightness-110 text-white border-none",
     ghost: "bg-transparent hover:bg-hud-accent text-text-muted",
     premium: "btn-mgt",
@@ -33,7 +43,7 @@ export function Button({
   const combinedClasses = `
     inline-flex items-center gap-2 transition-all duration-300
     active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-black uppercase tracking-widest text-xs
-    ${variant === 'premium' ? '' : 'rounded-[2px]'}
+    ${variant === "premium" ? "" : "rounded-[2px]"}
     ${variantClasses[variant]}
     ${sizeClasses[size]}
     ${className}

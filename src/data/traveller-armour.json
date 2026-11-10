@@ -40,9 +40,7 @@
       "mass": 3,
       "cost": 100,
       "tl": 5,
-      "traits": [
-        "Bulky"
-      ],
+      "traits": ["Bulky"],
       "notes": "Heavy protective vest",
       "source": "Core Rulebook"
     },
@@ -53,9 +51,7 @@
       "mass": 2,
       "cost": 75,
       "tl": 9,
-      "traits": [
-        "Ablative"
-      ],
+      "traits": ["Ablative"],
       "notes": "Ablative armor against energy weapons",
       "source": "Core Rulebook"
     },
@@ -67,9 +63,7 @@
       "mass": 0.5,
       "cost": 1500,
       "tl": 10,
-      "traits": [
-        "Laser Only"
-      ],
+      "traits": ["Laser Only"],
       "notes": "Reflective coating, only protects vs lasers",
       "source": "Core Rulebook"
     },
@@ -102,9 +96,7 @@
       "mass": 12,
       "cost": 7000,
       "tl": 8,
-      "traits": [
-        "Environment"
-      ],
+      "traits": ["Environment"],
       "notes": "Protects against vacuum and hostile environments",
       "source": "Core Rulebook"
     },
@@ -115,9 +107,7 @@
       "mass": 10,
       "cost": 4000,
       "tl": 8,
-      "traits": [
-        "Environment"
-      ],
+      "traits": ["Environment"],
       "notes": "Standard vacuum protection",
       "source": "Core Rulebook"
     },
@@ -128,10 +118,7 @@
       "mass": 12,
       "cost": 9000,
       "tl": 10,
-      "traits": [
-        "Environment",
-        "Sealed"
-      ],
+      "traits": ["Environment", "Sealed"],
       "notes": "Hazardous Environment Vacc Suit",
       "source": "Core Rulebook"
     },
@@ -142,11 +129,7 @@
       "mass": 20,
       "cost": 200000,
       "tl": 13,
-      "traits": [
-        "Powered",
-        "Sealed",
-        "Environment"
-      ],
+      "traits": ["Powered", "Sealed", "Environment"],
       "notes": "Fully powered combat armor with life support",
       "source": "Core Rulebook"
     },
@@ -157,11 +140,7 @@
       "mass": 18,
       "cost": 250000,
       "tl": 14,
-      "traits": [
-        "Powered",
-        "Sealed",
-        "Environment"
-      ],
+      "traits": ["Powered", "Sealed", "Environment"],
       "notes": "Advanced powered armor",
       "source": "Core Rulebook"
     },
@@ -172,9 +151,7 @@
       "mass": 8,
       "cost": 4500,
       "tl": 9,
-      "traits": [
-        "Zero-G"
-      ],
+      "traits": ["Zero-G"],
       "notes": "Designed for ship boarding operations",
       "source": "Core Rulebook"
     },
@@ -185,9 +162,7 @@
       "mass": 0.5,
       "cost": 500,
       "tl": 9,
-      "traits": [
-        "Concealed"
-      ],
+      "traits": ["Concealed"],
       "notes": "Easily concealed diplomatic protection",
       "source": "Core Rulebook"
     },
@@ -198,10 +173,7 @@
       "mass": 8,
       "cost": 3000,
       "tl": 8,
-      "traits": [
-        "Environment",
-        "Sealed"
-      ],
+      "traits": ["Environment", "Sealed"],
       "notes": "Protection from hostile atmospheres",
       "source": "Core Rulebook"
     },
@@ -212,9 +184,7 @@
       "mass": 4,
       "cost": 500,
       "tl": 6,
-      "traits": [
-        "NBC"
-      ],
+      "traits": ["NBC"],
       "notes": "Nuclear, Biological, Chemical protection",
       "source": "Core Rulebook"
     },
@@ -225,9 +195,7 @@
       "mass": 3,
       "cost": 300,
       "tl": 5,
-      "traits": [
-        "NBC"
-      ],
+      "traits": ["NBC"],
       "notes": "Basic hazmat protection",
       "source": "Core Rulebook"
     },
@@ -238,9 +206,7 @@
       "mass": 2,
       "cost": 20,
       "tl": 1,
-      "traits": [
-        "Melee"
-      ],
+      "traits": ["Melee"],
       "notes": "Personal shield, +2 vs melee attacks",
       "source": "Core Rulebook"
     },
@@ -251,10 +217,7 @@
       "mass": 3,
       "cost": 100,
       "tl": 5,
-      "traits": [
-        "Melee",
-        "Bulky"
-      ],
+      "traits": ["Melee", "Bulky"],
       "notes": "Large shield for riot control",
       "source": "Core Rulebook"
     },
@@ -276,9 +239,7 @@
       "mass": 0.5,
       "cost": 100,
       "tl": 6,
-      "traits": [
-        "Breathing"
-      ],
+      "traits": ["Breathing"],
       "notes": "Filters air, no armor value",
       "source": "Core Rulebook"
     },
@@ -289,9 +250,7 @@
       "mass": 0.2,
       "cost": 150,
       "tl": 8,
-      "traits": [
-        "Breathing"
-      ],
+      "traits": ["Breathing"],
       "notes": "Compact air filter",
       "source": "Core Rulebook"
     },
@@ -335,10 +294,7 @@
       "mass": 10,
       "cost": 8000,
       "tl": 10,
-      "traits": [
-        "Environment",
-        "Zero-G"
-      ],
+      "traits": ["Environment", "Zero-G"],
       "notes": "Armored vacc suit for combat",
       "source": "Core Rulebook"
     },
@@ -349,9 +305,7 @@
       "mass": 5,
       "cost": 2000,
       "tl": 9,
-      "traits": [
-        "Zero-G"
-      ],
+      "traits": ["Zero-G"],
       "notes": "Personal maneuvering in zero-G",
       "source": "Core Rulebook"
     },

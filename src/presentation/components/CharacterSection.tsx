@@ -59,7 +59,8 @@ export default function CharacterSection({
     "profile" | "ledger" | "inventory" | "weapons" | "armour" | "ammo"
   >("profile");
 
-  const { characters, loading, error, updateCharacter } = useCampaignCharacters(campaignId);
+  const { characters, loading, error, updateCharacter } =
+    useCampaignCharacters(campaignId);
 
   const selectedCharacter = characters.find(
     (char) => char.displayName === selectedPc
@@ -77,8 +78,14 @@ export default function CharacterSection({
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">PERSONNEL_FILE</span>
-                  {error && <span className="text-[10px] text-accent font-bold px-1.5 py-0.5 bg-accent/10 border border-accent">OFFLINE</span>}
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                    PERSONNEL_FILE
+                  </span>
+                  {error && (
+                    <span className="text-[10px] text-accent font-bold px-1.5 py-0.5 bg-accent/10 border border-accent">
+                      OFFLINE
+                    </span>
+                  )}
                 </div>
                 <select
                   className="bg-transparent text-2xl font-black tracking-tight border-none p-0 focus:ring-0 cursor-pointer hover:text-primary transition-colors appearance-none"
@@ -90,7 +97,11 @@ export default function CharacterSection({
                     <option>Loading Personnel...</option>
                   ) : (
                     characters.map((character) => (
-                      <option key={character.id} value={character.displayName} className="bg-surface-high">
+                      <option
+                        key={character.id}
+                        value={character.displayName}
+                        className="bg-surface-high"
+                      >
                         {character.displayName}
                       </option>
                     ))
@@ -98,7 +109,7 @@ export default function CharacterSection({
                 </select>
                 {selectedCharacter && (
                   <p className="text-sm text-muted uppercase tracking-widest font-bold mt-1">
-                    {selectedCharacter.characterName || 'Unknown operative'}
+                    {selectedCharacter.characterName || "Unknown operative"}
                   </p>
                 )}
               </div>
@@ -108,15 +119,23 @@ export default function CharacterSection({
               <div className="px-5 py-3 bg-surface-low border border-border flex items-center gap-4">
                 <CreditCard className="w-5 h-5 text-emerald-400" />
                 <div>
-                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">Available Credits</p>
-                  <p className="font-bold text-text-main">{fmtCr(characterBalance)}</p>
+                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">
+                    Available Credits
+                  </p>
+                  <p className="font-bold text-text-main">
+                    {fmtCr(characterBalance)}
+                  </p>
                 </div>
               </div>
               <div className="px-5 py-3 bg-surface-low border border-border flex items-center gap-4">
                 <Activity className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">Status</p>
-                  <p className="font-bold text-text-main uppercase">Mission Ready</p>
+                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">
+                    Status
+                  </p>
+                  <p className="font-bold text-text-main uppercase">
+                    Mission Ready
+                  </p>
                 </div>
               </div>
             </div>
@@ -137,7 +156,13 @@ export default function CharacterSection({
         active={charTab}
         onChange={(id) =>
           setCharTab(
-            id as "profile" | "ledger" | "inventory" | "weapons" | "armour" | "ammo"
+            id as
+              | "profile"
+              | "ledger"
+              | "inventory"
+              | "weapons"
+              | "armour"
+              | "ammo"
           )
         }
       />
@@ -148,15 +173,22 @@ export default function CharacterSection({
           <>
             {/* Bio-Profile / Characteristics */}
             <Characteristics
-              stats={selectedCharacter?.stats || {
-                STR: { value: 0, xp: 0 },
-                DEX: { value: 0, xp: 0 },
-                END: { value: 0, xp: 0 },
-                INT: { value: 0, xp: 0 },
-                EDU: { value: 0, xp: 0 },
-                SOC: { value: 0, xp: 0 },
-              }}
-              onUpdate={(newStats) => selectedCharacter && updateCharacter(selectedCharacter.id, { characteristics: newStats })}
+              stats={
+                selectedCharacter?.stats || {
+                  STR: { value: 0, xp: 0 },
+                  DEX: { value: 0, xp: 0 },
+                  END: { value: 0, xp: 0 },
+                  INT: { value: 0, xp: 0 },
+                  EDU: { value: 0, xp: 0 },
+                  SOC: { value: 0, xp: 0 },
+                }
+              }
+              onUpdate={(newStats) =>
+                selectedCharacter &&
+                updateCharacter(selectedCharacter.id, {
+                  characteristics: newStats,
+                })
+              }
               readonly={false} // Allow editing for now, validation happens on backend
             />
             <div className="mt-8">
@@ -166,7 +198,7 @@ export default function CharacterSection({
                   if (selectedCharacter) {
                     updateCharacter(selectedCharacter.id, {
                       name: selectedCharacter.displayName,
-                      skills: newSkills
+                      skills: newSkills,
                     });
                   }
                 }}

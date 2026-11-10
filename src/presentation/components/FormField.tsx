@@ -15,25 +15,28 @@ interface BaseFormFieldProps {
 
 // Enhanced form field for inputs
 interface InputFormFieldProps
-  extends BaseFormFieldProps,
-  Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "required"> {
+  extends
+    BaseFormFieldProps,
+    Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "required"> {
   type?: "text" | "number" | "date" | "email" | "password";
 }
 
 // Textarea field props
 interface TextareaFormFieldProps
-  extends BaseFormFieldProps,
-  Omit<
-    TextareaHTMLAttributes<HTMLTextAreaElement>,
-    "className" | "required"
-  > {
+  extends
+    BaseFormFieldProps,
+    Omit<
+      TextareaHTMLAttributes<HTMLTextAreaElement>,
+      "className" | "required"
+    > {
   type: "textarea";
 }
 
 // Select field props
 interface SelectFormFieldProps
-  extends BaseFormFieldProps,
-  Omit<SelectHTMLAttributes<HTMLSelectElement>, "className" | "required"> {
+  extends
+    BaseFormFieldProps,
+    Omit<SelectHTMLAttributes<HTMLSelectElement>, "className" | "required"> {
   type: "select";
   children: ReactNode;
 }
@@ -92,8 +95,18 @@ const FormField = forwardRef<
               {children}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="9 5l7 7-7 7" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="9 5l7 7-7 7"
+                />
               </svg>
             </div>
           </div>

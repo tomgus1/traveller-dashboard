@@ -61,14 +61,11 @@ export function useStandaloneCharacters(userId?: string) {
       try {
         const displayName = `${playerName} – ${characterName}`;
 
-        const result = await campaignRepo.createStandaloneCharacter(
-          uId,
-          {
-            name: displayName,
-            playerName,
-            characterName
-          }
-        );
+        const result = await campaignRepo.createStandaloneCharacter(uId, {
+          name: displayName,
+          playerName,
+          characterName,
+        });
 
         if (result.success && result.data) {
           // Transform the result to SimpleCharacter format

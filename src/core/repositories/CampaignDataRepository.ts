@@ -5,18 +5,27 @@ import type {
   LoanRow,
   InventoryRow,
   AmmoRow,
-} from '../../types';
+} from "../../types";
 
 export interface CampaignDataRepository {
   // Campaign Finances
   getCampaignFinances(campaignId: string): Promise<FinanceRow[]>;
-  addCampaignFinance(campaignId: string, finance: Omit<FinanceRow, 'Running Total'>): Promise<FinanceRow>;
-  updateCampaignFinance(id: string, finance: Partial<FinanceRow>): Promise<void>;
+  addCampaignFinance(
+    campaignId: string,
+    finance: Omit<FinanceRow, "Running Total">
+  ): Promise<FinanceRow>;
+  updateCampaignFinance(
+    id: string,
+    finance: Partial<FinanceRow>
+  ): Promise<void>;
   deleteCampaignFinance(id: string): Promise<void>;
 
   // Ship Finances
   getShipFinances(campaignId: string): Promise<FinanceRow[]>;
-  addShipFinance(campaignId: string, finance: Omit<FinanceRow, 'Running Total'>): Promise<FinanceRow>;
+  addShipFinance(
+    campaignId: string,
+    finance: Omit<FinanceRow, "Running Total">
+  ): Promise<FinanceRow>;
   updateShipFinance(id: string, finance: Partial<FinanceRow>): Promise<void>;
   deleteShipFinance(id: string): Promise<void>;
 
@@ -28,8 +37,14 @@ export interface CampaignDataRepository {
 
   // Ship Maintenance
   getShipMaintenance(campaignId: string): Promise<MaintenanceLogRow[]>;
-  addShipMaintenance(campaignId: string, maintenance: MaintenanceLogRow): Promise<MaintenanceLogRow>;
-  updateShipMaintenance(id: string, maintenance: Partial<MaintenanceLogRow>): Promise<void>;
+  addShipMaintenance(
+    campaignId: string,
+    maintenance: MaintenanceLogRow
+  ): Promise<MaintenanceLogRow>;
+  updateShipMaintenance(
+    id: string,
+    maintenance: Partial<MaintenanceLogRow>
+  ): Promise<void>;
   deleteShipMaintenance(id: string): Promise<void>;
 
   // Campaign Loans
@@ -40,8 +55,14 @@ export interface CampaignDataRepository {
 
   // Party Inventory
   getPartyInventory(campaignId: string): Promise<InventoryRow[]>;
-  addPartyInventoryItem(campaignId: string, item: InventoryRow): Promise<InventoryRow>;
-  updatePartyInventoryItem(id: string, item: Partial<InventoryRow>): Promise<void>;
+  addPartyInventoryItem(
+    campaignId: string,
+    item: InventoryRow
+  ): Promise<InventoryRow>;
+  updatePartyInventoryItem(
+    id: string,
+    item: Partial<InventoryRow>
+  ): Promise<void>;
   deletePartyInventoryItem(id: string): Promise<void>;
 
   // Campaign Ammo

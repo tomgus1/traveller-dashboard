@@ -4,7 +4,7 @@ import { supabase } from "../../infrastructure/database/supabase";
 export default function DebugPanel() {
   const [connectionStatus, setConnectionStatus] =
     useState<string>("Testing...");
-  
+
   const envVars = {
     VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
     VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY

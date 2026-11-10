@@ -30,8 +30,8 @@ export default function CharacterManagementContent({
   const [characterError, setCharacterError] = useState<string | null>(null);
 
   // Delete character state (Moved to sub-components where possible, but kept here for campaigns)
-  // Actually, CharacterList handles delete callback, but the logic was here. 
-  // Let's refactor proper handling. 
+  // Actually, CharacterList handles delete callback, but the logic was here.
+  // Let's refactor proper handling.
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [characterToDelete, setCharacterToDelete] = useState<{
     id: string;
@@ -168,7 +168,9 @@ export default function CharacterManagementContent({
       <div className="card-mgt hud-frame p-6">
         <div className="mgt-header-bar -mx-6 -mt-6 mb-6">
           <span className="text-xs">COMMAND ACTIONS</span>
-          <span className="text-[8px] opacity-60 px-1 border border-white/20">CMD // EXE</span>
+          <span className="text-[8px] opacity-60 px-1 border border-white/20">
+            CMD // EXE
+          </span>
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           <Button
@@ -190,7 +192,8 @@ export default function CharacterManagementContent({
         </div>
         {campaigns.length === 0 && (
           <p className="text-[10px] text-accent font-bold uppercase tracking-widest mt-4 text-center border p-2 border-accent/20 bg-accent/5">
-            INIT_ERROR: No active campaigns detected. Create a campaign to unlock personnel management.
+            INIT_ERROR: No active campaigns detected. Create a campaign to
+            unlock personnel management.
           </p>
         )}
       </div>
@@ -324,7 +327,8 @@ export default function CharacterManagementContent({
                 Discharge "{characterToDelete?.name}"?
               </h3>
               <p className="text-[10px] text-muted font-bold uppercase tracking-widest">
-                WARNING: This action is irreversible. All service records and data will be expunged.
+                WARNING: This action is irreversible. All service records and
+                data will be expunged.
               </p>
             </div>
           </div>

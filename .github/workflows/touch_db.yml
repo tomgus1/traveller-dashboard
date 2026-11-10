@@ -1,26 +1,26 @@
 name: Touch Database
 
+# Keeps the free-tier Supabase project from pausing. Fails (and notifies)
+# if the database doesn't answer.
 on:
   schedule:
-    - cron: "0 1 * * *" # Runs at 1 AM every day
-  workflow_dispatch: # Allow manual triggering from GitHub UI
+    - cron: "0 1 * * *" # 01:00 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   touch-db:
     runs-on: ubuntu-latest
-
-    env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
+    timeout-minutes: 5
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js (for curl)
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: "24"
+          persist-credentials: false
 
-      - name: Run script to touch the database
+      - name: Touch database
         run: ./touch_db.sh
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}

@@ -15,10 +15,30 @@ export default function StatsDashboard({
   characterCount,
 }: StatsDashboardProps) {
   const stats = [
-    { label: "Party Fund", value: fmtCr(partyBalance), icon: <Wallet className="w-5 h-5" />, color: "text-primary" },
-    { label: "Ship Fund", value: fmtCr(shipBalance), icon: <Ship className="w-5 h-5" />, color: "text-blue-400" },
-    { label: "Active Cargo", value: cargoLegsCount, icon: <Package className="w-5 h-5" />, color: "text-amber-400" },
-    { label: "Personnel", value: characterCount, icon: <Users className="w-5 h-5" />, color: "text-emerald-400" },
+    {
+      label: "Party Fund",
+      value: fmtCr(partyBalance),
+      icon: <Wallet className="w-5 h-5" />,
+      color: "text-primary",
+    },
+    {
+      label: "Ship Fund",
+      value: fmtCr(shipBalance),
+      icon: <Ship className="w-5 h-5" />,
+      color: "text-blue-400",
+    },
+    {
+      label: "Active Cargo",
+      value: cargoLegsCount,
+      icon: <Package className="w-5 h-5" />,
+      color: "text-amber-400",
+    },
+    {
+      label: "Personnel",
+      value: characterCount,
+      icon: <Users className="w-5 h-5" />,
+      color: "text-emerald-400",
+    },
   ];
 
   return (

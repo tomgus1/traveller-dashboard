@@ -20,7 +20,10 @@ export default function Table({
         <thead>
           <tr className="bg-white/5">
             {columns.map((c) => (
-              <th key={c} className="px-4 py-3 text-xs font-bold tracking-wider text-muted uppercase">
+              <th
+                key={c}
+                className="px-4 py-3 text-xs font-bold tracking-wider text-muted uppercase"
+              >
                 {c}
               </th>
             ))}
@@ -29,7 +32,10 @@ export default function Table({
         <tbody className="animate-in">
           {rows.length === 0 ? (
             <tr>
-              <td className="text-muted p-8 text-center text-sm font-medium" colSpan={columns.length}>
+              <td
+                className="text-muted p-8 text-center text-sm font-medium"
+                colSpan={columns.length}
+              >
                 No data available in this section.
               </td>
             </tr>

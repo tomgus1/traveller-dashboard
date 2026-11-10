@@ -1,13 +1,13 @@
-import { renderHook, waitFor } from '@testing-library/react';
-import { useCampaignData } from '../src/presentation/hooks/useCampaignData';
-import { getCampaignDataRepository } from '../src/core/container';
+import { renderHook, waitFor } from "@testing-library/react";
+import { useCampaignData } from "../src/presentation/hooks/useCampaignData";
+import { getCampaignDataRepository } from "../src/core/container";
 
 //Mock the container
-jest.mock('../src/core/container', () => ({
+jest.mock("../src/core/container", () => ({
   getCampaignDataRepository: jest.fn(),
 }));
 
-describe('useCampaignData', () => {
+describe("useCampaignData", () => {
   let mockRepository: any;
 
   beforeEach(() => {
@@ -31,9 +31,9 @@ describe('useCampaignData', () => {
     jest.clearAllMocks();
   });
 
-  it('should load all campaign data on mount', async () => {
-    const campaignId = 'test-campaign-123';
-    
+  it("should load all campaign data on mount", async () => {
+    const campaignId = "test-campaign-123";
+
     mockRepository.getAllCampaignData.mockResolvedValue({
       finances: [],
       shipFinances: [],
@@ -47,7 +47,9 @@ describe('useCampaignData', () => {
     const { result } = renderHook(() => useCampaignData(campaignId));
 
     await waitFor(() => {
-      expect(mockRepository.getAllCampaignData).toHaveBeenCalledWith(campaignId);
+      expect(mockRepository.getAllCampaignData).toHaveBeenCalledWith(
+        campaignId
+      );
     });
 
     expect(result.current.partyFinances).toEqual([]);
@@ -59,21 +61,23 @@ describe('useCampaignData', () => {
     expect(result.current.campaignAmmo).toEqual([]);
   });
 
-  it('should not load data when campaignId is undefined', () => {
+  it("should not load data when campaignId is undefined", () => {
     renderHook(() => useCampaignData(undefined));
-    
+
     expect(mockRepository.getAllCampaignData).not.toHaveBeenCalled();
   });
 
-  it('should handle errors when loading data', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-    mockRepository.getAllCampaignData.mockRejectedValue(new Error('Load failed'));
+  it("should handle errors when loading data", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+    mockRepository.getAllCampaignData.mockRejectedValue(
+      new Error("Load failed")
+    );
 
-    renderHook(() => useCampaignData('test-campaign'));
+    renderHook(() => useCampaignData("test-campaign"));
 
     await waitFor(() => {
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to load campaign data:',
+        "Failed to load campaign data:",
         expect.any(Error)
       );
     });
@@ -81,7 +85,7 @@ describe('useCampaignData', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('should expose callback functions for adding data', () => {
+  it("should expose callback functions for adding data", () => {
     mockRepository.getAllCampaignData.mockResolvedValue({
       finances: [],
       shipFinances: [],
@@ -92,14 +96,14 @@ describe('useCampaignData', () => {
       ammo: [],
     });
 
-    const { result } = renderHook(() => useCampaignData('test-campaign'));
+    const { result } = renderHook(() => useCampaignData("test-campaign"));
 
-    expect(typeof result.current.addPartyFinance).toBe('function');
-    expect(typeof result.current.addShipFinance).toBe('function');
-    expect(typeof result.current.addCargoLeg).toBe('function');
-    expect(typeof result.current.addShipMaintenance).toBe('function');
-    expect(typeof result.current.addLoan).toBe('function');
-    expect(typeof result.current.addPartyInventoryItem).toBe('function');
-    expect(typeof result.current.addCampaignAmmo).toBe('function');
+    expect(typeof result.current.addPartyFinance).toBe("function");
+    expect(typeof result.current.addShipFinance).toBe("function");
+    expect(typeof result.current.addCargoLeg).toBe("function");
+    expect(typeof result.current.addShipMaintenance).toBe("function");
+    expect(typeof result.current.addLoan).toBe("function");
+    expect(typeof result.current.addPartyInventoryItem).toBe("function");
+    expect(typeof result.current.addCampaignAmmo).toBe("function");
   });
 });

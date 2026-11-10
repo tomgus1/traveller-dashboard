@@ -49,10 +49,11 @@ export function TabsBar({
             key={t.id}
             onClick={() => onChange(t.id)}
             onKeyDown={handleKeyDown}
-            className={`relative px-6 py-2.5 transition-all duration-300 group ${isActive
-              ? 'bg-primary text-white shadow-lg shadow-primary-glow scale-[1.02]'
-              : 'text-muted hover:text-text-main hover:bg-surface-low'
-              }`}
+            className={`relative px-6 py-2.5 transition-all duration-300 group ${
+              isActive
+                ? "bg-primary text-white shadow-lg shadow-primary-glow scale-[1.02]"
+                : "text-muted hover:text-text-main hover:bg-surface-low"
+            }`}
             role="tab"
             aria-selected={isActive}
             aria-controls={`tabpanel-${t.id}`}
