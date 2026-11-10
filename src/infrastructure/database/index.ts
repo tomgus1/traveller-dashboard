@@ -744,7 +744,8 @@ export class SupabaseCampaignRepository implements CampaignRepository {
   ): Promise<OperationResult> {
     // Everyone joins by accepting an invitation, including existing users,
     // so nobody is added to a campaign without consent. The invite-user
-    // Edge Function authorises the caller, records the invitation and emails it.
+    // Edge Function authorises the caller, records the invitation and emails it
+    // when an email provider is configured.
     try {
       const { data, error } = await supabase.functions.invoke<{
         success?: boolean;

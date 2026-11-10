@@ -1,17 +1,17 @@
 // invite-user: lets a campaign admin (any role) or GM (players only) invite
-// someone by email. Creates a campaign_invitations row and sends the email.
+// someone by email. Creates a campaign_invitations row, which the invitee sees
+// in the app when they sign in with that address, and emails them if an email
+// provider is configured.
 //
 // Required secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (provided by
-// Supabase), BREVO_API_KEY, APP_URL (e.g. https://example.com/traveller-dashboard/).
-// Optional: BREVO_SENDER_EMAIL, BREVO_SENDER_NAME, BREVO_TEMPLATE_ID,
+// Supabase), APP_URL (e.g. https://example.com/traveller-dashboard/).
+// Optional: BREVO_API_KEY (no key = no email; invitations still work in-app),
+// BREVO_SENDER_EMAIL, BREVO_SENDER_NAME, BREVO_TEMPLATE_ID,
 // EXTRA_ALLOWED_ORIGINS (comma-separated, e.g. http://localhost:5173).
 //
 // The service-role client bypasses RLS, so every authorisation decision is
 // made explicitly here.
-import {
-  createClient,
-  type SupabaseClient,
-} from "npm:@supabase/supabase-js@2.80.0";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   buildAcceptUrl,
   buildEmail,
@@ -30,14 +30,13 @@ import {
 const required = {
   SUPABASE_URL: Deno.env.get("SUPABASE_URL") ?? "",
   SUPABASE_SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-  BREVO_API_KEY: Deno.env.get("BREVO_API_KEY") ?? "",
   APP_URL: Deno.env.get("APP_URL") ?? "",
 };
 
 const env = {
   supabaseUrl: required.SUPABASE_URL,
   serviceKey: required.SUPABASE_SERVICE_ROLE_KEY,
-  brevoKey: required.BREVO_API_KEY,
+  brevoKey: Deno.env.get("BREVO_API_KEY") ?? "",
   appUrl: required.APP_URL,
   senderEmail: Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@example.com",
   senderName: Deno.env.get("BREVO_SENDER_NAME") ?? "Traveller Dashboard",
@@ -246,6 +245,8 @@ async function sendInvitationEmail(
   campaignName: string,
   invitationId: string
 ): Promise<boolean> {
+  if (!env.brevoKey) return false;
+
   const { data: inviter } = await db
     .from("user_profiles")
     .select("display_name, username")
@@ -306,7 +307,7 @@ async function sendInvitationEmail(
 
 async function inviteUser(
   req: Request
-): Promise<Reject | { invitationId: string }> {
+): Promise<Reject | { invitationId: string; emailSent: boolean }> {
   const db = createClient(env.supabaseUrl, env.serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
@@ -328,30 +329,24 @@ async function inviteUser(
   const invitation = await createInvitation(db, caller.id, input);
   if (invitation instanceof Reject) return invitation;
 
-  // If the email can't be sent, remove the invitation so it can be retried.
-  if (
-    !(await sendInvitationEmail(
-      db,
-      caller.id,
-      input,
-      campaign.name,
-      invitation.id
-    ))
-  ) {
-    await db.from("campaign_invitations").delete().eq("id", invitation.id);
-    return new Reject(
-      502,
-      "The invitation email could not be sent. Please try again."
-    );
-  }
+  // The invitation stands either way: the invitee sees it in the app when they
+  // sign in with that email. The email is just a heads-up.
+  const emailSent = await sendInvitationEmail(
+    db,
+    caller.id,
+    input,
+    campaign.name,
+    invitation.id
+  );
 
   log("invited", {
     caller: caller.id,
     campaignId: input.campaignId,
     invitationId: invitation.id,
     role: input.role,
+    emailSent,
   });
-  return { invitationId: invitation.id };
+  return { invitationId: invitation.id, emailSent };
 }
 
 Deno.serve(async (req) => {
@@ -375,7 +370,7 @@ Deno.serve(async (req) => {
     const result = await inviteUser(req);
     if (result instanceof Reject)
       return respond(result.status, { error: result.error });
-    return respond(200, { success: true, invitationId: result.invitationId });
+    return respond(200, { success: true, ...result });
   } catch (err) {
     log("unhandled", {
       message: err instanceof Error ? err.message : String(err),

@@ -1,5 +1,5 @@
 // Run: deno test supabase/functions/invite-user/
-import { assert, assertEquals, assertFalse } from "jsr:@std/assert@1.0.13";
+import { assert, assertEquals, assertFalse } from "@std/assert";
 import {
   buildAcceptUrl,
   buildEmail,

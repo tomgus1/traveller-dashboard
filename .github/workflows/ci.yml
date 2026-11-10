@@ -73,14 +73,14 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Type-check
-        run: deno check supabase/functions/*/index.ts
-
-      - name: Lint
-        run: deno lint supabase/functions
-
-      - name: Test
-        run: deno test supabase/functions
+      # Each function has its own deno.json, so run from inside its directory.
+      - name: Type-check, lint & test
+        run: |
+          for dir in supabase/functions/*/; do
+            echo "::group::$dir"
+            (cd "$dir" && deno check index.ts && deno lint && deno test)
+            echo "::endgroup::"
+          done
 
   deploy:
     name: Deploy to GitHub Pages
@@ -97,6 +97,47 @@ jobs:
     concurrency:
       group: pages
       cancel-in-progress: false
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  deploy-functions:
+    name: Deploy Edge Functions
+    needs: [deploy]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: supabase-functions
+      cancel-in-progress: false
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      APP_URL: ${{ needs.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.122.0
+
+      - name: Resolve project
+        run: |
+          # https://<ref>.supabase.co -> <ref>
+          ref=$(printf '%s' "$SUPABASE_URL" | sed -E 's#^https://([a-z0-9]+)\.supabase\.co/?$#\1#')
+          if [ -z "$ref" ] || [ "$ref" = "$SUPABASE_URL" ]; then
+            echo "::error::VITE_SUPABASE_URL is not a https://<ref>.supabase.co URL"
+            exit 1
+          fi
+          echo "PROJECT_REF=$ref" >> "$GITHUB_ENV"
+
+      # Set secrets before deploying so the new code never runs without them.
+      - name: Set function secrets
+        run: supabase secrets set --project-ref "$PROJECT_REF" APP_URL="$APP_URL"
+
+      - name: Deploy
+        run: supabase functions deploy --project-ref "$PROJECT_REF" --use-api

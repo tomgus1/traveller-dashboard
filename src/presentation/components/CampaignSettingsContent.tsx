@@ -158,7 +158,9 @@ export default function CampaignSettingsContent({
 
       if (result.success) {
         // They join once they accept, so they won't appear in the list yet.
-        setAddMemberNotice(`Invitation sent to ${newMemberEmail.trim()}`);
+        setAddMemberNotice(
+          `Invited ${newMemberEmail.trim()}. They'll see the invitation when they sign in with that email.`
+        );
         // Reset form
         setNewMemberEmail("");
         setNewMemberRoles({
