@@ -19,6 +19,8 @@ export default {
     '**/__tests__/**/*.(ts|tsx)',
     '**/*.(test|spec).(ts|tsx)'
   ],
+  // Edge Functions are Deno code with their own tests (deno test)
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/supabase/'],
   collectCoverageFrom: [
     'src/**/*.(ts|tsx)',
     '!src/**/*.d.ts',
@@ -50,6 +52,5 @@ export default {
     '!src/main.tsx',
     '!src/vite-env.d.ts',
     '!src/infrastructure/database/supabase.ts', // Skip due to import.meta issues
-    '!src/presentation/components/DebugPanel.tsx' // Skip debug component
   ]
 };

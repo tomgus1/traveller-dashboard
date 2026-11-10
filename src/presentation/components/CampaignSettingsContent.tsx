@@ -83,6 +83,7 @@ export default function CampaignSettingsContent({
     isPlayer: true, // Default to player
   });
   const [addMemberError, setAddMemberError] = useState<string | null>(null);
+  const [addMemberNotice, setAddMemberNotice] = useState<string | null>(null);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,6 +157,8 @@ export default function CampaignSettingsContent({
       );
 
       if (result.success) {
+        // They join once they accept, so they won't appear in the list yet.
+        setAddMemberNotice(`Invitation sent to ${newMemberEmail.trim()}`);
         // Reset form
         setNewMemberEmail("");
         setNewMemberRoles({
@@ -427,13 +430,21 @@ export default function CampaignSettingsContent({
           )}
 
           <div className="mt-6 pt-4 border-t border-gray-200 dark:border-zinc-700">
+            {addMemberNotice && (
+              <p className="mb-3 text-sm text-green-600 dark:text-green-400">
+                {addMemberNotice}
+              </p>
+            )}
             <Button
               variant="primary"
               className="w-full justify-center"
-              onClick={() => setShowAddMember(true)}
+              onClick={() => {
+                setAddMemberNotice(null);
+                setShowAddMember(true);
+              }}
             >
               <UserPlus className="w-4 h-4" />
-              Add Member
+              Invite Member
             </Button>
           </div>
         </div>
@@ -452,7 +463,7 @@ export default function CampaignSettingsContent({
           });
           setAddMemberError(null);
         }}
-        title="Add Campaign Member"
+        title="Invite Campaign Member"
       >
         <form onSubmit={handleAddMember} className="space-y-4">
           <div>
@@ -496,7 +507,7 @@ export default function CampaignSettingsContent({
               setAddMemberError(null);
             }}
             cancelText="Cancel"
-            confirmText={addingMember ? "Adding..." : "Add Member"}
+            confirmText={addingMember ? "Sending..." : "Send Invitation"}
             confirmDisabled={addingMember || !newMemberEmail.trim()}
             confirmType="submit"
             isLoading={addingMember}

@@ -1,4 +1,6 @@
 import {
+  canAdministerMembers,
+  canInviteRole,
   canManageMembers,
   canUpdateCampaign,
   canDeleteCampaign,
@@ -19,6 +21,42 @@ describe("Permission Utilities", () => {
 
     it("should not allow player to manage members", () => {
       expect(canManageMembers("player")).toBe(false);
+    });
+  });
+
+  describe("canInviteRole", () => {
+    const roles: CampaignRole[] = ["admin", "gm", "player"];
+
+    it("lets admins invite any role", () => {
+      for (const role of roles) {
+        expect(canInviteRole("admin", role)).toBe(true);
+        expect(
+          canInviteRole({ isAdmin: true, isGm: false, isPlayer: false }, role)
+        ).toBe(true);
+      }
+    });
+
+    it("lets GMs invite players only", () => {
+      expect(canInviteRole("gm", "player")).toBe(true);
+      expect(canInviteRole("gm", "gm")).toBe(false);
+      expect(canInviteRole("gm", "admin")).toBe(false);
+    });
+
+    it("doesn't let players invite anyone", () => {
+      for (const role of roles) {
+        expect(canInviteRole("player", role)).toBe(false);
+      }
+    });
+  });
+
+  describe("canAdministerMembers", () => {
+    it("is admin only", () => {
+      expect(canAdministerMembers("admin")).toBe(true);
+      expect(canAdministerMembers("gm")).toBe(false);
+      expect(canAdministerMembers("player")).toBe(false);
+      expect(
+        canAdministerMembers({ isAdmin: false, isGm: true, isPlayer: true })
+      ).toBe(false);
     });
   });
 

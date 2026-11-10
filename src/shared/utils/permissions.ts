@@ -40,6 +40,35 @@ export function canManageMembers(
 }
 
 /**
+ * Checks if the user may invite someone with the given role.
+ * Admins can invite any role; GMs can invite players only.
+ * Mirrors the invite-user Edge Function, which enforces it server-side.
+ */
+export function canInviteRole(
+  userRoles: CampaignRoles | CampaignRole,
+  role: CampaignRole
+): boolean {
+  const roles =
+    typeof userRoles === "string" ? roleToRoles(userRoles) : userRoles;
+  if (roles.isAdmin) return true;
+  if (roles.isGm) return role === "player";
+  return false;
+}
+
+/**
+ * Checks if the user may change other members' roles or remove them.
+ * Admin only; mirrors the campaign_members RLS policies.
+ */
+export function canAdministerMembers(
+  userRoles: CampaignRoles | CampaignRole
+): boolean {
+  if (typeof userRoles === "string") {
+    return userRoles === "admin";
+  }
+  return userRoles.isAdmin;
+}
+
+/**
  * Checks if user roles can update campaign settings
  * @param userRoles User's roles in the campaign or single role (backward compatibility)
  * @returns True if user can update campaign
