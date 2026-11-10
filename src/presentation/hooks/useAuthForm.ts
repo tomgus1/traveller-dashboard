@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./useAuth";
+import { userMessage } from "../../shared/utils/userMessage";
 
 export function useAuthForm() {
   const [view, setView] = useState<"sign_in" | "sign_up">("sign_in");
@@ -31,7 +32,7 @@ export function useAuthForm() {
         }
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "An error occurred");
+      setMessage(userMessage(error, "An error occurred"));
     } finally {
       setLoading(false);
     }

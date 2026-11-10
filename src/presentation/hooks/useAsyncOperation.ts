@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { userMessage } from "../../shared/utils/userMessage";
 
 /**
  * Generic hook for handling async operations with loading, error states, and data management
@@ -30,8 +31,7 @@ export function useAsyncOperation<T, TParams extends unknown[] = []>() {
         setError(errorMsg);
         return { success: false, error: errorMsg };
       } catch (err) {
-        const errorMsg =
-          err instanceof Error ? err.message : "An unexpected error occurred";
+        const errorMsg = userMessage(err, "An unexpected error occurred");
         setError(errorMsg);
         return { success: false, error: errorMsg };
       } finally {
@@ -92,8 +92,7 @@ export function useAsyncList<T, TParams extends unknown[] = []>() {
         setError(errorMsg);
         return { success: false, error: errorMsg };
       } catch (err) {
-        const errorMsg =
-          err instanceof Error ? err.message : "An unexpected error occurred";
+        const errorMsg = userMessage(err, "An unexpected error occurred");
         setError(errorMsg);
         return { success: false, error: errorMsg };
       } finally {

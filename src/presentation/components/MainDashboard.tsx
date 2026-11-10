@@ -22,9 +22,43 @@ import type {
 } from "../../core/entities";
 import { getPrimaryRole } from "../../shared/utils/roleHelpers";
 
+type DashboardView = "home" | "campaigns" | "characters";
+
+const VIEWS: Record<string, DashboardView> = {
+  "/": "home",
+  "/campaigns": "campaigns",
+  "/characters": "characters",
+};
+
+const HEADINGS: Record<
+  DashboardView,
+  { lead: string; accent: string; subtitle: string }
+> = {
+  home: {
+    lead: "Mission",
+    accent: "Control",
+    subtitle: "System Online. Welcome back, Commissioner.",
+  },
+  campaigns: {
+    lead: "Tactical",
+    accent: "Campaigns",
+    subtitle: "Active theater operations and deployment logs.",
+  },
+  characters: {
+    lead: "Personnel",
+    accent: "Roster",
+    subtitle: "Active personnel and biological signatures detected.",
+  },
+};
+
 export default function MainDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const view = VIEWS[location.pathname] ?? "home";
+  const isHome = view === "home";
+  const showCampaigns = view !== "characters";
+  const showCharacters = view !== "campaigns";
+  const heading = HEADINGS[view];
   const {
     campaigns,
     loading,
@@ -153,30 +187,10 @@ export default function MainDashboard() {
       <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 animate-hud">
         <div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-2">
-            {location.pathname === "/" && (
-              <>
-                Mission <span className="text-primary">Control</span>
-              </>
-            )}
-            {location.pathname === "/campaigns" && (
-              <>
-                Tactical <span className="text-primary">Campaigns</span>
-              </>
-            )}
-            {location.pathname === "/characters" && (
-              <>
-                Personnel <span className="text-primary">Roster</span>
-              </>
-            )}
+            {heading.lead}{" "}
+            <span className="text-primary">{heading.accent}</span>
           </h1>
-          <p className="text-lg text-muted font-medium">
-            {location.pathname === "/" &&
-              "System Online. Welcome back, Commissioner."}
-            {location.pathname === "/campaigns" &&
-              "Active theater operations and deployment logs."}
-            {location.pathname === "/characters" &&
-              "Active personnel and biological signatures detected."}
-          </p>
+          <p className="text-lg text-muted font-medium">{heading.subtitle}</p>
         </div>
       </div>
 
@@ -192,11 +206,10 @@ export default function MainDashboard() {
 
           {/* Left Column: Activity & Overview */}
           <div className="lg:col-span-8 space-y-8">
-            {(location.pathname === "/" ||
-              location.pathname === "/campaigns") && (
+            {showCampaigns && (
               <>
                 {/* Recent Activity Section */}
-                {location.pathname === "/" && (
+                {isHome && (
                   <div className="animate-hud delay-100">
                     <RecentActivityCard
                       campaigns={campaigns}
@@ -223,7 +236,7 @@ export default function MainDashboard() {
               </>
             )}
 
-            {location.pathname === "/characters" && (
+            {view === "characters" && (
               <div className="animate-hud">
                 <CharacterManagementGrid
                   campaigns={campaigns}
@@ -243,8 +256,7 @@ export default function MainDashboard() {
                 Quick Actions
               </h2>
               <div className="grid gap-4">
-                {(location.pathname === "/" ||
-                  location.pathname === "/campaigns") && (
+                {showCampaigns && (
                   <QuickActionCard
                     title="New Campaign"
                     description="Deploy a new mission"
@@ -252,8 +264,7 @@ export default function MainDashboard() {
                     onClick={() => setShowCreateCampaignModal(true)}
                   />
                 )}
-                {(location.pathname === "/" ||
-                  location.pathname === "/characters") && (
+                {showCharacters && (
                   <QuickActionCard
                     title="Characters"
                     description="Active personnel"
@@ -265,7 +276,7 @@ export default function MainDashboard() {
             </div>
 
             {/* Campaign Invitations Section */}
-            {location.pathname === "/" && (
+            {isHome && (
               <div className="animate-hud delay-200">
                 <CampaignInvitations
                   onInvitationAccepted={() => {
@@ -278,7 +289,7 @@ export default function MainDashboard() {
         </div>
 
         {/* Full Width Footer Section: Character Overview (Only on home) */}
-        {location.pathname === "/" && campaigns.length > 0 && (
+        {isHome && campaigns.length > 0 && (
           <div className="animate-hud delay-300">
             <CharacterManagementGrid
               campaigns={campaigns}

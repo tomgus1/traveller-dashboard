@@ -7,20 +7,25 @@ on:
     - cron: "0 1 * * *" # 01:00 UTC daily
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   touch-db:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
+      # limit=0 keeps the response empty; RLS means the anon key sees no rows
+      # anyway. --fail exits non-zero on HTTP errors as well as network errors.
       - name: Touch database
-        run: ./touch_db.sh
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY secrets must be set"
+            exit 1
+          fi
+          status=$(curl -sS --fail --max-time 30 -o /dev/null -w '%{http_code}' \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/campaigns?select=id&limit=0")
+          echo "Database touched (HTTP $status)"

@@ -17,11 +17,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "pnpm lint:check && pnpm type-check && pnpm test:coverage && vite build",
+    "build": "pnpm lint && pnpm type-check && pnpm test:coverage && vite build",
     "type-check": "tsc -b --noEmit",
     "lint": "oxlint --max-warnings 0",
     "lint:fix": "oxlint --fix",
-    "lint:check": "oxlint --max-warnings 5",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "test": "jest",
