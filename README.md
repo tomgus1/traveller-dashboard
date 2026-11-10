@@ -142,18 +142,20 @@ Data persists in PostgreSQL database via Supabase. XLSX format ensures universal
 
 ---
 
-## Deploy to GitHub Pages
+## CI & Deployment
 
-```bash
-# vite.config.ts - set your repo name
-export default defineConfig({
-  plugins: [react()],
-  base: "/traveller-dashboard/",
-});
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push:
+format check → lint → type-check → tests → build.
 
-# Deploy
-pnpm deploy:pages
-```
+Pushes to `main` that pass are deployed to GitHub Pages automatically. There is no
+manual deploy step. A failed check or deploy fails the run, and GitHub emails you.
+
+Setup (once):
+
+- **Settings → Pages → Source**: _GitHub Actions_
+- **Settings → Secrets → Actions**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+  (used by the build and by the daily `touch_db` keep-alive)
+- `base` in `vite.config.ts` must match the repo name (`/traveller-dashboard/`)
 
 ---
 
