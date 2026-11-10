@@ -1,0 +1,374 @@
+/*
+ * Rulebook style: light like the inside pages, dark like the covers.
+ * Follows the device theme. All text/background pairs meet WCAG AA.
+ */
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --alt: #f3f3f3;
+  --ink: #111111;
+  --muted: #555555;
+  --rule: #d0d0d0;
+  --bar: #1c1c1c; /* table header bars */
+  --bar-ink: #ffffff;
+  --red: #c8102e; /* accents and warnings, as text */
+  --btn: #c8102e; /* behind white text */
+  --ok: #1d6b33;
+  --top: #111111;
+  --top-ink: #ffffff;
+  --top-muted: #bdbdbd;
+  --focus: #c8102e;
+
+  --heading: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: Arimo, Arial, Helvetica, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c0c0c;
+    --alt: #171717;
+    --ink: #f2f2f2;
+    --muted: #a8a8a8;
+    --rule: #333333;
+    --bar: #b0001c;
+    --bar-ink: #ffffff;
+    --red: #ff4757;
+    --btn: #b0001c;
+    --ok: #5cc97a;
+    --top: #000000;
+    --top-ink: #f2f2f2;
+    --top-muted: #a8a8a8;
+    --focus: #ff4757;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Header bar */
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 28px;
+  background: var(--top);
+  color: var(--top-ink);
+  border-bottom: 4px solid var(--red);
+}
+
+.brand {
+  padding: 10px 0;
+  font-family: var(--heading);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 16px;
+  color: var(--top-muted);
+  text-decoration: none;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nav a:hover,
+.nav a.active {
+  color: #ffffff;
+}
+
+.nav a.active {
+  background: var(--btn);
+}
+
+.top-action {
+  min-height: 40px;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--top-ink);
+  border: 1px solid var(--top-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Page */
+.page {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 64px 48px 28px;
+}
+
+.page.narrow {
+  max-width: 460px;
+  padding-right: 28px;
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 24px 16px 40px;
+  }
+}
+
+/* Section name down the page edge, as on the rulebook pages */
+.edge-tab {
+  display: none;
+  position: fixed;
+  right: 0;
+  top: 150px;
+  width: 40px;
+  height: 260px;
+  align-items: center;
+  justify-content: center;
+  background: var(--btn);
+  color: #ffffff;
+}
+
+.edge-tab span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 1100px) {
+  .edge-tab {
+    display: flex;
+  }
+}
+
+/* Type */
+.display {
+  margin: 0 0 8px;
+  font-family: var(--heading);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 56px;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.section {
+  margin: 28px 0 10px;
+  font-family: var(--heading);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 26px;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.strong {
+  font-weight: 700;
+}
+
+.error {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.label {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+}
+
+.upp {
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.06em;
+}
+
+.upp.big {
+  font-size: 34px;
+}
+
+/* Tables: dark header bar, ruled rows */
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.data th {
+  padding: 5px 10px;
+  background: var(--bar);
+  color: var(--bar-ink);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+table.data td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+table.data .num {
+  text-align: right;
+}
+
+table.data tbody tr:nth-child(even) {
+  background: var(--alt);
+}
+
+/* Character sheet */
+.sheet-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.upp-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border: 1px solid var(--rule);
+}
+
+.stat {
+  padding: 10px 6px 12px;
+  text-align: center;
+  border-right: 1px solid var(--rule);
+}
+
+.stat p {
+  margin: 0;
+}
+
+.stat-key {
+  padding: 2px 0;
+  background: var(--bar);
+  color: var(--bar-ink);
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.12em;
+}
+
+.stat-value {
+  margin-top: 6px !important;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1;
+}
+
+.stat-dm {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .display {
+    font-size: 40px;
+  }
+}
+
+/* Forms and buttons */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.form label {
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.form input {
+  min-height: 44px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 2px solid var(--muted);
+  font: inherit;
+  font-size: 16px;
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0 20px;
+  background: var(--btn);
+  color: #ffffff;
+  border: none;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

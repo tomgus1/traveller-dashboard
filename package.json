@@ -17,6 +17,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:rust": "scripts/dev-rust.sh",
     "build": "pnpm lint && pnpm type-check && pnpm test:coverage && vite build",
     "type-check": "tsc -b --noEmit",
     "lint": "oxlint --max-warnings 0",
