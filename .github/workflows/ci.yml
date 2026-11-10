@@ -121,12 +121,25 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
-        with:
-          version: 2.122.0
+      # Installed from the release directly: supabase/setup-cli runs npm in the
+      # repo, which our devEngines (pnpm only) rejects.
+      - name: Install Supabase CLI
+        env:
+          CLI_VERSION: 2.122.0
+        run: |
+          base="https://github.com/supabase/cli/releases/download/v$CLI_VERSION"
+          file="supabase_${CLI_VERSION}_linux_amd64.tar.gz"
+          cd "$RUNNER_TEMP"
+          curl -fsSLO "$base/$file"
+          curl -fsSL "$base/checksums.txt" | grep " $file\$" | sha256sum -c -
+          tar -xzf "$file" supabase
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
 
       - name: Resolve project
         run: |
+          # Pages may report http://; the browser origin is always https.
+          echo "APP_URL=$(printf '%s' "$APP_URL" | sed -E 's#^http://#https://#')" >> "$GITHUB_ENV"
+
           # https://<ref>.supabase.co -> <ref>
           ref=$(printf '%s' "$SUPABASE_URL" | sed -E 's#^https://([a-z0-9]+)\.supabase\.co/?$#\1#')
           if [ -z "$ref" ] || [ "$ref" = "$SUPABASE_URL" ]; then
