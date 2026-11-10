@@ -40,7 +40,7 @@ jobs:
         run: pnpm format:check
 
       - name: Lint
-        run: pnpm lint:check
+        run: pnpm lint
 
       - name: Type-check
         run: pnpm type-check

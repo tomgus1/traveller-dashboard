@@ -10,13 +10,12 @@ Both run in milliseconds on the whole repo.
 ## Scripts
 
 ```bash
-pnpm lint            # Lint, 0 warnings allowed
-pnpm lint:check      # Lint, up to 5 warnings allowed (used by `pnpm build`)
+pnpm lint            # Lint, 0 warnings allowed (used by `pnpm build` and CI)
 pnpm lint:fix        # Apply safe auto-fixes
 pnpm format          # Format all files
 pnpm format:check    # Check formatting without writing
 pnpm type-check      # tsc, no emit
-pnpm build           # lint:check → type-check → tests → vite build
+pnpm build           # lint → type-check → tests → vite build
 ```
 
 ## Rules

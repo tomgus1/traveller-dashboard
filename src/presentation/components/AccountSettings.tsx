@@ -9,11 +9,12 @@ import {
   Monitor,
   Sun,
   Moon,
+  type LucideIcon,
 } from "lucide-react";
 import { Modal } from "./Modal";
 import FormField from "./FormField";
 import { Button } from "./Button";
-import { useTheme } from "../../context/ThemeContext";
+import { useTheme, type ThemeMode } from "../../context/theme";
 import {
   validatePassword,
   getPasswordStrengthText,
@@ -35,6 +36,107 @@ interface AccountSettingsProps {
   }) => Promise<void>;
   onChangePassword: (data: ChangePasswordRequest) => Promise<void>;
   onDeleteAccount: () => void;
+}
+
+const THEME_OPTIONS: {
+  mode: ThemeMode;
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}[] = [
+  {
+    mode: "light",
+    icon: Sun,
+    title: "Light HUD",
+    description: "Optimized for high-light environments",
+  },
+  {
+    mode: "dark",
+    icon: Moon,
+    title: "Dark HUD",
+    description: "Stealth mode for low-light sectors",
+  },
+  {
+    mode: "system",
+    icon: Monitor,
+    title: "Dynamic Sync",
+    description: "Inherit system-level display parameters",
+  },
+];
+
+function ThemeOption({
+  icon: Icon,
+  title,
+  description,
+  selected,
+  onSelect,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      type="button"
+      className={`flex items-center justify-between p-4 border transition-all ${selected ? "bg-primary/10 border-primary text-primary" : "bg-surface-low border-border hover:border-primary"}`}
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className={`p-2 ${selected ? "bg-primary text-white" : "bg-side text-muted"}`}
+        >
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="text-left">
+          <p className="font-black text-xs uppercase tracking-widest">
+            {title}
+          </p>
+          <p className="text-[8px] font-bold uppercase tracking-widest text-muted">
+            {description}
+          </p>
+        </div>
+      </div>
+      {selected && <div className="w-1.5 h-1.5 bg-primary animate-pulse" />}
+    </button>
+  );
+}
+
+function PasswordInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <FormField
+        label={label}
+        type={visible ? "text" : "password"}
+        value={value}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          onChange(e.target.value)
+        }
+        placeholder={placeholder}
+        required
+      />
+      <button
+        type="button"
+        onClick={() => setVisible(!visible)}
+        aria-label={visible ? "Hide password" : "Show password"}
+        className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+      >
+        {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+      </button>
+    </div>
+  );
 }
 
 export default function AccountSettings({
@@ -64,9 +166,6 @@ export default function AccountSettings({
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const passwordValidation = validatePassword(newPassword);
 
@@ -238,53 +337,19 @@ export default function AccountSettings({
 
           {activeTab === "password" && (
             <form onSubmit={handleChangePassword} className="space-y-4">
-              <div className="relative">
-                <FormField
-                  label="Current Password"
-                  type={showCurrentPassword ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setCurrentPassword(e.target.value)
-                  }
-                  placeholder="Enter your current password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showCurrentPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                label="Current Password"
+                value={currentPassword}
+                onChange={setCurrentPassword}
+                placeholder="Enter your current password"
+              />
 
-              <div className="relative">
-                <FormField
-                  label="New Password"
-                  type={showNewPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setNewPassword(e.target.value)
-                  }
-                  placeholder="Enter your new password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showNewPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                label="New Password"
+                value={newPassword}
+                onChange={setNewPassword}
+                placeholder="Enter your new password"
+              />
 
               {newPassword && (
                 <div className="space-y-2">
@@ -312,29 +377,12 @@ export default function AccountSettings({
                 </div>
               )}
 
-              <div className="relative">
-                <FormField
-                  label="Confirm New Password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setConfirmPassword(e.target.value)
-                  }
-                  placeholder="Confirm your new password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                label="Confirm New Password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                placeholder="Confirm your new password"
+              />
 
               <Button
                 type="submit"
@@ -357,80 +405,14 @@ export default function AccountSettings({
                   Tactical Interface
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
-                  <button
-                    onClick={() => setTheme("light")}
-                    type="button"
-                    className={`flex items-center justify-between p-4 border transition-all ${theme === "light" ? "bg-primary/10 border-primary text-primary" : "bg-surface-low border-border hover:border-primary"}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`p-2 ${theme === "light" ? "bg-primary text-white" : "bg-side text-muted"}`}
-                      >
-                        <Sun className="w-5 h-5" />
-                      </div>
-                      <div className="text-left">
-                        <p className="font-black text-xs uppercase tracking-widest">
-                          Light HUD
-                        </p>
-                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">
-                          Optimized for high-light environments
-                        </p>
-                      </div>
-                    </div>
-                    {theme === "light" && (
-                      <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => setTheme("dark")}
-                    type="button"
-                    className={`flex items-center justify-between p-4 border transition-all ${theme === "dark" ? "bg-primary/10 border-primary text-primary" : "bg-surface-low border-border hover:border-primary"}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`p-2 ${theme === "dark" ? "bg-primary text-white" : "bg-side text-muted"}`}
-                      >
-                        <Moon className="w-5 h-5" />
-                      </div>
-                      <div className="text-left">
-                        <p className="font-black text-xs uppercase tracking-widest">
-                          Dark HUD
-                        </p>
-                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">
-                          Stealth mode for low-light sectors
-                        </p>
-                      </div>
-                    </div>
-                    {theme === "dark" && (
-                      <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => setTheme("system")}
-                    type="button"
-                    className={`flex items-center justify-between p-4 border transition-all ${theme === "system" ? "bg-primary/10 border-primary text-primary" : "bg-surface-low border-border hover:border-primary"}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`p-2 ${theme === "system" ? "bg-primary text-white" : "bg-side text-muted"}`}
-                      >
-                        <Monitor className="w-5 h-5" />
-                      </div>
-                      <div className="text-left">
-                        <p className="font-black text-xs uppercase tracking-widest">
-                          Dynamic Sync
-                        </p>
-                        <p className="text-[8px] font-bold uppercase tracking-widest text-muted">
-                          Inherit system-level display parameters
-                        </p>
-                      </div>
-                    </div>
-                    {theme === "system" && (
-                      <div className="w-1.5 h-1.5 bg-primary animate-pulse" />
-                    )}
-                  </button>
+                  {THEME_OPTIONS.map((option) => (
+                    <ThemeOption
+                      key={option.mode}
+                      {...option}
+                      selected={theme === option.mode}
+                      onSelect={() => setTheme(option.mode)}
+                    />
+                  ))}
                 </div>
               </div>
             </div>

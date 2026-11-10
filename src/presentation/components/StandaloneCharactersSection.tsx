@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit, UserPlus, Trash2, User } from "lucide-react";
 import { useStandaloneCharacters } from "../hooks/useStandaloneCharacters";
 import type { CampaignWithMeta } from "../../core/entities";
 import { useAuth } from "../hooks/useAuth";
 import { MgTCard } from "./MgTCard";
+import { Modal, ModalFooter } from "./Modal";
 
 interface StandaloneCharactersSectionProps {
   campaigns: CampaignWithMeta[];
@@ -18,14 +20,19 @@ export function StandaloneCharactersSection({
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!user) return;
-    if (
-      window.confirm(
-        `Are you sure you want to delete personnel record: ${name}?`
-      )
-    ) {
-      await deleteCharacter(id, user.id);
+  const [toDelete, setToDelete] = useState<{ id: string; name: string } | null>(
+    null
+  );
+  const [deleting, setDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!user || !toDelete) return;
+    try {
+      setDeleting(true);
+      await deleteCharacter(toDelete.id, user.id);
+      setToDelete(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -84,10 +91,10 @@ export function StandaloneCharactersSection({
 
               <button
                 onClick={() =>
-                  handleDelete(
-                    character.id,
-                    character.characterName || "Unnamed"
-                  )
+                  setToDelete({
+                    id: character.id,
+                    name: character.characterName || "Unnamed",
+                  })
                 }
                 className="w-full flex items-center justify-center gap-2 p-2 text-accent hover:bg-accent/10 text-[10px] font-black uppercase tracking-wider transition-colors"
               >
@@ -98,6 +105,27 @@ export function StandaloneCharactersSection({
           </MgTCard>
         ))}
       </div>
+
+      <Modal
+        isOpen={toDelete !== null}
+        onClose={() => setToDelete(null)}
+        title="DELETE RECORD"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-text-main">
+            Delete personnel record "{toDelete?.name}"? This can't be undone.
+          </p>
+          <ModalFooter
+            onCancel={() => setToDelete(null)}
+            cancelText="CANCEL"
+            confirmText={deleting ? "DELETING..." : "DELETE"}
+            confirmDisabled={deleting}
+            onConfirm={confirmDelete}
+            confirmVariant="danger"
+            isLoading={deleting}
+          />
+        </div>
+      </Modal>
     </div>
   );
 }
