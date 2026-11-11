@@ -9,6 +9,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::campaign_state::CargoLot;
 use crate::sheet::{Armour, Augment, Item, Weapon};
 
 /// A catalogue file: every item extracted from one book.
@@ -32,6 +33,8 @@ pub enum ItemKind {
     Augment,
     Software,
     Gear,
+    /// Speculative trade goods: `cost` is the base price per ton.
+    TradeGood,
 }
 
 /// One item.
@@ -61,6 +64,9 @@ pub struct CatalogueItem {
     /// Armour stats, for armour.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub armour: Option<ArmourStats>,
+    /// Trade stats, for trade goods.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trade: Option<TradeStats>,
     /// The table's effect or improvement column, where there is one.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub effect: String,
@@ -93,6 +99,22 @@ pub struct ArmourStats {
     pub rad: Option<i32>,
     /// e.g. "Vacc Suit 1".
     pub required_skill: String,
+}
+
+/// Trade goods stats, as printed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[allow(missing_docs)]
+pub struct TradeStats {
+    /// The D66 roll, e.g. "11".
+    pub d66: String,
+    /// Trade codes of worlds that sell it, e.g. "Industrial, High Tech".
+    pub availability: String,
+    /// Tons a supplier has, e.g. "2D x 10".
+    pub tons: String,
+    /// e.g. "Industrial +2, High Tech +3".
+    pub purchase_dm: String,
+    pub sale_dm: String,
+    pub examples: String,
 }
 
 /// The books a catalogue can come from: id and short name.
@@ -227,6 +249,32 @@ impl CatalogueItem {
             bonuses: crate::bonuses::from_effect(&self.effect),
         }
     }
+
+    /// As a lot of cargo, with the trade DMs in the notes. Tons and the
+    /// price actually paid depend on the deal, so they're left for the
+    /// player.
+    pub fn to_cargo(&self) -> CargoLot {
+        let stats = self.trade.clone().unwrap_or_default();
+        let base = self
+            .cost
+            .map(|c| format!("Base {}/ton", traveller_rules::Credits(c)))
+            .unwrap_or_default();
+        let purchase = if stats.purchase_dm.is_empty() {
+            String::new()
+        } else {
+            format!("Purchase DM {}", stats.purchase_dm)
+        };
+        let sale = if stats.sale_dm.is_empty() {
+            String::new()
+        } else {
+            format!("Sale DM {}", stats.sale_dm)
+        };
+        CargoLot {
+            goods: self.name.clone(),
+            notes: sentence(&[&base, &purchase, &sale, &self.reference()]),
+            ..CargoLot::default()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -246,9 +294,31 @@ mod tests {
             kg: Some(2.0),
             weapon: None,
             armour: None,
+            trade: None,
             effect: String::new(),
             columns: BTreeMap::new(),
         }
+    }
+
+    #[test]
+    fn trade_goods_become_cargo() {
+        // Invented goods: the book's table isn't in this repository.
+        let mut goods = item(ItemKind::TradeGood, "Glowmoss");
+        goods.book = "core-2022".into();
+        goods.page = 300;
+        goods.tl = None;
+        goods.cost = Some(1234);
+        goods.trade = Some(TradeStats {
+            purchase_dm: "Garden +1".into(),
+            sale_dm: "Poor +4".into(),
+            ..TradeStats::default()
+        });
+        let lot = goods.to_cargo();
+        assert_eq!((lot.goods.as_str(), lot.tons, lot.paid), ("Glowmoss", 0, 0));
+        assert_eq!(
+            lot.notes,
+            "Base Cr1,234/ton. Purchase DM Garden +1. Sale DM Poor +4. Core p.300"
+        );
     }
 
     #[test]
@@ -346,6 +416,7 @@ mod tests {
                 traits: vec![],
             }),
             armour: None,
+            trade: None,
             effect: String::new(),
             columns: BTreeMap::new(),
         };

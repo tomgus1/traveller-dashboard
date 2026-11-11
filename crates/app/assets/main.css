@@ -650,6 +650,36 @@ tr.implied td {
   margin-top: 16px;
 }
 
+.common-checks {
+  margin: 8px 0 14px;
+}
+
+.common-checks summary {
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.common-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+}
+
+.common-grid button {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+}
+
+.common-grid .dm {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
 .roller-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -696,6 +726,10 @@ tr.implied td {
 
 .inline.wrap {
   flex-wrap: wrap;
+}
+
+.inline input.narrow {
+  flex: 0 1 72px;
 }
 
 .inline input,

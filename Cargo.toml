@@ -19,10 +19,12 @@ module_name_repetitions = "allow"
 must_use_candidate = "allow"
 
 # Release builds are downloaded by players' browsers, often on phones:
-# optimise for size. (No `strip`: on WebAssembly it removes the custom
-# sections wasm-bindgen needs; wasm-opt drops debug info instead.)
+# optimise for size. Strip only debug info (the standard library's would
+# otherwise ship, about 400 KB): a full `strip` would also remove the custom
+# sections wasm-bindgen needs.
 [profile.release]
 opt-level = "z"
 lto = true
 codegen-units = 1
 panic = "abort"
+strip = "debuginfo"

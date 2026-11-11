@@ -35,6 +35,54 @@ const DIFFICULTIES: [(Difficulty, &str); 8] = [
     (Difficulty::Impossible, "Impossible (16+)"),
 ];
 
+/// A check that comes up often: what it's for, the skill and characteristic
+/// usually used, at Average (8+). The referee can always call for another
+/// pairing (Core p.59).
+struct Common {
+    what: &'static str,
+    skill: &'static str,
+    characteristic: Characteristic,
+}
+
+const fn common(what: &'static str, skill: &'static str, characteristic: Characteristic) -> Common {
+    Common {
+        what,
+        skill,
+        characteristic,
+    }
+}
+
+const COMMON: &[Common] = &[
+    common("Spot", "Recon", Characteristic::Int),
+    common("Search", "Investigate", Characteristic::Int),
+    common("Sneak", "Stealth", Characteristic::Dex),
+    common("Persuade", "Persuade", Characteristic::Soc),
+    common("Lie", "Deception", Characteristic::Int),
+    common("Find a deal", "Broker", Characteristic::Int),
+    common("Street contacts", "Streetwise", Characteristic::Soc),
+    common("Socialise", "Carouse", Characteristic::Soc),
+    common("First aid", "Medic", Characteristic::Edu),
+    common("Repair", "Mechanic", Characteristic::Edu),
+    common(
+        "Use a computer",
+        "Electronics (computers)",
+        Characteristic::Edu,
+    ),
+    common("Use sensors", "Electronics (sensors)", Characteristic::Int),
+    common(
+        "Climb or jump",
+        "Athletics (dexterity)",
+        Characteristic::Dex,
+    ),
+    common("Lift or force", "Athletics (strength)", Characteristic::Str),
+    common("Keep going", "Athletics (endurance)", Characteristic::End),
+    common("Survive outdoors", "Survival", Characteristic::Edu),
+    common("Drive", "Drive", Characteristic::Dex),
+    common("Fly a ship", "Pilot", Characteristic::Dex),
+    common("Plot a jump", "Astrogation", Characteristic::Edu),
+    common("Lead", "Leadership", Characteristic::Soc),
+];
+
 /// One check: what was rolled for, and how it went.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Check {
@@ -259,50 +307,80 @@ pub fn TaskRoller(stats: Characteristics, skills: Vec<(String, i32)>) -> Element
         }
     }
 
-    let skills_for_roll = skills.clone();
+    let levels = skills.clone();
+    let skill_dm_for =
+        move |wanted: &str| skills::skill_dm(levels.iter().map(|(n, l)| (n.as_str(), *l)), wanted);
+    let common_buttons: Vec<(&'static Common, i32)> = COMMON
+        .iter()
+        .map(|c| {
+            let total = skill_dm_for(c.skill) + dm(stats.get(c.characteristic).current());
+            (c, total)
+        })
+        .collect();
+
+    // Rolls with the Other DM and Boon/Bane from the form.
+    let roll_with = use_callback(
+        move |(wanted, c, title): (String, Option<Characteristic>, Option<String>)| {
+            let other_dm = match other().trim() {
+                "" => 0,
+                text => match text
+                    .replace('\u{2212}', "-")
+                    .trim_start_matches('+')
+                    .parse::<i32>()
+                {
+                    Ok(n) if (-20..=20).contains(&n) => n,
+                    _ => {
+                        error.set(Some(
+                            "Other DM must be a whole number, e.g. -2 or 1.".into(),
+                        ));
+                        return;
+                    }
+                },
+            };
+            error.set(None);
+            let skill_part = (!wanted.is_empty()).then(|| (wanted.as_str(), skill_dm_for(&wanted)));
+            let c = c.map(|c| (c, stats.get(c).current()));
+            let count = if modifier() == Modifier::None { 2 } else { 3 };
+            let mut rolled = check(
+                throw(count),
+                modifier(),
+                c,
+                skill_part,
+                other_dm,
+                difficulty(),
+            );
+            rolled.title = title;
+            log.push(rolled);
+        },
+    );
     let roll = move |evt: FormEvent| {
         evt.prevent_default();
-        let other_dm = match other().trim() {
-            "" => 0,
-            text => match text
-                .replace('\u{2212}', "-")
-                .trim_start_matches('+')
-                .parse::<i32>()
-            {
-                Ok(n) if (-20..=20).contains(&n) => n,
-                _ => {
-                    error.set(Some(
-                        "Other DM must be a whole number, e.g. -2 or 1.".into(),
-                    ));
-                    return;
-                }
-            },
-        };
-        error.set(None);
-        let wanted = skill().trim().to_string();
-        let skill_part = (!wanted.is_empty()).then(|| {
-            let dm = skills::skill_dm(
-                skills_for_roll.iter().map(|(n, l)| (n.as_str(), *l)),
-                &wanted,
-            );
-            (wanted.as_str(), dm)
-        });
-        let c = characteristic().map(|c| (c, stats.get(c).current()));
-        let count = if modifier() == Modifier::None { 2 } else { 3 };
-        log.push(check(
-            throw(count),
-            modifier(),
-            c,
-            skill_part,
-            other_dm,
-            difficulty(),
-        ));
+        roll_with.call((skill().trim().to_string(), characteristic(), None));
     };
 
     rsx! {
         form { class: "quick-box roller", onsubmit: roll,
             h3 { "Roll a check" }
             p { class: "muted small", "2D + characteristic DM + skill DM against the difficulty (Core p.59\u{2013}61). Augments included." }
+            details { class: "common-checks",
+                summary { "Common checks" }
+                p { class: "muted small", "One tap rolls the usual skill and characteristic at the difficulty below, with any Other DM and Boon or Bane. The referee may call for a different pairing." }
+                div { class: "common-grid",
+                    for (c, total) in common_buttons {
+                        button { key: "{c.what}", class: "mini outline", r#type: "button",
+                            title: "{c.skill} + {c.characteristic}",
+                            aria_label: "Roll {c.what}: {c.skill} + {c.characteristic}, DM {signed(total)}",
+                            onclick: move |_| roll_with.call((
+                                c.skill.to_string(),
+                                Some(c.characteristic),
+                                Some(c.what.to_string()),
+                            )),
+                            span { "{c.what}" }
+                            span { class: "dm", "{signed(total)}" }
+                        }
+                    }
+                }
+            }
             div { class: "roller-grid",
                 div { class: "field",
                     label { r#for: "roll-skill", "Skill" }
@@ -565,6 +643,19 @@ mod tests {
             c.damage.as_deref(),
             Some("Damage 3D: rolled 1, 1, 1 = 3, Effect +2 · STR +2 = 7 before armour")
         );
+    }
+
+    #[test]
+    fn common_checks_name_real_skills() {
+        let names = skills::all_names();
+        for c in COMMON {
+            assert!(
+                names.iter().any(|n| n == c.skill),
+                "{}: {}",
+                c.what,
+                c.skill
+            );
+        }
     }
 
     #[test]

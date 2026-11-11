@@ -92,9 +92,10 @@ or tables from the books. Equipment stats from the Core Rulebook and Central
 Supply Catalogue are kept out of this public repository.
 
 To give your group the equipment catalogue (picked from on the sheet's
-Equipment tab), extract it from your own copies of the books, then load it
-into the database once migration 10 is applied. This needs poppler's
-`pdftotext`:
+Equipment tab, and the campaign's locker and cargo), extract it from your
+own copies of the books, then load it into the database once migrations 10
+and 11 are applied. The Core Rulebook's file includes its Trade Goods
+table. This needs poppler's `pdftotext`:
 
 ```sh
 cargo run -p catalogue-extract -- csc-2023 "<Central Supply Catalogue 2023>.pdf" data/catalogue/csc-2023.json 2> csc-report.txt

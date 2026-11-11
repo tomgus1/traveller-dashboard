@@ -109,6 +109,42 @@ async fn save(
     ))
 }
 
+/// Applies a change to a campaign's latest saved state, from outside the
+/// campaign page (a character paying from party funds). `make` builds the
+/// change from the state it will apply to, so checks such as "is there
+/// enough money" see the latest. Retries if someone else saves in between.
+/// Returns the saved state.
+pub async fn apply_latest(
+    session: Signal<Option<Session>>,
+    campaign_id: &str,
+    make: impl Fn(&Value) -> Result<DocChange, String>,
+) -> Result<Value, String> {
+    for _ in 0..4 {
+        let current = fresh_session(session).await.map_err(|e| e.to_string())?;
+        let Some((latest, version)) = load_state(&current, campaign_id)
+            .await
+            .map_err(|e| e.to_string())?
+        else {
+            return Err("The campaign's funds can't be read.".into());
+        };
+        let mut json = serde_json::to_value(latest).unwrap_or_default();
+        make(&json)?.apply_to(&mut json);
+        let updated: CampaignState = serde_json::from_value(json)
+            .map_err(|_| "That doesn't fit the campaign; nothing was paid.".to_string())?;
+        let path = format!(
+            "campaign_state?campaign_id=eq.{campaign_id}&select=updated_at&updated_at=eq.{}",
+            supabase::encode(&version)
+        );
+        let saved: Vec<Value> = supabase::patch(&current, &path, &json!({ "data": updated }))
+            .await
+            .map_err(|e| e.to_string())?;
+        if !saved.is_empty() {
+            return Ok(serde_json::to_value(updated).unwrap_or_default());
+        }
+    }
+    Err("Lots of people are editing the campaign at once; please try again.".into())
+}
+
 /// Provides the shared state and its editor to the tabs inside.
 #[component]
 pub fn SharedState(
@@ -550,7 +586,8 @@ pub fn CargoTab() -> Element {
         }
         EditToggle { editing }
         if editing() {
-            ListEditor { path: "cargo", title: "Cargo", fields: fields::CARGO, ids: true }
+            ListEditor { path: "cargo", title: "Cargo", fields: fields::CARGO, ids: true,
+                catalogue: Pick::Cargo, pay: CAMPAIGN_SOURCES }
             ListEditor { path: "contracts", title: "Contracts", fields: fields::CONTRACTS, ids: true }
             ListEditor { path: "trades", title: "Trades", fields: fields::TRADES, ids: true }
         } else {

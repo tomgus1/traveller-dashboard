@@ -23,6 +23,8 @@ pub enum Pick {
     Augment,
     /// The campaign's shared locker: any gear, weapon or armour.
     Locker,
+    /// The campaign's cargo: trade goods.
+    Cargo,
 }
 
 impl Pick {
@@ -34,6 +36,24 @@ impl Pick {
             Self::Gear => "gear,software",
             Self::Augment => "augment",
             Self::Locker => "weapon,armour,gear,software",
+            Self::Cargo => "trade_good",
+        }
+    }
+
+    /// The catalogue price that paying uses when the form gives none. Not
+    /// for cargo: a trade good's base price is per ton, and the deal sets
+    /// what's paid.
+    fn price(self, item: &CatalogueItem) -> Option<i64> {
+        match self {
+            Self::Cargo => None,
+            _ => item.cost,
+        }
+    }
+
+    fn placeholder(self) -> &'static str {
+        match self {
+            Self::Cargo => "e.g. spices, ore, electronics",
+            _ => "e.g. rifle, vacc suit, medikit",
         }
     }
 
@@ -48,6 +68,7 @@ impl Pick {
                 let gear = item.to_item();
                 Ok(serde_json::json!({ "name": gear.name, "quantity": 1, "notes": gear.notes }))
             }
+            Self::Cargo => serde_json::to_value(item.to_cargo()),
         };
         value.unwrap_or(Value::Null)
     }
@@ -90,10 +111,16 @@ fn describe(pick: Pick, item: &CatalogueItem) -> String {
                 parts.push(a.protection.clone());
             }
         }
+        Pick::Cargo => {
+            if let Some(t) = &item.trade {
+                parts.push(format!("Available: {}", t.availability));
+            }
+        }
         Pick::Gear | Pick::Augment | Pick::Locker => {}
     }
     if let Some(cost) = item.cost {
-        parts.push(Credits(cost).to_string());
+        let per = if pick == Pick::Cargo { "/ton" } else { "" };
+        parts.push(format!("{}{per}", Credits(cost)));
     }
     parts.push(item.reference());
     parts.join(" · ")
@@ -129,7 +156,7 @@ pub fn CataloguePicker(
             div { class: "field",
                 label { r#for: "pick-{pick:?}", "Search by name" }
                 input { id: "pick-{pick:?}", r#type: "search", autocomplete: "off", maxlength: "60",
-                    placeholder: "e.g. rifle, vacc suit, medikit",
+                    placeholder: pick.placeholder(),
                     value: "{term}", oninput: move |e| term.set(e.value()) }
             }
             fieldset { class: "books",
@@ -165,7 +192,7 @@ pub fn CataloguePicker(
                         for item in items.iter().cloned() {
                             li { key: "{item.id}",
                                 button { class: "pick", r#type: "button",
-                                    onclick: move |_| on_pick.call((pick.convert(&item), item.cost)),
+                                    onclick: move |_| on_pick.call((pick.convert(&item), pick.price(&item))),
                                     strong { "{item.name}" }
                                     span { class: "muted small", {describe(pick, &item)} }
                                 }
@@ -208,6 +235,7 @@ mod tests {
                 traits: vec!["AP 5".into()],
             }),
             armour: None,
+            trade: None,
             effect: String::new(),
             columns: BTreeMap::new(),
         }
