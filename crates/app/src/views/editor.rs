@@ -13,6 +13,7 @@ use dioxus::prelude::*;
 use serde::Deserialize;
 use traveller_model::{CharacterSheet, Characteristics};
 use traveller_rules::characteristics::{Condition, Overflow};
+use traveller_rules::combat::damage_after_armour;
 use traveller_rules::{Characteristic, Credits};
 
 use super::fresh_session;
@@ -200,7 +201,12 @@ const PHYSICAL: [Characteristic; 3] = [
 pub fn QuickActions() -> Element {
     let editor = use_editor();
     let mut damage = use_signal(String::new);
+    let mut ap = use_signal(String::new);
+    let mut before_armour = use_signal(|| true);
     let mut overflow = use_signal(|| Overflow::Str);
+    let protection = editor.sheet.read().protection();
+    let armour = protection.total();
+    let armour_text = protection.describe();
     let mut amount = use_signal(String::new);
     let mut entry = use_signal(String::new);
     let busy = (editor.saving)();
@@ -209,12 +215,22 @@ pub fn QuickActions() -> Element {
 
     let apply_damage = move |evt: FormEvent| {
         evt.prevent_default();
-        let Ok(points) = damage().trim().parse::<i32>() else {
-            editor.say(
-                "Enter the damage that got through armour, as a number.",
-                true,
-            );
+        let Some(rolled) = whole_number(&damage()) else {
+            editor.say("Enter the damage as a number of points.", true);
             return;
+        };
+        let points = if before_armour() {
+            let Some(ap) = (if ap().trim().is_empty() {
+                Some(0)
+            } else {
+                whole_number(&ap())
+            }) else {
+                editor.say("AP must be a number, e.g. 5, or blank.", true);
+                return;
+            };
+            damage_after_armour(rolled, 0, armour, ap)
+        } else {
+            rolled
         };
         let overflow = overflow();
         editor.update_stats(damage_message(points), move |c| {
@@ -223,7 +239,14 @@ pub fn QuickActions() -> Element {
             c.set_physical(physical);
         });
         damage.set(String::new());
+        ap.set(String::new());
     };
+    let preview = whole_number(&damage())
+        .filter(|_| before_armour())
+        .map(|rolled| {
+            let ap = whole_number(&ap()).unwrap_or(0);
+            damage_after_armour(rolled, 0, armour, ap)
+        });
 
     let money = use_callback(move |sign: i64| {
         let Some(value) = parse_credits(&amount()) else {
@@ -250,11 +273,31 @@ pub fn QuickActions() -> Element {
             div { class: "quick-grid",
                 form { class: "quick-box", onsubmit: apply_damage,
                     h3 { "Take damage" }
-                    p { class: "muted small", "After armour. END first, then your choice of STR or DEX (Core p.77)." }
-                    div { class: "inline",
+                    p { class: "muted small",
+                        "Your Protection: "
+                        strong { "{armour}" }
+                        " ({armour_text}). Armour stops its Protection less the weapon's AP; the rest comes off END first, then your choice of STR or DEX (Core p.77)."
+                    }
+                    div { class: "inline wrap",
+                        label { class: "sr-only", r#for: "dmg-when", "Damage is" }
+                        select { id: "dmg-when",
+                            onchange: move |e| before_armour.set(e.value() == "before"),
+                            option { value: "before", selected: before_armour(), "Before armour" }
+                            option { value: "after", selected: !before_armour(), "Already after armour" }
+                        }
                         label { class: "sr-only", r#for: "dmg", "Damage points" }
                         input { id: "dmg", r#type: "number", inputmode: "numeric", min: "0", placeholder: "Points",
                             value: "{damage}", oninput: move |e| damage.set(e.value()) }
+                        if before_armour() {
+                            label { class: "sr-only", r#for: "dmg-ap", "Weapon AP" }
+                            input { id: "dmg-ap", r#type: "number", inputmode: "numeric", min: "0", placeholder: "AP",
+                                class: "narrow", value: "{ap}", oninput: move |e| ap.set(e.value()) }
+                        }
+                    }
+                    if let Some(through) = preview {
+                        p { class: "small", aria_live: "polite", "{through} gets through." }
+                    }
+                    div { class: "inline",
                         label { class: "sr-only", r#for: "overflow", "Excess damage goes to" }
                         select { id: "overflow",
                             onchange: move |e| overflow.set(if e.value() == "dex" { Overflow::Dex } else { Overflow::Str }),
@@ -314,10 +357,15 @@ pub fn QuickActions() -> Element {
 
 fn damage_message(points: i32) -> &'static str {
     if points == 0 {
-        "No damage taken."
+        "Armour stopped it: no damage taken."
     } else {
         "Damage applied."
     }
+}
+
+/// A whole number of 0 or more, as typed.
+fn whole_number(text: &str) -> Option<i32> {
+    text.trim().parse::<i32>().ok().filter(|n| *n >= 0)
 }
 
 /// Restores up to `points` to one characteristic, never above its maximum.

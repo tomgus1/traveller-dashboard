@@ -118,7 +118,7 @@ pub mod glossary {
         Any level in one speciality gives the skill's other specialities at 0. \
         Without the skill at all, checks take DM \u{2212}3.";
     pub const AUGMENT_BONUS: &str = "Added by augments, on top of the Traveller's own value. \
-        Removing the augment removes it.";
+        Removing the augment removes it. Protection (subdermal armour) adds to worn armour.";
     pub const TL: &str =
         "Tech Level: how advanced the technology is. Higher is more sophisticated.";
     pub const RANGE: &str = "Effective range in metres, or Melee for close combat.";

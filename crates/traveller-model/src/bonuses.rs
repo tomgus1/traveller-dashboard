@@ -19,10 +19,24 @@ pub struct Bonus {
     pub amount: i32,
 }
 
+/// The bonus target for armour Protection, as subdermal armour gives.
+pub const PROTECTION: &str = "Protection";
+
 impl Bonus {
     /// The characteristic it raises, if it's one.
     pub fn characteristic(&self) -> Option<Characteristic> {
         characteristic_named(&self.target)
+    }
+
+    /// Whether it adds to armour Protection rather than a characteristic or
+    /// skill.
+    pub fn is_protection(&self) -> bool {
+        self.target.trim().eq_ignore_ascii_case(PROTECTION)
+    }
+
+    /// Whether it raises a skill.
+    pub fn is_skill(&self) -> bool {
+        self.characteristic().is_none() && !self.is_protection()
     }
 }
 
@@ -86,9 +100,10 @@ pub fn format_list(bonuses: &[Bonus]) -> String {
         .join(", ")
 }
 
-/// The characteristic bonuses a catalogue augment's effect states plainly
-/// ("STR +1, DEX +1, END -1", "+2 to INT"). A choice ("+1 to STR, DEX or
-/// END") or anything else gives none: the player fills those in.
+/// The characteristic and Protection bonuses a catalogue augment's effect
+/// states plainly ("STR +1, DEX +1, END -1", "+2 to INT", "Protection +3").
+/// A choice ("+1 to STR, DEX or END") or anything else gives none: the
+/// player fills those in.
 pub fn from_effect(effect: &str) -> Vec<Bonus> {
     if effect.contains(" or ") {
         return Vec::new();
@@ -96,10 +111,15 @@ pub fn from_effect(effect: &str) -> Vec<Bonus> {
     effect
         .split([',', ';'])
         .filter_map(parse_one)
-        .filter(|b| b.characteristic().is_some())
-        .map(|b| Bonus {
-            target: b.target.trim().to_uppercase(),
-            ..b
+        .filter_map(|b| {
+            let target = if let Some(c) = b.characteristic() {
+                c.abbreviation().to_string()
+            } else if b.is_protection() {
+                PROTECTION.to_string()
+            } else {
+                return None;
+            };
+            Some(Bonus { target, ..b })
         })
         .collect()
 }
@@ -172,7 +192,7 @@ impl CharacterSheet {
                 bonus: 0,
             })
             .collect();
-        for b in self.bonuses().filter(|b| b.characteristic().is_none()) {
+        for b in self.bonuses().filter(|b| b.is_skill()) {
             match out
                 .iter_mut()
                 .find(|s| s.name.eq_ignore_ascii_case(b.target.trim()))
@@ -186,6 +206,66 @@ impl CharacterSheet {
             }
         }
         out
+    }
+
+    /// Protection against a hit: worn armour plus augment Protection
+    /// (subdermal armour). Usually only one suit is worn; if several are
+    /// marked worn, their Protection is added together.
+    pub fn protection(&self) -> Protection {
+        let armour: Vec<(String, i32)> = self
+            .worn_armour()
+            .map(|a| (a.name.clone(), a.protection))
+            .collect();
+        let augments: Vec<(String, i32)> = self
+            .augments
+            .iter()
+            .filter_map(|a| {
+                let total: i32 = a
+                    .bonuses
+                    .iter()
+                    .filter(|b| b.is_protection())
+                    .map(|b| b.amount)
+                    .sum();
+                (total != 0).then(|| (a.name.clone(), total))
+            })
+            .collect();
+        Protection { armour, augments }
+    }
+}
+
+/// Where a Traveller's Protection comes from.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Protection {
+    /// Worn armour, (name, Protection).
+    pub armour: Vec<(String, i32)>,
+    /// Augments, (name, Protection).
+    pub augments: Vec<(String, i32)>,
+}
+
+impl Protection {
+    /// The total, never below 0.
+    pub fn total(&self) -> i32 {
+        self.armour
+            .iter()
+            .chain(&self.augments)
+            .map(|(_, p)| p)
+            .sum::<i32>()
+            .max(0)
+    }
+
+    /// In words: "Cloth +5, Subdermal Armour +1"; "none" without any.
+    pub fn describe(&self) -> String {
+        let parts: Vec<String> = self
+            .armour
+            .iter()
+            .chain(&self.augments)
+            .map(|(name, p)| format!("{name} {p:+}"))
+            .collect();
+        if parts.is_empty() {
+            "none".into()
+        } else {
+            parts.join(", ")
+        }
     }
 }
 
@@ -278,7 +358,44 @@ mod tests {
         );
         assert_eq!(from_effect("+1 to STR, DEX or END"), [], "a choice");
         assert_eq!(from_effect("Skill DM+1"), []);
-        assert_eq!(from_effect("Protection +1"), []);
+        assert_eq!(from_effect("Protection +3"), [bonus("Protection", 3)]);
+        assert_eq!(from_effect("Protection against smoke"), []);
+    }
+
+    #[test]
+    fn protection_adds_worn_armour_and_augments() {
+        use crate::sheet::Armour;
+        let mut s = CharacterSheet::default();
+        assert_eq!(
+            (s.protection().total(), s.protection().describe()),
+            (0, "none".into())
+        );
+        s.armour = vec![
+            Armour {
+                name: "Cloth".into(),
+                protection: 5,
+                worn: true,
+                ..Armour::default()
+            },
+            Armour {
+                name: "Combat Armour".into(),
+                protection: 13,
+                worn: false,
+                ..Armour::default()
+            },
+        ];
+        s.augments.push(Augment {
+            name: "Subdermal Armour".into(),
+            bonuses: vec![bonus("protection", 1), bonus("STR", 1)],
+            ..Augment::default()
+        });
+        let p = s.protection();
+        assert_eq!(p.total(), 6);
+        assert_eq!(p.describe(), "Cloth +5, Subdermal Armour +1");
+        assert!(
+            s.effective_skills().iter().all(|k| k.name != "protection"),
+            "not a skill"
+        );
     }
 
     fn sheet() -> CharacterSheet {

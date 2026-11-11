@@ -57,6 +57,18 @@ impl DamageDice {
     }
 }
 
+/// The AP (armour-piercing) value in a weapon's traits, e.g. 5 for "AP 5,
+/// Auto 3"; 0 when it has none.
+pub fn armour_piercing(traits: &str) -> i32 {
+    traits
+        .split([',', ';'])
+        .map(str::trim)
+        .filter_map(|t| t.strip_prefix("AP").or_else(|| t.strip_prefix("ap")))
+        .filter_map(|n| n.trim().parse::<i32>().ok())
+        .max()
+        .unwrap_or(0)
+}
+
 /// Damage that gets through armour (Core p.77).
 ///
 /// `rolled` is the weapon's damage dice total. The attack's Effect is added,
@@ -100,6 +112,14 @@ mod tests {
         assert_eq!(dice.total(&[1, 1, 1]), 0, "never negative");
         assert_eq!(dice.total(&[6, 5, 4]), 12);
         assert_eq!(DamageDice::parse("2DD").unwrap().total(&[3, 4]), 70);
+    }
+
+    #[test]
+    fn reads_ap_from_traits() {
+        assert_eq!(armour_piercing("AP 5, Auto 3"), 5);
+        assert_eq!(armour_piercing("Auto 2; AP10"), 10);
+        assert_eq!(armour_piercing("Bulky"), 0);
+        assert_eq!(armour_piercing(""), 0);
     }
 
     #[test]

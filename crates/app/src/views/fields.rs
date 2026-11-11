@@ -160,7 +160,7 @@ pub const AUGMENTS: &[Field] = &[
     text("effect", "Effect"),
     field(
         "bonuses",
-        "Bonuses (e.g. STR +2, Athletics (dexterity) +1)",
+        "Bonuses (e.g. STR +2, Athletics (dexterity) +1, Protection +3)",
         Kind::Bonuses,
         false,
     ),

@@ -698,6 +698,10 @@ tr.implied td {
   flex-wrap: wrap;
 }
 
+.inline input.narrow {
+  flex: 0 1 72px;
+}
+
 .inline input,
 .inline select {
   min-height: 44px;
