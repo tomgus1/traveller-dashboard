@@ -375,6 +375,7 @@ fn StatBox(c: Characteristic, stats: Characteristics) -> Element {
 
 #[component]
 fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> Element {
+    let email = use_session()().map(|s| s.email).unwrap_or_default();
     let mut skills = sheet.skills.clone();
     skills.sort_by(|a, b| b.level.cmp(&a.level).then_with(|| a.name.cmp(&b.name)));
     let worn: Vec<Armour> = sheet.worn_armour().cloned().collect();
@@ -384,7 +385,10 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> El
         if editable {
             QuickActions {}
         } else {
-            p { class: "muted", "Read only: players manage their own sheets." }
+            p { class: "notice",
+                "Read only: this character belongs to another account, and players manage their own sheets. "
+                "You're signed in as {email}."
+            }
         }
         div { class: "columns",
             section { aria_labelledby: "skills",
