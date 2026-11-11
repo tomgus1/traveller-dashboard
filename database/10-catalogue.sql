@@ -46,6 +46,10 @@ AS $$
     SELECT 1 FROM public.campaign_members m WHERE m.user_id = auth.uid()
   );
 $$;
+-- 05 revokes EXECUTE on new functions by default; the read policy below
+-- calls this as the signed-in user.
+REVOKE EXECUTE ON FUNCTION public.is_any_campaign_member() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_any_campaign_member() TO authenticated;
 
 -- Loads one book: upserts its items and removes that book's items the
 -- file no longer has. Returns how many items it loaded.

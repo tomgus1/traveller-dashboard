@@ -60,7 +60,12 @@ SELECT t.assert('rejects unknown kinds',
 SELECT t.assert('a good load is not an error',
   NOT t.raises('SELECT public.load_catalogue(''{"book":"empty","items":[]}'')'));
 
--- Reading.
+-- Reading. The policy's helper must be callable by signed-in users even
+-- where 05's default revoke applies (as on the live database).
+SELECT t.assert('signed-in users may call the policy helper',
+  has_function_privilege('authenticated', 'public.is_any_campaign_member()', 'execute'));
+SELECT t.assert('…anon may not',
+  NOT has_function_privilege('anon', 'public.is_any_campaign_member()', 'execute'));
 SELECT t.check('member reads the catalogue', :B, 'SELECT 1 FROM public.catalogue_items', 'rows=2');
 SELECT t.check('referee reads it too', :A, 'SELECT 1 FROM public.catalogue_items WHERE kind = ''armour''', 'rows=1');
 SELECT t.check('someone in no campaign reads nothing', :M, 'SELECT 1 FROM public.catalogue_items', 'rows=0');
