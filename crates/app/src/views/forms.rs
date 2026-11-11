@@ -1,340 +1,17 @@
-//! Edit forms for the character sheet.
+//! Edit forms, for any document: a character sheet or a campaign's state.
 //!
-//! One generic list editor and one section editor, driven by field
-//! descriptions, cover every part of the sheet. Edits are made on the
-//! sheet's JSON and turned back into the typed [`CharacterSheet`] before
-//! saving, so a bad value is reported instead of stored. Keys a form
-//! doesn't know about are kept as they were.
+//! A list editor (add, edit, remove) and a section editor, driven by the
+//! field lists in `fields.rs`. They turn the form into a [`DocChange`] and
+//! hand it to the page's [`DocEditor`], which applies and saves it. Keys a
+//! form doesn't know about are left alone.
 
 use dioxus::prelude::*;
-use serde_json::{Map, Value};
-use traveller_model::CharacterSheet;
+use serde_json::Value;
 use traveller_rules::Characteristic;
 
+use super::doc::{DocChange, Target, at, new_id, use_doc};
 use super::editor::use_editor;
-
-/// What kind of value a field holds.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Kind {
-    /// One line of text.
-    Text,
-    /// Several lines.
-    Long,
-    /// A whole number, required, within bounds.
-    Int { min: i64, max: i64 },
-    /// A whole number or blank.
-    OptInt { min: i64, max: i64 },
-    /// A decimal (kilograms) or blank.
-    OptDecimal,
-    /// A tick box.
-    Bool,
-    /// One of a fixed set: (stored value, label).
-    Choice(&'static [(&'static str, &'static str)]),
-}
-
-/// One field of a form.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Field {
-    pub key: &'static str,
-    pub label: &'static str,
-    pub kind: Kind,
-    /// Text that must not be blank.
-    pub required: bool,
-}
-
-const fn text(key: &'static str, label: &'static str) -> Field {
-    Field {
-        key,
-        label,
-        kind: Kind::Text,
-        required: false,
-    }
-}
-const fn name(key: &'static str, label: &'static str) -> Field {
-    Field {
-        key,
-        label,
-        kind: Kind::Text,
-        required: true,
-    }
-}
-const fn long(key: &'static str, label: &'static str) -> Field {
-    Field {
-        key,
-        label,
-        kind: Kind::Long,
-        required: false,
-    }
-}
-const fn int(key: &'static str, label: &'static str, min: i64, max: i64) -> Field {
-    Field {
-        key,
-        label,
-        kind: Kind::Int { min, max },
-        required: false,
-    }
-}
-const fn opt_int(key: &'static str, label: &'static str, min: i64, max: i64) -> Field {
-    Field {
-        key,
-        label,
-        kind: Kind::OptInt { min, max },
-        required: false,
-    }
-}
-const fn kg(key: &'static str, label: &'static str) -> Field {
-    Field {
-        key,
-        label,
-        kind: Kind::OptDecimal,
-        required: false,
-    }
-}
-const fn tick(key: &'static str, label: &'static str) -> Field {
-    Field {
-        key,
-        label,
-        kind: Kind::Bool,
-        required: false,
-    }
-}
-
-const TL: Field = opt_int("tl", "TL", 0, 33);
-const COST: Field = opt_int("cost", "Cost (Cr)", 0, 1_000_000_000_000);
-const MONEY: i64 = 1_000_000_000_000;
-
-// The sheet's sections. Keys match crates/traveller-model/src/sheet.rs.
-pub const SKILLS: &[Field] = &[
-    name("name", "Skill (speciality)"),
-    int("level", "Level", 0, 15),
-];
-pub const WEAPONS: &[Field] = &[
-    name("name", "Weapon"),
-    TL,
-    text("range", "Range"),
-    text("damage", "Damage"),
-    opt_int("magazine", "Magazine", 0, 10_000),
-    opt_int("rounds", "Rounds loaded", 0, 10_000),
-    int("spare_magazines", "Spare magazines", 0, 1000),
-    kg("kg", "Kg"),
-    COST,
-    text("traits", "Traits"),
-    long("notes", "Notes"),
-];
-pub const AMMO: &[Field] = &[
-    name("name", "Ammunition"),
-    text("weapon", "For weapon"),
-    int("rounds", "Rounds", 0, 100_000),
-    opt_int("capacity", "Capacity", 0, 100_000),
-    long("notes", "Notes"),
-];
-pub const ARMOUR: &[Field] = &[
-    name("name", "Armour"),
-    int("protection", "Protection", 0, 100),
-    opt_int("rad", "Rad", 0, 10_000),
-    TL,
-    kg("kg", "Kg"),
-    COST,
-    tick("worn", "Worn now"),
-    long("notes", "Notes"),
-];
-pub const GEAR: &[Field] = &[
-    name("name", "Item"),
-    TL,
-    int("quantity", "Quantity", 0, 100_000),
-    kg("kg", "Kg each"),
-    COST,
-    long("notes", "Notes"),
-];
-pub const AUGMENTS: &[Field] = &[name("name", "Augment"), TL, text("effect", "Effect")];
-pub const LEDGER: &[Field] = &[
-    text("date", "Date"),
-    name("description", "Entry"),
-    int(
-        "amount",
-        "Amount (Cr, negative for spending)",
-        -MONEY,
-        MONEY,
-    ),
-];
-pub const PEOPLE: &[Field] = &[
-    Field {
-        key: "relation",
-        label: "Type",
-        kind: Kind::Choice(&[
-            ("contact", "Contact"),
-            ("ally", "Ally"),
-            ("rival", "Rival"),
-            ("enemy", "Enemy"),
-        ]),
-        required: false,
-    },
-    name("name", "Name"),
-    text("location", "Location"),
-    text("relationship", "Relationship"),
-];
-pub const CAREER: &[Field] = &[
-    name("career", "Career"),
-    text("assignment", "Assignment"),
-    text("rank", "Rank"),
-    long("events", "Events"),
-    long("gained", "Gained"),
-];
-pub const TRAINING: &[Field] = &[
-    name("skill", "Skill"),
-    int("weeks_done", "Weeks done", 0, 1000),
-    int("weeks_needed", "Weeks needed", 0, 1000),
-];
-pub const IDENTITY: &[Field] = &[
-    text("species", "Species"),
-    text("gender", "Gender"),
-    opt_int("age", "Age", 0, 10_000),
-    text("homeworld", "Homeworld"),
-    text("citizenship", "Citizenship"),
-    text("background", "Background"),
-    text("education", "Education"),
-];
-pub const FINANCES: &[Field] = &[
-    int("cash", "Cash on hand (Cr)", -MONEY, MONEY),
-    int("pension", "Pension (Cr per year)", 0, MONEY),
-    int("debt", "Debts (Cr)", 0, MONEY),
-    int("living_cost", "Living cost (Cr per month)", 0, MONEY),
-];
-pub const NOTES: &[Field] = &[
-    long("notes", "Notes"),
-    long("injuries", "Injuries and conditions"),
-    int("rads", "Accumulated radiation (rads)", 0, 100_000),
-];
-
-const MAX_TEXT: usize = 200;
-const MAX_LONG: usize = 4000;
-
-// ---------------------------------------------------------------------------
-// JSON helpers
-
-/// The value at a dotted path ("" is the root).
-fn at<'a>(root: &'a Value, path: &str) -> Option<&'a Value> {
-    if path.is_empty() {
-        return Some(root);
-    }
-    path.split('.').try_fold(root, |v, key| v.get(key))
-}
-
-/// The value at a dotted path, created as an object or `default` if absent.
-fn at_mut<'a>(root: &'a mut Value, path: &str, default: &Value) -> &'a mut Value {
-    if path.is_empty() {
-        return root;
-    }
-    let mut keys = path.split('.').peekable();
-    let mut v = root;
-    while let Some(key) = keys.next() {
-        if !v.is_object() {
-            *v = Value::Object(Map::new());
-        }
-        let fill = if keys.peek().is_some() {
-            Value::Object(Map::new())
-        } else {
-            default.clone()
-        };
-        v = v
-            .as_object_mut()
-            .expect("just made an object")
-            .entry(key)
-            .or_insert(fill);
-    }
-    v
-}
-
-/// A stored value as form text.
-fn to_text(v: Option<&Value>) -> String {
-    match v {
-        None | Some(Value::Null) => String::new(),
-        Some(Value::String(s)) => s.clone(),
-        Some(Value::Bool(b)) => b.to_string(),
-        Some(other) => other.to_string(),
-    }
-}
-
-/// Form text as a stored value, or a message saying what's wrong.
-pub fn parse(field: &Field, raw: &str) -> Result<Value, String> {
-    let raw = raw.trim();
-    let label = field.label;
-    match field.kind {
-        Kind::Text | Kind::Long => {
-            let limit = if field.kind == Kind::Text {
-                MAX_TEXT
-            } else {
-                MAX_LONG
-            };
-            if field.required && raw.is_empty() {
-                Err(format!("{label} is required."))
-            } else if raw.chars().count() > limit {
-                Err(format!("{label} is too long (at most {limit} characters)."))
-            } else {
-                Ok(Value::String(raw.to_string()))
-            }
-        }
-        Kind::Int { min, max } => whole(raw, label, min, max).map(Value::from),
-        Kind::OptInt { min, max } => {
-            if raw.is_empty() {
-                Ok(Value::Null)
-            } else {
-                whole(raw, label, min, max).map(Value::from)
-            }
-        }
-        Kind::OptDecimal => {
-            if raw.is_empty() {
-                return Ok(Value::Null);
-            }
-            match raw.replace(',', ".").parse::<f64>() {
-                Ok(n) if n.is_finite() && (0.0..=1_000_000.0).contains(&n) => Ok(Value::from(n)),
-                _ => Err(format!("{label} must be a number, e.g. 2.5.")),
-            }
-        }
-        Kind::Bool => Ok(Value::Bool(raw == "true")),
-        Kind::Choice(options) => options
-            .iter()
-            .find(|(value, _)| *value == raw)
-            .map(|(value, _)| Value::String((*value).to_string()))
-            .ok_or_else(|| format!("Choose a {}.", label.to_lowercase())),
-    }
-}
-
-fn whole(raw: &str, label: &str, min: i64, max: i64) -> Result<i64, String> {
-    let cleaned: String = raw
-        .chars()
-        .filter(|c| *c != ',' && !c.is_whitespace())
-        .collect();
-    match cleaned.parse::<i64>() {
-        Ok(n) if (min..=max).contains(&n) => Ok(n),
-        Ok(_) => Err(format!("{label} must be between {min} and {max}.")),
-        Err(_) => Err(format!("{label} must be a whole number.")),
-    }
-}
-
-/// Writes the form's values over `target` (keeping keys the form lacks).
-fn apply(
-    fields: &[Field],
-    values: &[String],
-    target: &mut Map<String, Value>,
-) -> Result<(), String> {
-    for (field, raw) in fields.iter().zip(values) {
-        target.insert(field.key.to_string(), parse(field, raw)?);
-    }
-    Ok(())
-}
-
-/// Turns edited JSON back into a sheet, explaining any problem.
-fn to_sheet(value: Value) -> Result<CharacterSheet, String> {
-    serde_json::from_value(value).map_err(|e| format!("That doesn't fit the sheet: {e}"))
-}
-
-fn sheet_json(sheet: &CharacterSheet) -> Value {
-    serde_json::to_value(sheet).unwrap_or(Value::Object(Map::new()))
-}
-
-// ---------------------------------------------------------------------------
-// Components
+use super::fields::{Field, Kind, MAX_LONG, MAX_TEXT, blank, collect, summary, to_text, whole};
 
 /// Inputs for `fields`, bound to `values` (same order).
 #[component]
@@ -395,101 +72,65 @@ fn Inputs(id: String, fields: &'static [Field], values: Signal<Vec<String>>) -> 
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
-enum Editing {
-    New,
-    Item(usize),
+/// The target for an existing item: its id if it has one, else position.
+fn target_of(item: &Value, index: usize) -> Target {
+    match item.get("id").and_then(Value::as_str) {
+        Some(id) if !id.is_empty() => Target::Id(id.to_string()),
+        _ => Target::Index(index),
+    }
 }
 
-/// Add, edit and remove the items of one list on the sheet.
+#[derive(Clone, PartialEq)]
+enum Editing {
+    New,
+    Item(Target),
+}
+
+/// Add, edit and remove the items of one list.
 #[component]
 pub fn ListEditor(
-    /// Dotted path to the list, e.g. "weapons" or "finances.ledger".
+    /// Dotted path to the list, e.g. "weapons" or "travel.journal".
     path: &'static str,
     title: &'static str,
     fields: &'static [Field],
+    /// Give new items an id (shared lists, where several people edit).
+    #[props(default)]
+    ids: bool,
 ) -> Element {
-    let editor = use_editor();
+    let doc = use_doc();
     let mut editing = use_signal(|| None::<Editing>);
     let mut values = use_signal(Vec::<String>::new);
     let mut error = use_signal(|| None::<String>);
     let mut confirm_remove = use_signal(|| None::<usize>);
-    let busy = (editor.saving)();
+    let busy = (doc.saving)();
 
-    let items: Vec<Value> = at(&sheet_json(&editor.sheet.read()), path)
+    let items: Vec<Value> = at(&doc.doc.read(), path)
         .and_then(Value::as_array)
         .cloned()
         .unwrap_or_default();
 
-    let mut open = move |which: Editing, item: Option<&Value>| {
-        values.set(
-            fields
-                .iter()
-                .map(|f| to_text(item.and_then(|v| v.get(f.key))))
-                .collect(),
-        );
-        if item.is_none() {
-            // Sensible starting values for a new item.
-            let mut v = values.write();
-            for (i, f) in fields.iter().enumerate() {
-                match f.kind {
-                    Kind::Int { .. } if f.key == "quantity" => v[i] = "1".into(),
-                    Kind::Int { min, .. } => v[i] = min.max(0).to_string(),
-                    Kind::Choice(options) => v[i] = options[0].0.into(),
-                    Kind::Bool => v[i] = "false".into(),
-                    _ => {}
-                }
-            }
-        }
-        error.set(None);
-        confirm_remove.set(None);
-        editing.set(Some(which));
-    };
-
     let save = move |evt: FormEvent| {
         evt.prevent_default();
         let Some(which) = editing() else { return };
-        let mut json = sheet_json(&editor.sheet.peek());
-        let list = at_mut(&mut json, path, &Value::Array(Vec::new()));
-        let Some(list) = list.as_array_mut() else {
-            return;
-        };
-        let mut item = match which {
-            Editing::Item(i) => list
-                .get(i)
-                .and_then(Value::as_object)
-                .cloned()
-                .unwrap_or_default(),
-            Editing::New => Map::new(),
-        };
-        if let Err(message) = apply(fields, &values.read(), &mut item) {
-            error.set(Some(message));
-            return;
-        }
-        match which {
-            Editing::Item(i) if i < list.len() => list[i] = Value::Object(item),
-            _ => list.push(Value::Object(item)),
-        }
-        match to_sheet(json) {
-            Ok(sheet) => {
-                editor.update_sheet("Saved.", move |s| *s = sheet);
-                editing.set(None);
+        let fields_map = match collect(fields, &values.read()) {
+            Ok(map) => map,
+            Err(message) => {
+                error.set(Some(message));
+                return;
             }
-            Err(message) => error.set(Some(message)),
-        }
-    };
-
-    let mut remove = move |index: usize| {
-        let mut json = sheet_json(&editor.sheet.peek());
-        if let Some(list) = at_mut(&mut json, path, &Value::Array(Vec::new())).as_array_mut() {
-            if index < list.len() {
-                list.remove(index);
-            }
-        }
-        if let Ok(sheet) = to_sheet(json) {
-            editor.update_sheet("Removed.", move |s| *s = sheet);
-        }
-        confirm_remove.set(None);
+        };
+        let target = match which {
+            Editing::New => Target::New(if ids { new_id() } else { String::new() }),
+            Editing::Item(t) => t,
+        };
+        doc.change.call((
+            DocChange::Upsert {
+                path,
+                target,
+                fields: fields_map,
+            },
+            "Saved.",
+        ));
         editing.set(None);
     };
 
@@ -500,7 +141,14 @@ pub fn ListEditor(
                 h2 { id: "edit-{form_id}", class: "section", "{title}" }
                 if editing().is_none() {
                     button { class: "mini", r#type: "button", disabled: busy,
-                        onclick: move |_| open(Editing::New, None), "Add" }
+                        onclick: move |_| {
+                            values.set(blank(fields));
+                            error.set(None);
+                            confirm_remove.set(None);
+                            editing.set(Some(Editing::New));
+                        },
+                        "Add"
+                    }
                 }
             }
 
@@ -523,25 +171,41 @@ pub fn ListEditor(
             } else {
                 ul { class: "edit-list",
                     for (i, item) in items.iter().enumerate() {
-                        li { key: "{i}",
-                            span { class: "edit-summary", {summary(fields, item)} }
-                            if confirm_remove() == Some(i) {
-                                span { class: "row-actions",
-                                    button { class: "mini", r#type: "button", disabled: busy,
-                                        onclick: move |_| remove(i), "Confirm remove" }
-                                    button { class: "mini outline", r#type: "button",
-                                        onclick: move |_| confirm_remove.set(None), "Keep" }
-                                }
-                            } else {
-                                span { class: "row-actions",
-                                    button { class: "mini outline", r#type: "button", disabled: busy,
-                                        onclick: {
-                                            let item = item.clone();
-                                            move |_| open(Editing::Item(i), Some(&item))
-                                        },
-                                        "Edit" }
-                                    button { class: "mini outline", r#type: "button", disabled: busy,
-                                        onclick: move |_| confirm_remove.set(Some(i)), "Remove" }
+                        {
+                            let target = target_of(item, i);
+                            let for_edit = item.clone();
+                            let edit_target = target.clone();
+                            rsx! {
+                                li { key: "{i}",
+                                    span { class: "edit-summary", {summary(fields, item)} }
+                                    if confirm_remove() == Some(i) {
+                                        span { class: "row-actions",
+                                            button { class: "mini", r#type: "button", disabled: busy,
+                                                onclick: move |_| {
+                                                    doc.change.call((DocChange::Remove { path, target: target.clone() }, "Removed."));
+                                                    confirm_remove.set(None);
+                                                    editing.set(None);
+                                                },
+                                                "Confirm remove"
+                                            }
+                                            button { class: "mini outline", r#type: "button",
+                                                onclick: move |_| confirm_remove.set(None), "Keep" }
+                                        }
+                                    } else {
+                                        span { class: "row-actions",
+                                            button { class: "mini outline", r#type: "button", disabled: busy,
+                                                onclick: move |_| {
+                                                    values.set(fields.iter().map(|f| to_text(for_edit.get(f.key))).collect());
+                                                    error.set(None);
+                                                    confirm_remove.set(None);
+                                                    editing.set(Some(Editing::Item(edit_target.clone())));
+                                                },
+                                                "Edit"
+                                            }
+                                            button { class: "mini outline", r#type: "button", disabled: busy,
+                                                onclick: move |_| confirm_remove.set(Some(i)), "Remove" }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -552,36 +216,12 @@ pub fn ListEditor(
     }
 }
 
-/// One line describing an item: its first three non-empty values.
-fn summary(fields: &[Field], item: &Value) -> String {
-    let parts: Vec<String> = fields
-        .iter()
-        .filter(|f| !matches!(f.kind, Kind::Long | Kind::Bool))
-        .filter_map(|f| {
-            let text = to_text(item.get(f.key));
-            (!text.is_empty()).then(|| match f.kind {
-                Kind::Choice(options) => options
-                    .iter()
-                    .find(|(v, _)| *v == text)
-                    .map_or(text, |(_, l)| (*l).to_string()),
-                _ => text,
-            })
-        })
-        .take(3)
-        .collect();
-    if parts.is_empty() {
-        "(blank)".into()
-    } else {
-        parts.join(" · ")
-    }
-}
-
-/// Edits fields of one part of the sheet in place ("" is the top level).
+/// Edits fields of one part of the document in place ("" is the top level).
 #[component]
 pub fn SectionEditor(path: &'static str, title: &'static str, fields: &'static [Field]) -> Element {
-    let editor = use_editor();
+    let doc = use_doc();
     let initial = {
-        let json = sheet_json(&editor.sheet.read());
+        let json = doc.doc.read();
         let object = at(&json, path).cloned().unwrap_or(Value::Null);
         fields
             .iter()
@@ -590,37 +230,28 @@ pub fn SectionEditor(path: &'static str, title: &'static str, fields: &'static [
     };
     let values = use_signal(|| initial);
     let mut error = use_signal(|| None::<String>);
-    let busy = (editor.saving)();
+    let busy = (doc.saving)();
 
     let save = move |evt: FormEvent| {
         evt.prevent_default();
-        let mut json = sheet_json(&editor.sheet.peek());
-        let target = at_mut(&mut json, path, &Value::Object(Map::new()));
-        if !target.is_object() {
-            *target = Value::Object(Map::new());
-        }
-        let object = target.as_object_mut().expect("object");
-        if let Err(message) = apply(fields, &values.read(), object) {
-            error.set(Some(message));
-            return;
-        }
-        match to_sheet(json) {
-            Ok(sheet) => {
+        match collect(fields, &values.read()) {
+            Ok(map) => {
                 error.set(None);
-                editor.update_sheet("Saved.", move |s| *s = sheet);
+                doc.change
+                    .call((DocChange::Set { path, fields: map }, "Saved."));
             }
             Err(message) => error.set(Some(message)),
         }
     };
 
     let form_id = if path.is_empty() {
-        "sheet".to_string()
+        format!("top-{}", title.to_lowercase().replace(' ', "-"))
     } else {
         path.replace('.', "-")
     };
     rsx! {
-        section { class: "edit-section", aria_labelledby: "edit-{form_id}-{title}",
-            h2 { id: "edit-{form_id}-{title}", class: "section", "{title}" }
+        section { class: "edit-section", aria_labelledby: "edit-{form_id}",
+            h2 { id: "edit-{form_id}", class: "section", "{title}" }
             form { class: "edit-form", onsubmit: save,
                 Inputs { id: "{form_id}", fields, values }
                 if let Some(message) = error() {
@@ -632,7 +263,7 @@ pub fn SectionEditor(path: &'static str, title: &'static str, fields: &'static [
     }
 }
 
-/// Edits the maximum of each characteristic (the `characters` row).
+/// Edits the maximum of each characteristic (on the `characters` row).
 #[component]
 pub fn CharacteristicsEditor() -> Element {
     let editor = use_editor();
@@ -697,78 +328,5 @@ pub fn CharacteristicsEditor() -> Element {
                 button { class: "btn", r#type: "submit", disabled: busy, "Save characteristics" }
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parses_each_kind() {
-        let level = int("level", "Level", 0, 15);
-        assert_eq!(parse(&level, " 2 "), Ok(Value::from(2)));
-        assert!(
-            parse(&level, "16")
-                .unwrap_err()
-                .contains("between 0 and 15")
-        );
-        assert!(parse(&level, "two").unwrap_err().contains("whole number"));
-
-        assert_eq!(parse(&TL, ""), Ok(Value::Null));
-        assert_eq!(parse(&COST, "1,500"), Ok(Value::from(1500)));
-        assert_eq!(parse(&kg("kg", "Kg"), "2,5"), Ok(Value::from(2.5)));
-        assert!(parse(&kg("kg", "Kg"), "-1").is_err());
-
-        assert!(
-            parse(&name("name", "Weapon"), "  ")
-                .unwrap_err()
-                .contains("required")
-        );
-        assert!(parse(&text("t", "T"), &"x".repeat(201)).is_err());
-
-        assert_eq!(parse(&PEOPLE[0], "rival"), Ok(Value::from("rival")));
-        assert!(parse(&PEOPLE[0], "friend").is_err());
-    }
-
-    #[test]
-    fn paths_reach_nested_lists() {
-        let mut v = serde_json::json!({"finances": {"cash": 5}});
-        at_mut(&mut v, "finances.ledger", &Value::Array(Vec::new()))
-            .as_array_mut()
-            .unwrap()
-            .push(Value::from(1));
-        assert_eq!(at(&v, "finances.ledger"), Some(&serde_json::json!([1])));
-        assert_eq!(at(&v, "finances.cash"), Some(&Value::from(5)));
-        assert_eq!(at(&v, ""), Some(&v.clone()));
-    }
-
-    #[test]
-    fn editing_keeps_unknown_keys_and_round_trips() {
-        let mut sheet = CharacterSheet::default();
-        sheet.weapons.push(traveller_model::sheet::Weapon {
-            name: "Autopistol".into(),
-            ..Default::default()
-        });
-        let mut json = sheet_json(&sheet);
-        json["weapons"][0]["future_field"] = Value::from("kept");
-
-        let item = json["weapons"][0].as_object_mut().unwrap();
-        let values: Vec<String> = WEAPONS.iter().map(|f| to_text(item.get(f.key))).collect();
-        let mut values = values;
-        values[4] = "15".into(); // magazine
-        apply(WEAPONS, &values, item).unwrap();
-        assert_eq!(item["future_field"], "kept");
-
-        let back = to_sheet(json).unwrap();
-        assert_eq!(back.weapons[0].magazine, Some(15));
-        assert_eq!(back.weapons[0].name, "Autopistol");
-    }
-
-    #[test]
-    fn summaries_use_labels_and_skip_long_text() {
-        let item = serde_json::json!({"relation": "ally", "name": "Dax", "location": "", "relationship": "Old crewmate"});
-        assert_eq!(summary(PEOPLE, &item), "Ally · Dax · Old crewmate");
-        assert_eq!(summary(PEOPLE, &serde_json::json!({})), "(blank)");
     }
 }

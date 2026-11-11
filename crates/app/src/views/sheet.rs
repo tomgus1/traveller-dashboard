@@ -10,8 +10,10 @@ use traveller_model::sheet::{Armour, Relation, Weapon};
 use traveller_model::{CharacterRow, CharacterSheet, Characteristics};
 use traveller_rules::{Characteristic, Credits, dm};
 
+use super::doc::{DocChange, DocEditor};
 use super::editor::{Editor, Notice, NoticeBar, QuickActions, WeaponButtons, condition_label};
-use super::forms::{self, CharacteristicsEditor, ListEditor, SectionEditor};
+use super::fields;
+use super::forms::{CharacteristicsEditor, ListEditor, SectionEditor};
 use super::manage::DeleteCharacter;
 use super::tip::{Tip, glossary};
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
@@ -175,7 +177,7 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
     let version = use_signal(|| loaded.sheet_version.clone());
     let stats = use_signal(|| loaded.row.characteristics.unwrap_or_default());
     let saving = use_signal(|| false);
-    use_context_provider(|| Editor {
+    let editor = use_context_provider(|| Editor {
         session,
         character_id,
         sheet,
@@ -184,6 +186,27 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
         notice,
         saving,
         reload,
+    });
+    // The edit forms work on JSON; this applies their changes to the sheet
+    // and saves through the editor (which checks the sheet is unchanged).
+    let doc = use_memo(move || serde_json::to_value(&*sheet.read()).unwrap_or_default());
+    let change = use_callback(move |(change, done): (DocChange, &'static str)| {
+        let mut json = doc.peek().clone();
+        change.apply_to(&mut json);
+        if let Ok(updated) = serde_json::from_value::<CharacterSheet>(json) {
+            editor.update_sheet(done, move |s| *s = updated);
+        } else {
+            let mut notice = notice;
+            notice.set(Some(Notice {
+                text: "That doesn't fit the sheet; nothing was saved.".into(),
+                is_error: true,
+            }));
+        }
+    });
+    use_context_provider(|| DocEditor {
+        doc,
+        saving,
+        change,
     });
     let row = &loaded.row;
     let stats = stats();
@@ -288,27 +311,27 @@ fn EditTab(tab: Tab, name: String) -> Element {
     match tab {
         Tab::Overview => rsx! {
             CharacteristicsEditor {}
-            ListEditor { path: "skills", title: "Skills", fields: forms::SKILLS }
+            ListEditor { path: "skills", title: "Skills", fields: fields::SKILLS }
         },
         Tab::Equipment => rsx! {
-            ListEditor { path: "weapons", title: "Weapons", fields: forms::WEAPONS }
-            ListEditor { path: "ammo", title: "Ammunition", fields: forms::AMMO }
-            ListEditor { path: "armour", title: "Armour", fields: forms::ARMOUR }
-            ListEditor { path: "gear", title: "Gear", fields: forms::GEAR }
-            ListEditor { path: "augments", title: "Augments", fields: forms::AUGMENTS }
+            ListEditor { path: "weapons", title: "Weapons", fields: fields::WEAPONS }
+            ListEditor { path: "ammo", title: "Ammunition", fields: fields::AMMO }
+            ListEditor { path: "armour", title: "Armour", fields: fields::ARMOUR }
+            ListEditor { path: "gear", title: "Gear", fields: fields::GEAR }
+            ListEditor { path: "augments", title: "Augments", fields: fields::AUGMENTS }
         },
         Tab::Finances => rsx! {
-            SectionEditor { path: "finances", title: "Finances", fields: forms::FINANCES }
-            ListEditor { path: "finances.ledger", title: "Ledger", fields: forms::LEDGER }
+            SectionEditor { path: "finances", title: "Finances", fields: fields::FINANCES }
+            ListEditor { path: "finances.ledger", title: "Ledger", fields: fields::LEDGER }
         },
         Tab::History => rsx! {
-            SectionEditor { path: "identity", title: "Background", fields: forms::IDENTITY }
-            ListEditor { path: "people", title: "Contacts, allies, rivals & enemies", fields: forms::PEOPLE }
-            ListEditor { path: "career", title: "Career terms", fields: forms::CAREER }
-            ListEditor { path: "training", title: "Training", fields: forms::TRAINING }
+            SectionEditor { path: "identity", title: "Background", fields: fields::IDENTITY }
+            ListEditor { path: "people", title: "Contacts, allies, rivals & enemies", fields: fields::PEOPLE }
+            ListEditor { path: "career", title: "Career terms", fields: fields::CAREER }
+            ListEditor { path: "training", title: "Training", fields: fields::TRAINING }
         },
         Tab::Notes => rsx! {
-            SectionEditor { path: "", title: "Notes", fields: forms::NOTES }
+            SectionEditor { path: "", title: "Notes", fields: fields::NOTES }
             DeleteCharacter { name }
         },
     }
