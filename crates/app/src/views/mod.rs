@@ -144,8 +144,9 @@ pub(crate) fn EdgeTab(label: &'static str) -> Element {
     }
 }
 
-const CHARACTER_COLUMNS: &str =
-    "id,name,character_name,player_name,campaign_id,characteristics,skills";
+/// Columns for [`CharacterRow`]; must include `owner_id`, which decides
+/// who can edit.
+pub(crate) const CHARACTER_COLUMNS: &str = CharacterRow::COLUMNS;
 
 /// The characters the signed-in user can see.
 #[component]

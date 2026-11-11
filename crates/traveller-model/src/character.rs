@@ -29,6 +29,11 @@ pub struct CharacterRow {
 }
 
 impl CharacterRow {
+    /// The columns to select for this type. Kept beside the struct; a test
+    /// checks they match its fields exactly.
+    pub const COLUMNS: &'static str =
+        "id,owner_id,name,character_name,player_name,campaign_id,characteristics";
+
     /// The name to show.
     pub fn display_name(&self) -> &str {
         self.character_name
@@ -179,6 +184,30 @@ mod tests {
         );
         assert_eq!(json["STR"], serde_json::json!({"value": 7, "xp": 0}));
         assert_eq!(serde_json::from_value::<Characteristics>(json).unwrap(), c);
+    }
+
+    #[test]
+    fn columns_match_fields() {
+        let row = CharacterRow {
+            id: "c".into(),
+            owner_id: Some("u".into()),
+            name: "n".into(),
+            character_name: None,
+            player_name: None,
+            campaign_id: None,
+            characteristics: None,
+        };
+        let json = serde_json::to_value(row).unwrap();
+        let mut fields: Vec<&str> = json
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(String::as_str)
+            .collect();
+        let mut columns: Vec<&str> = CharacterRow::COLUMNS.split(',').collect();
+        fields.sort_unstable();
+        columns.sort_unstable();
+        assert_eq!(fields, columns);
     }
 
     #[test]
