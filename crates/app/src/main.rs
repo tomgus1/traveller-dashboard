@@ -9,7 +9,6 @@ use dioxus::prelude::*;
 use views::{Campaign, Campaigns, Character, Characters, Home, NotFound, Shell};
 
 const CSS: Asset = asset!("/assets/main.css");
-const FONTS: &str = "https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,700;1,800&family=Arimo:wght@400;700&display=swap";
 
 /// Every page, under one layout.
 #[derive(Routable, Clone, PartialEq)]
@@ -41,8 +40,6 @@ fn App() -> Element {
     use_context_provider(|| Signal::new(session::load()));
 
     rsx! {
-        document::Link { rel: "preconnect", href: "https://fonts.googleapis.com" }
-        document::Stylesheet { href: FONTS }
         document::Stylesheet { href: CSS }
         Router::<Route> {}
     }

@@ -581,11 +581,11 @@ pub fn CargoTab() -> Element {
                         tbody {
                             for c in state.contracts.iter() {
                                 tr { key: "{c.id}",
-                                    td { strong { "{c.description}" } br {} span { class: "muted small", {format!("{:?}", c.kind)} } }
+                                    td { strong { "{c.description}" } br {} span { class: "muted small", "{c.kind.label()}" } }
                                     td { class: "num", {c.tons.map_or_else(|| "—".into(), |t| t.to_string())} }
                                     td { class: "num", {Credits(c.payment).to_string()} }
                                     td { {dash(&c.destination)} }
-                                    td { class: if c.status == ContractStatus::Delivered { "muted" } else { "strong" }, {format!("{:?}", c.status)} }
+                                    td { class: if c.status == ContractStatus::Delivered { "muted" } else { "strong" }, "{c.status.label()}" }
                                 }
                             }
                         }

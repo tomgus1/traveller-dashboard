@@ -518,7 +518,12 @@ pub fn Campaign(id: String) -> Element {
                                         },
                                         Tab::Ship => rsx! { ShipTab {} },
                                         Tab::Cargo => rsx! { CargoTab {} },
-                                        _ => rsx! { TravelTab {} },
+                                        _ => rsx! {
+                                            TravelTab {}
+                                            if data.is_referee() {
+                                                RefereeNotes { campaign_id: data.campaign.id.clone(), actions }
+                                            }
+                                        },
                                     }
                                 }
                             },
@@ -884,6 +889,82 @@ fn Invite(data: CampaignData, actions: Actions) -> Element {
                     }
                 }
                 button { class: "btn", r#type: "submit", disabled: busy, "Send invitation" }
+            }
+        }
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct NotesRow {
+    notes: String,
+}
+
+/// The referee's private notes on the campaign: NPCs, secrets, plot. The
+/// database only lets referees read or write them.
+#[component]
+fn RefereeNotes(campaign_id: String, actions: Actions) -> Element {
+    let session = use_session();
+    let mut notes = use_signal(String::new);
+    let mut loaded = use_signal(|| false);
+    let id = campaign_id.clone();
+    use_resource(move || {
+        let id = id.clone();
+        async move {
+            let Ok(current) = fresh_session(session).await else {
+                return;
+            };
+            let rows: Vec<NotesRow> = supabase::get(
+                &current,
+                &format!("campaign_referee_notes?select=notes&campaign_id=eq.{id}"),
+            )
+            .await
+            .unwrap_or_default();
+            notes.set(rows.into_iter().next().map(|r| r.notes).unwrap_or_default());
+            loaded.set(true);
+        }
+    });
+
+    let save = move |evt: FormEvent| {
+        evt.prevent_default();
+        let text = notes();
+        if text.chars().count() > 50_000 {
+            let mut m = actions.message;
+            m.set(Some((
+                "Notes are limited to 50,000 characters.".into(),
+                true,
+            )));
+            return;
+        }
+        let id = campaign_id.clone();
+        actions.run("Referee notes saved.", move |current| async move {
+            let rows: Vec<serde_json::Value> = supabase::upsert(
+                &current,
+                "campaign_referee_notes",
+                "campaign_id",
+                &serde_json::json!({ "campaign_id": id, "notes": text }),
+            )
+            .await?;
+            if rows.is_empty() {
+                Err(Error::Server)
+            } else {
+                Ok(())
+            }
+        });
+    };
+
+    rsx! {
+        section { class: "referee", aria_labelledby: "ref-notes",
+            h2 { id: "ref-notes", class: "referee-title", "Referee only · NPCs & secrets" }
+            p { class: "muted small", "Only referees can see these notes." }
+            if loaded() {
+                form { onsubmit: save,
+                    label { class: "sr-only", r#for: "ref-notes-text", "Referee notes" }
+                    textarea { id: "ref-notes-text", class: "notes-box", rows: "8", maxlength: "50000",
+                        value: "{notes}", oninput: move |e| notes.set(e.value()) }
+                    button { class: "btn", r#type: "submit", disabled: (actions.busy)(), "Save notes" }
+                }
+            } else {
+                p { class: "muted", "Loading…" }
             }
         }
     }

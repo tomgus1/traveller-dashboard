@@ -206,6 +206,34 @@ pub async fn post<T: DeserializeOwned>(
     }
 }
 
+/// INSERT `body` into `table`, or update the existing row with the same
+/// `key` column (an upsert). Returns the stored rows.
+pub async fn upsert<T: DeserializeOwned>(
+    current: &Session,
+    table: &str,
+    key: &str,
+    body: &serde_json::Value,
+) -> Result<Vec<T>, Error> {
+    let (url, api_key) = settings()?;
+    let response = reqwest::Client::new()
+        .post(format!("{url}/rest/v1/{table}?on_conflict={key}"))
+        .header("apikey", api_key)
+        .header(
+            "Prefer",
+            "return=representation,resolution=merge-duplicates",
+        )
+        .bearer_auth(&current.access_token)
+        .json(body)
+        .send()
+        .await?;
+    match response.status().as_u16() {
+        200 | 201 => Ok(response.json().await?),
+        401 => Err(Error::SessionExpired),
+        404 => Err(Error::Unavailable),
+        _ => Err(Error::Server),
+    }
+}
+
 /// DELETE rows matching `path`'s filters, returning how many went.
 pub async fn delete(current: &Session, path: &str) -> Result<usize, Error> {
     let (url, key) = settings()?;

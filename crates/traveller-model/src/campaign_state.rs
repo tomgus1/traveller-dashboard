@@ -286,6 +286,19 @@ pub enum ContractKind {
     Other,
 }
 
+impl ContractKind {
+    /// For display.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Freight => "Freight",
+            Self::Passengers => "Passengers",
+            Self::Mail => "Mail",
+            Self::Charter => "Charter",
+            Self::Other => "Other",
+        }
+    }
+}
+
 /// Where a contract stands.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
@@ -297,6 +310,17 @@ pub enum ContractStatus {
     Aboard,
     /// Delivered and paid.
     Delivered,
+}
+
+impl ContractStatus {
+    /// For display.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Booked => "Booked",
+            Self::Aboard => "Aboard",
+            Self::Delivered => "Delivered",
+        }
+    }
 }
 
 /// A freight, passenger, mail or charter contract.
