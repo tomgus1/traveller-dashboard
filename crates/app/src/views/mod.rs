@@ -1,6 +1,8 @@
 //! Pages and the app shell.
 
 mod editor;
+mod forms;
+mod manage;
 mod sheet;
 
 pub use sheet::Character;
@@ -149,6 +151,7 @@ const CHARACTER_COLUMNS: &str =
 #[component]
 pub fn Characters() -> Element {
     let session = use_session();
+    let mut creating = use_signal(|| false);
     let characters = use_resource(move || async move {
         let current = fresh_session(session).await?;
         supabase::get::<Vec<CharacterRow>>(
@@ -161,7 +164,15 @@ pub fn Characters() -> Element {
     rsx! {
         main { class: "page",
             EdgeTab { label: "Characters" }
-            h1 { class: "display", "Characters" }
+            div { class: "page-head",
+                h1 { class: "display", "Characters" }
+                if !creating() {
+                    button { class: "btn", r#type: "button", onclick: move |_| creating.set(true), "New character" }
+                }
+            }
+            if creating() {
+                manage::NewCharacter { on_cancel: move |()| creating.set(false) }
+            }
             match &*characters.read() {
                 None => rsx! { p { class: "muted", "Loading…" } },
                 Some(Err(e)) => rsx! { p { class: "error", role: "alert", "{e}" } },

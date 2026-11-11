@@ -643,3 +643,140 @@ table.summary {
   font-size: 22px;
   cursor: pointer;
 }
+
+/* Editing */
+.page-head,
+.edit-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.edit-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.edit-section {
+  margin-top: 8px;
+}
+
+.edit-form {
+  margin: 10px 0 16px;
+  padding: 14px 16px;
+  border-top: 3px solid var(--ink);
+  background: var(--alt);
+}
+
+.edit-form h3 {
+  margin: 0 0 10px;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.stat-inputs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 520px) {
+  .stat-inputs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field.wide {
+  grid-column: 1 / -1;
+  margin-bottom: 12px;
+}
+
+.field label,
+.field .check {
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select,
+.field textarea {
+  min-height: 44px;
+  padding: 8px 10px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 2px solid var(--muted);
+  font: inherit;
+  font-size: 16px;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field .check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+.field .check input {
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  accent-color: var(--red);
+}
+
+.edit-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+
+.edit-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.edit-summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.danger {
+  margin-top: 32px;
+  border-top: 2px solid var(--red);
+}
+
+.danger .section {
+  color: var(--red);
+}

@@ -11,6 +11,8 @@ use traveller_model::{CharacterRow, CharacterSheet, Characteristics};
 use traveller_rules::{Characteristic, Credits, dm};
 
 use super::editor::{Editor, Notice, NoticeBar, QuickActions, WeaponButtons, condition_label};
+use super::forms::{self, CharacteristicsEditor, ListEditor, SectionEditor};
+use super::manage::DeleteCharacter;
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
 use crate::supabase::{self, Error};
 
@@ -165,6 +167,7 @@ impl Tab {
 #[component]
 fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callback<()>) -> Element {
     let mut tab = use_signal(|| Tab::Overview);
+    let mut editing = use_signal(|| false);
     let session = use_session();
     let character_id = use_signal(|| loaded.row.id.clone());
     let sheet = use_signal(|| loaded.sheet.clone().unwrap_or_default());
@@ -230,6 +233,17 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
                 }
             },
             Some(_) => rsx! {
+                if editable {
+                    div { class: "edit-toggle",
+                        button {
+                            class: if editing() { "btn" } else { "btn outline" },
+                            r#type: "button",
+                            aria_pressed: editing(),
+                            onclick: move |_| editing.toggle(),
+                            if editing() { "Done editing" } else { "Edit sheet" }
+                        }
+                    }
+                }
                 div { class: "tabs", role: "tablist", aria_label: "Character sections", onkeydown: on_key,
                     for t in Tab::ALL {
                         button {
@@ -250,6 +264,9 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
                     id: "panel-{tab().id()}",
                     role: "tabpanel",
                     aria_labelledby: "tab-{tab().id()}",
+                    if editing() && editable {
+                        EditTab { tab: tab(), name: row.display_name().to_string() }
+                    } else {
                     match tab() {
                         Tab::Overview => rsx! { Overview { stats, sheet: current_sheet.clone(), editable } },
                         Tab::Equipment => rsx! { Equipment { sheet: current_sheet.clone() } },
@@ -257,9 +274,42 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
                         Tab::History => rsx! { History { sheet: current_sheet.clone() } },
                         Tab::Notes => rsx! { Notes { sheet: current_sheet.clone(), referee_notes: loaded.referee_notes.clone() } },
                     }
+                    }
                 }
             },
         }
+    }
+}
+
+/// The editors for one tab (owner only).
+#[component]
+fn EditTab(tab: Tab, name: String) -> Element {
+    match tab {
+        Tab::Overview => rsx! {
+            CharacteristicsEditor {}
+            ListEditor { path: "skills", title: "Skills", fields: forms::SKILLS }
+        },
+        Tab::Equipment => rsx! {
+            ListEditor { path: "weapons", title: "Weapons", fields: forms::WEAPONS }
+            ListEditor { path: "ammo", title: "Ammunition", fields: forms::AMMO }
+            ListEditor { path: "armour", title: "Armour", fields: forms::ARMOUR }
+            ListEditor { path: "gear", title: "Gear", fields: forms::GEAR }
+            ListEditor { path: "augments", title: "Augments", fields: forms::AUGMENTS }
+        },
+        Tab::Finances => rsx! {
+            SectionEditor { path: "finances", title: "Finances", fields: forms::FINANCES }
+            ListEditor { path: "finances.ledger", title: "Ledger", fields: forms::LEDGER }
+        },
+        Tab::History => rsx! {
+            SectionEditor { path: "identity", title: "Background", fields: forms::IDENTITY }
+            ListEditor { path: "people", title: "Contacts, allies, rivals & enemies", fields: forms::PEOPLE }
+            ListEditor { path: "career", title: "Career terms", fields: forms::CAREER }
+            ListEditor { path: "training", title: "Training", fields: forms::TRAINING }
+        },
+        Tab::Notes => rsx! {
+            SectionEditor { path: "", title: "Notes", fields: forms::NOTES }
+            DeleteCharacter { name }
+        },
     }
 }
 

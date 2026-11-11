@@ -178,6 +178,48 @@ pub async fn patch<T: DeserializeOwned>(
     }
 }
 
+/// INSERT `body` into `table`, returning the new rows (with defaults such as
+/// generated ids filled in).
+pub async fn post<T: DeserializeOwned>(
+    current: &Session,
+    table: &str,
+    body: &serde_json::Value,
+) -> Result<Vec<T>, Error> {
+    let (url, key) = settings()?;
+    let response = reqwest::Client::new()
+        .post(format!("{url}/rest/v1/{table}"))
+        .header("apikey", key)
+        .header("Prefer", "return=representation")
+        .bearer_auth(&current.access_token)
+        .json(body)
+        .send()
+        .await?;
+    match response.status().as_u16() {
+        200 | 201 => Ok(response.json().await?),
+        401 => Err(Error::SessionExpired),
+        404 => Err(Error::Unavailable),
+        _ => Err(Error::Server),
+    }
+}
+
+/// DELETE rows matching `path`'s filters, returning how many went.
+pub async fn delete(current: &Session, path: &str) -> Result<usize, Error> {
+    let (url, key) = settings()?;
+    let response = reqwest::Client::new()
+        .delete(format!("{url}/rest/v1/{path}"))
+        .header("apikey", key)
+        .header("Prefer", "return=representation")
+        .bearer_auth(&current.access_token)
+        .send()
+        .await?;
+    match response.status().as_u16() {
+        200 => Ok(response.json::<Vec<serde_json::Value>>().await?.len()),
+        401 => Err(Error::SessionExpired),
+        404 => Err(Error::Unavailable),
+        _ => Err(Error::Server),
+    }
+}
+
 /// Percent-encodes a value for a query string (RFC 3986 unreserved
 /// characters pass through). Timestamps contain `+` and `:`, which would
 /// otherwise be misread.
