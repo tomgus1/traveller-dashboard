@@ -37,14 +37,30 @@ pub enum Suggest {
     None,
     /// Every skill and speciality in the Core Rulebook.
     Skills,
+    /// The names of the weapons in the document being edited.
+    Weapons,
 }
 
 impl Suggest {
-    /// The suggestions, if any.
-    pub fn options(self) -> Vec<String> {
+    /// The suggestions, if any; `doc` is the document being edited.
+    pub fn options(self, doc: &serde_json::Value) -> Vec<String> {
         match self {
             Self::None => Vec::new(),
             Self::Skills => traveller_rules::skills::all_names(),
+            Self::Weapons => {
+                let mut names: Vec<String> = doc
+                    .get("weapons")
+                    .and_then(serde_json::Value::as_array)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(|w| w.get("name").and_then(serde_json::Value::as_str))
+                    .map(str::trim)
+                    .filter(|n| !n.is_empty())
+                    .map(str::to_string)
+                    .collect();
+                names.dedup();
+                names
+            }
         }
     }
 }
@@ -131,7 +147,7 @@ pub const WEAPONS: &[Field] = &[
 ];
 pub const AMMO: &[Field] = &[
     name("name", "Ammunition"),
-    text("weapon", "For weapon"),
+    suggesting(text("weapon", "For weapon"), Suggest::Weapons),
     int("rounds", "Rounds", 0, 100_000),
     opt_int("capacity", "Capacity", 0, 100_000),
     long("notes", "Notes"),

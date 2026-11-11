@@ -22,6 +22,7 @@ use traveller_rules::Credits;
 #[component]
 fn Inputs(id: String, fields: &'static [Field], values: Signal<Vec<String>>) -> Element {
     let mut values = values;
+    let doc = use_doc();
     rsx! {
         div { class: "form-grid",
             for (i, field) in fields.iter().enumerate() {
@@ -75,7 +76,7 @@ fn Inputs(id: String, fields: &'static [Field], values: Signal<Vec<String>>) -> 
                                         list: "{input_id}-options", placeholder: "Start typing to search",
                                         oninput: move |e| values.write()[i] = e.value() }
                                     datalist { id: "{input_id}-options",
-                                        for option in field.suggest.options() {
+                                        for option in field.suggest.options(&doc.doc.read()) {
                                             option { key: "{option}", value: "{option}" }
                                         }
                                     }
