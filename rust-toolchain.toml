@@ -1,0 +1,7 @@
+# The Rust toolchain for this project, used by rustup locally and in CI.
+# Bump deliberately: a new release can bring new Clippy lints.
+[toolchain]
+channel = "1.99.1"
+components = ["clippy", "rustfmt"]
+targets = ["wasm32-unknown-unknown"]
+profile = "minimal"

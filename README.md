@@ -1,200 +1,101 @@
 # Traveller Dashboard
 
-**The Next-Gen Digital Companion for Mongoose Traveller 2E.**
+A companion app for **Mongoose Traveller 2nd edition** groups: character
+sheets, campaigns and the shared records a party keeps (ship, funds, cargo,
+trade, travel log), in one place that works on phones at the table and
+laptops at home.
 
-Traveller Dashboard is a high-fidelity, high-performance web application designed to be the ultimate companion for players and GMs. Inspired by modern digital tabletop giants like Demiplane and D&D Beyond, it combines a tactical "Mission Control" aesthetic with powerful administrative tools to streamline campaign management, character tracking, and planetary economics.
+Written in **Rust**, compiled to **WebAssembly** with
+[Dioxus](https://dioxuslabs.com/), backed by [Supabase](https://supabase.com/).
+It's styled after the rulebooks: light like the inside pages, dark like the
+covers, following the device's theme.
 
----
+## What it does
 
-## 🚀 Vision
+- **Characters:** a full sheet across five tabs (Overview, Equipment,
+  Finances, History & people, Notes). Players manage their own; the
+  campaign's referee can read them.
+- **At the table:** take damage and heal (applied by the rules), fire and
+  reload, spend and receive credits.
+- **Campaigns:** members and roles (referee, player, admin), invitations by
+  email, and the party roster with everyone's condition.
+- **Shared campaign records,** editable by every member: party funds and the
+  ship fund with ledgers, the ship's locker, ship details and running costs,
+  cargo, contracts, trades, the Imperial date, jumps, worlds, missions and a
+  journal. Simultaneous edits all land.
+- **Referee notes** that only referees can see.
 
-- **Immersive HUD**: A "Tactical Terminal" interface that feels like part of your ship's bridge, featuring custom glassmorphism and micro-animations.
-- **Unified Dashboards**: Modular "Mission Control" views for Campaign, Ship, and Character data.
-- **Cross-Platform**: Optimized for **Laptop, Tablet, and Mobile**—your data accompanies you everywhere.
-- **Theme-Aware**: Seamlessly switch between "Tactical Light" (Blueprint) and "Stealth Dark" (Mission Clock) modes with optimized accessibility.
-- **Admin Excellence**: Beneath the sci-fi polish lies a robust system focused on speed, efficiency, and data integrity.
+Rules follow the Core Rulebook (Update 2022): every rule in
+`crates/traveller-rules` cites its page, and its tests use the book's own
+worked examples.
 
----
+## Layout
 
-## 🚀 Quick Setup
+| Path | What's there |
+| --- | --- |
+| `crates/traveller-rules` | Game rules as pure functions, with page references |
+| `crates/traveller-model` | What's stored (character sheet, campaign state), as Rust types |
+| `crates/app` | The Dioxus web app |
+| `database/` | SQL migrations, applied in order, and `tests/run.sh` |
+| `supabase/functions` | Edge Functions (Deno), e.g. `invite-user` |
+| `scripts/dev.sh` | Runs the app locally |
 
-### Database Setup ✅
+## Running it locally
 
-Fresh database schema with all features ready.  
-Run `database/fresh-start.sql` in two parts (see file header comments).
+You need [rustup](https://rustup.rs/); `rust-toolchain.toml` pins the
+version and adds the WebAssembly target. Then install the Dioxus CLI, `dx`,
+version 0.7.10 (for example from its
+[release page](https://github.com/DioxusLabs/dioxus/releases/tag/v0.7.10), or
+`cargo binstall dioxus-cli@0.7.10`).
 
-### Email Integration ✅
+Put your Supabase project's URL and anon key in `.env.local` (see
+`.env.example`), then:
 
-Brevo email service configured and working (300 emails/day free tier).
-
-**Setup Guide:** [QUICK_START.md](./QUICK_START.md) - 5-minute configuration  
-**Detailed Info:** [BREVO_SETUP.md](./BREVO_SETUP.md) - Advanced options  
-**Troubleshooting:** [BREVO_TROUBLESHOOTING.md](./BREVO_TROUBLESHOOTING.md) - Common issues
-
-**Note:** First invitation emails may arrive in spam folder (normal for new senders).
-
----
-
-## Clean Architecture Demo
-
-### SOLID Principles in Action
-
-- **Single Responsibility**: Custom hooks (`useAppState`, `useForm`) separate concerns
-- **Open/Closed**: Extensible patterns for new features
-- **Interface Segregation**: Focused types (`FinancialState`, `CharacterState`)
-- **Dependency Inversion**: Components use abstract hooks, not implementations
-
-### DRY Implementation
-
-```typescript
-// Before: Repetitive form handling in every component
-// After: One reusable pattern
-const { form, createInputHandler, resetForm } = useForm(initialData);
-<FormField value={form.field} onChange={createInputHandler("field")} />
+```sh
+scripts/dev.sh            # http://localhost:8080/traveller-dashboard/
 ```
 
-### Results
+Edits to the code or styles reload automatically. To invite people while
+running locally, add `http://localhost:8080` to the `EXTRA_ALLOWED_ORIGINS`
+secret of the `invite-user` Edge Function.
 
-- **App.tsx**: 200+ lines → ~110 lines
-- **Code duplication**: ~300 lines eliminated
-- **File count**: 29 → 24 files (17% reduction)
+## Checks
 
----
-
-## Project Structure
-
-```
-src/
-├── hooks/                   # SOLID: Single responsibility
-│   ├── useAppState.ts      # State management
-│   ├── useBalanceCalculations.ts
-│   ├── useImportExport.ts
-│   └── useForm.ts          # DRY: Generic form handling
-├── components/             # Reusable UI (DRY)
-│   ├── FormField.tsx       # Universal form input
-│   ├── FinanceManager.tsx  # Universal finance component
-│   └── [others...]
-├── features/               # Feature modules
-│   ├── cargo/Cargo.tsx
-│   └── pcs/               # Character features
-└── utils/                 # Pure business logic
+```sh
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy -p app --target wasm32-unknown-unknown --all-targets -- -D warnings
+cargo test --workspace
+database/tests/run.sh     # migrations and access rules, in a throwaway Postgres (Podman or Docker)
 ```
 
----
+CI runs all of these on every push, plus the Edge Function checks. Pushes to
+`main` then build the app and deploy it to GitHub Pages, and deploy the Edge
+Functions.
 
-## Quick Start
+## Database
 
-Requires Node 24+ and pnpm 12+ (`corepack enable` picks up the version pinned in `package.json`).
-npm and yarn are not supported — only `pnpm-lock.yaml` is committed.
+Apply the files in `database/` in order in the Supabase SQL editor; each is
+safe to run more than once. Row Level Security decides who sees what: the
+app only hides controls the database would refuse anyway.
+`database/tests/run.sh` tests each migration against a copy of the schema,
+including how the live database differs from the earliest files.
 
-```bash
-git clone https://github.com/<you>/traveller-dashboard.git
-cd traveller-dashboard
-pnpm install
-cp .env.example .env.local   # add your Supabase URL + anon key
-pnpm dev
-```
+Email invitations use Brevo when configured; see [EMAIL_SETUP.md](./EMAIL_SETUP.md).
+Without it, invitations still appear on the invitee's Home page.
 
-Dependency install scripts are blocked by default; see `allowBuilds` in `pnpm-workspace.yaml`.
+## Rulebook content
 
-**Required configs:**
+The app implements the game's rules in its own code and doesn't include text
+or tables from the books. Equipment stats from the Core Rulebook and Central
+Supply Catalogue are kept out of this public repository.
 
-```ts
-// vite.config.ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import tailwindcss from "@tailwindcss/vite";
+Traveller is a trademark of Far Future Enterprises, and Mongoose Traveller
+is published by Mongoose Publishing. This is an unofficial fan project, not
+affiliated with or endorsed by either.
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  base: "/traveller-dashboard/", // Your repo name
-});
-```
+## Licence
 
-```css
-/* src/index.css */
-@import "tailwindcss";
-
-:root {
-  /* ... HSL variables ... */
-}
-
-body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
-}
-
-.card-modern {
-  @apply hud-glass rounded-[2rem] p-8 transition-all duration-500;
-}
-```
-
----
-
-## How to Use
-
-1. **Party/Ship**: Add income (+) and expenses (-)
-2. **Cargo**: Log buy/sell legs to track profit per ton
-3. **Characters**: Select PC → manage ledger/inventory/ammo
-4. **Import/Export**: Round-trip with Excel/LibreOffice/Google Sheets
-
-Data persists in PostgreSQL database via Supabase. XLSX format ensures universal compatibility for import/export.
-
----
-
-## CI & Deployment
-
-GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push:
-format check → lint → type-check → tests → build.
-
-Pushes to `main` that pass are deployed to GitHub Pages automatically. There is no
-manual deploy step. A failed check or deploy fails the run, and GitHub emails you.
-
-Setup (once):
-
-- **Settings → Pages → Source**: _GitHub Actions_
-- **Settings → Secrets → Actions**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-  (used by the build and by the daily `touch_db` keep-alive)
-- `base` in `vite.config.ts` must match the repo name (`/traveller-dashboard/`)
-
----
-
-## Architecture Benefits
-
-**Before vs After Refactoring:**
-
-- ❌ Mixed responsibilities → ✅ Clear separation of concerns
-- ❌ Repetitive form code → ✅ Single `useForm` pattern
-- ❌ Prop drilling → ✅ Custom hooks
-- ❌ Inconsistent patterns → ✅ Standardized components
-
-**Performance & Bundle Optimization:**
-
-- **Initial load**: ~201kB (vs 1,161kB) - 83% reduction via code splitting
-- **Excel features**: Lazy-loaded only when needed (939kB separate chunk)
-- **Fast startup**: App loads instantly, heavy libraries load on-demand
-- **Better caching**: Vendor, icons, and Excel chunks cached independently
-
-**Developer Experience:**
-
-- **Easy debugging**: Clear component boundaries
-- **Simple testing**: Isolated, focused functions
-- **Self-documenting**: Consistent patterns
-- **Team-friendly**: New developers understand quickly
-
----
-
-## Troubleshooting
-
-- **Black screen**: Check DevTools Console for missing React imports
-- **Tailwind issues**: Ensure config matches above
-- **GitHub Pages blank**: Set correct `base` in `vite.config.ts`
-- **XLSX import fails**: Sheet names must match (`Party_Finances`, etc.)
-
----
-
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-
-Distributed under the **GNU General Public License v3.0**. See `LICENSE` for more information.
-
-Traveller © Far Future Enterprises / Mongoose Publishing.
+GPL-3.0-or-later (see `LICENSE`). The bundled fonts, Barlow Condensed and
+Arimo, are under the SIL Open Font License; their licences are in
+`crates/app/public/fonts`.

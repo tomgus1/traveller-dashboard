@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Runs the Rust (Dioxus) app locally with hot reload, like `pnpm dev`.
+# Runs the app locally with hot reload.
 #
-# Reads the Supabase settings from .env.local (or .env), the same file the
-# React app uses, and passes them to the build. Extra arguments go to
-# `dx serve`, e.g. `scripts/dev-rust.sh --port 9000 --open`.
+# Reads the Supabase settings (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)
+# from .env.local or .env, and passes them to the build. Extra arguments go
+# to `dx serve`, e.g. `scripts/dev.sh --port 9000 --open`.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -35,7 +35,7 @@ if [[ -z $SUPABASE_URL || -z $SUPABASE_ANON_KEY ]]; then
 fi
 
 if ! command -v dx >/dev/null; then
-  echo "The Dioxus CLI (dx) isn't installed. See README: Rust app." >&2
+  echo "The Dioxus CLI (dx) isn't installed. See README: Running it locally." >&2
   exit 1
 fi
 
