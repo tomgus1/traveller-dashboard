@@ -36,6 +36,7 @@ worked examples.
 | `crates/traveller-rules` | Game rules as pure functions, with page references |
 | `crates/traveller-model` | What's stored (character sheet, campaign state), as Rust types |
 | `crates/app` | The Dioxus web app |
+| `crates/catalogue-extract` | Extracts equipment tables from rulebook PDFs you own |
 | `database/` | SQL migrations, applied in order, and `tests/run.sh` |
 | `supabase/functions` | Edge Functions (Deno), e.g. `invite-user` |
 | `scripts/dev.sh` | Runs the app locally |
@@ -89,6 +90,22 @@ Without it, invitations still appear on the invitee's Home page.
 The app implements the game's rules in its own code and doesn't include text
 or tables from the books. Equipment stats from the Core Rulebook and Central
 Supply Catalogue are kept out of this public repository.
+
+To give your group the equipment catalogue (picked from on the sheet's
+Equipment tab), extract it from your own copies of the books, then load it
+into the database once migration 10 is applied. This needs poppler's
+`pdftotext`:
+
+```sh
+cargo run -p catalogue-extract -- csc-2023 "<Central Supply Catalogue 2023>.pdf" data/catalogue/csc-2023.json 2> csc-report.txt
+cargo run -p catalogue-extract -- core-2022 "<Core Rulebook 2022>.pdf" data/catalogue/core-2022.json 2> core-report.txt
+cargo run -p catalogue-extract -- sql data/catalogue/*.json > data/catalogue/load.sql
+```
+
+Run `load.sql` in the Supabase SQL editor, or with `psql`. It replaces each
+book's items, so running it again after re-extracting is safe. The reports
+list rows worth checking against the book. `data/catalogue/` is git-ignored,
+and the catalogue is readable only by signed-in members of a campaign.
 
 Traveller is a trademark of Far Future Enterprises, and Mongoose Traveller
 is published by Mongoose Publishing. This is an unofficial fan project, not

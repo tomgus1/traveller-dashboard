@@ -10,6 +10,7 @@ use traveller_model::sheet::{Armour, Relation, Weapon};
 use traveller_model::{CharacterRow, CharacterSheet, Characteristics};
 use traveller_rules::{Characteristic, Credits, dm};
 
+use super::catalogue::Pick;
 use super::doc::{DocChange, DocEditor};
 use super::editor::{Editor, Notice, NoticeBar, QuickActions, WeaponButtons, condition_label};
 use super::fields;
@@ -314,11 +315,11 @@ fn EditTab(tab: Tab, name: String) -> Element {
             ListEditor { path: "skills", title: "Skills", fields: fields::SKILLS }
         },
         Tab::Equipment => rsx! {
-            ListEditor { path: "weapons", title: "Weapons", fields: fields::WEAPONS }
+            ListEditor { path: "weapons", title: "Weapons", fields: fields::WEAPONS, catalogue: Pick::Weapon }
             ListEditor { path: "ammo", title: "Ammunition", fields: fields::AMMO }
-            ListEditor { path: "armour", title: "Armour", fields: fields::ARMOUR }
-            ListEditor { path: "gear", title: "Gear", fields: fields::GEAR }
-            ListEditor { path: "augments", title: "Augments", fields: fields::AUGMENTS }
+            ListEditor { path: "armour", title: "Armour", fields: fields::ARMOUR, catalogue: Pick::Armour }
+            ListEditor { path: "gear", title: "Gear", fields: fields::GEAR, catalogue: Pick::Gear }
+            ListEditor { path: "augments", title: "Augments", fields: fields::AUGMENTS, catalogue: Pick::Augment }
         },
         Tab::Finances => rsx! {
             SectionEditor { path: "finances", title: "Finances", fields: fields::FINANCES }

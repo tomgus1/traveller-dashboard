@@ -1,6 +1,7 @@
 //! Pages and the app shell.
 
 mod campaigns;
+mod catalogue;
 mod doc;
 mod editor;
 mod fields;

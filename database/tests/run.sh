@@ -62,6 +62,11 @@ apply "$DB"/09-import-old-finances.sql
 "$ENGINE" cp "$DB"/09-import-old-finances.sql td-test:/tmp/09.sql
 report 24-tests-09.sql
 
+echo "== 10 catalogue"
+apply "$DB"/10-catalogue.sql
+apply "$DB"/10-catalogue.sql   # re-runnable
+report 25-tests-10.sql
+
 # Optionally export the documents the migrations produced, so the Rust
 # model's tests can check they load (TD_EXPORT_DIR=… database/tests/run.sh,
 # then the paths printed below).

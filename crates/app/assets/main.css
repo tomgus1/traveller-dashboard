@@ -820,6 +820,47 @@ table.summary {
   border-bottom: 1px solid var(--rule);
 }
 
+/* Picking from the catalogue */
+.picker .field {
+  margin-bottom: 10px;
+}
+
+.pick-list {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  max-height: 360px;
+  overflow-y: auto;
+  border-top: 2px solid var(--ink);
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 4px;
+  background: none;
+  color: var(--ink);
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pick:hover,
+.pick:focus-visible {
+  background: var(--bg);
+}
+
+.pick:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: -3px;
+}
+
 .edit-summary {
   min-width: 0;
   overflow-wrap: anywhere;

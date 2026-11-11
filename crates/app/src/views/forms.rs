@@ -9,6 +9,7 @@ use dioxus::prelude::*;
 use serde_json::Value;
 use traveller_rules::Characteristic;
 
+use super::catalogue::{CataloguePicker, Pick};
 use super::doc::{DocChange, Target, at, new_id, use_doc};
 use super::editor::use_editor;
 use super::fields::{Field, Kind, MAX_LONG, MAX_TEXT, blank, collect, summary, to_text, whole};
@@ -96,9 +97,13 @@ pub fn ListEditor(
     /// Give new items an id (shared lists, where several people edit).
     #[props(default)]
     ids: bool,
+    /// Offer picking new items from the rulebook catalogue.
+    #[props(default)]
+    catalogue: Option<Pick>,
 ) -> Element {
     let doc = use_doc();
     let mut editing = use_signal(|| None::<Editing>);
+    let mut picking = use_signal(|| false);
     let mut values = use_signal(Vec::<String>::new);
     let mut error = use_signal(|| None::<String>);
     let mut confirm_remove = use_signal(|| None::<usize>);
@@ -139,16 +144,39 @@ pub fn ListEditor(
         section { class: "edit-section", aria_labelledby: "edit-{form_id}",
             div { class: "edit-head",
                 h2 { id: "edit-{form_id}", class: "section", "{title}" }
-                if editing().is_none() {
-                    button { class: "mini", r#type: "button", disabled: busy,
-                        onclick: move |_| {
-                            values.set(blank(fields));
-                            error.set(None);
-                            confirm_remove.set(None);
-                            editing.set(Some(Editing::New));
-                        },
-                        "Add"
+                if editing().is_none() && !picking() {
+                    span { class: "row-actions",
+                        if catalogue.is_some() {
+                            button { class: "mini outline", r#type: "button", disabled: busy,
+                                onclick: move |_| {
+                                    confirm_remove.set(None);
+                                    picking.set(true);
+                                },
+                                "From catalogue"
+                            }
+                        }
+                        button { class: "mini", r#type: "button", disabled: busy,
+                            onclick: move |_| {
+                                values.set(blank(fields));
+                                error.set(None);
+                                confirm_remove.set(None);
+                                editing.set(Some(Editing::New));
+                            },
+                            "Add"
+                        }
                     }
+                }
+            }
+
+            if let (Some(pick), true) = (catalogue, picking()) {
+                CataloguePicker { pick,
+                    on_pick: move |item: Value| {
+                        values.set(fields.iter().map(|f| to_text(item.get(f.key))).collect());
+                        error.set(None);
+                        picking.set(false);
+                        editing.set(Some(Editing::New));
+                    },
+                    on_close: move |()| picking.set(false),
                 }
             }
 
