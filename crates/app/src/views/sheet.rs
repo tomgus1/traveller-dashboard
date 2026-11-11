@@ -184,6 +184,9 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
     let row = &loaded.row;
     let stats = stats();
     let current_sheet = sheet();
+    // Players manage their own sheets; everyone else (the referee) reads.
+    let editable =
+        session().is_some_and(|s| loaded.row.owner_id.as_deref() == Some(s.user_id.as_str()));
 
     // Arrow keys, Home and End move between tabs (WAI-ARIA tabs pattern).
     let on_key = move |e: KeyboardEvent| {
@@ -248,7 +251,7 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
                     role: "tabpanel",
                     aria_labelledby: "tab-{tab().id()}",
                     match tab() {
-                        Tab::Overview => rsx! { Overview { stats, sheet: current_sheet.clone() } },
+                        Tab::Overview => rsx! { Overview { stats, sheet: current_sheet.clone(), editable } },
                         Tab::Equipment => rsx! { Equipment { sheet: current_sheet.clone() } },
                         Tab::Finances => rsx! { Finances { sheet: current_sheet.clone() } },
                         Tab::History => rsx! { History { sheet: current_sheet.clone() } },
@@ -321,14 +324,18 @@ fn StatBox(c: Characteristic, stats: Characteristics) -> Element {
 }
 
 #[component]
-fn Overview(stats: Characteristics, sheet: CharacterSheet) -> Element {
+fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> Element {
     let mut skills = sheet.skills.clone();
     skills.sort_by(|a, b| b.level.cmp(&a.level).then_with(|| a.name.cmp(&b.name)));
     let worn: Vec<Armour> = sheet.worn_armour().cloned().collect();
 
     rsx! {
         Stats { stats }
-        QuickActions {}
+        if editable {
+            QuickActions {}
+        } else {
+            p { class: "muted", "Read only: players manage their own sheets." }
+        }
         div { class: "columns",
             section { aria_labelledby: "skills",
                 h2 { id: "skills", class: "section", "Skills" }
@@ -351,7 +358,7 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet) -> Element {
             div {
                 section { aria_labelledby: "weapons",
                     h2 { id: "weapons", class: "section", "Weapons" }
-                    WeaponTable { weapons: sheet.weapons.clone(), full: false, actions: true }
+                    WeaponTable { weapons: sheet.weapons.clone(), full: false, actions: editable }
                 }
                 section { aria_labelledby: "armour",
                     h2 { id: "armour", class: "section", "Armour worn" }

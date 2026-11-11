@@ -1,10 +1,11 @@
 //! Editing a character: saving, conflict handling, and the quick actions
 //! used at the table.
 //!
-//! The sheet document saves only if it hasn't changed since it was loaded
-//! (`updated_at` must still match). If the player and the referee save at
-//! once, the second save is refused and the page reloads instead of
-//! silently overwriting the other edit.
+//! Only a character's owner edits it (the database enforces this; referees
+//! read). The sheet document saves only if it hasn't changed since it was
+//! loaded (`updated_at` must still match), so the same player editing on two
+//! devices, say a phone at the table and a laptop, can't silently overwrite
+//! one edit with the other: the second save is refused and the page reloads.
 
 use std::fmt::Write as _;
 
@@ -75,7 +76,7 @@ impl Editor {
                 Ok(()) => self.say(done, false),
                 Err(SaveError::Conflict) => {
                     self.say(
-                        "Someone else changed this sheet. It has been reloaded; please try again.",
+                        "This sheet was changed elsewhere (another device?). It has been reloaded; please try again.",
                         true,
                     );
                     self.reload.call(());

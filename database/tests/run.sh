@@ -45,5 +45,10 @@ apply "$DB"/06-character-sheets.sql
 apply "$DB"/06-character-sheets.sql   # re-runnable
 report 21-tests-06.sql
 
+echo "== 07 owners edit sheets"
+apply "$DB"/07-owners-edit-sheets.sql
+apply "$DB"/07-owners-edit-sheets.sql   # re-runnable
+report 22-tests-07.sql
+
 "$ENGINE" rm -f td-test >/dev/null
 [[ $FAILED -eq 0 ]] && echo "All checks passed." || { echo "Some checks FAILED." >&2; exit 1; }
