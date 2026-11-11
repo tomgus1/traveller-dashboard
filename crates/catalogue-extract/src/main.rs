@@ -17,6 +17,7 @@
 
 mod items;
 mod tables;
+mod trade;
 mod words;
 
 use std::collections::BTreeMap;
@@ -68,7 +69,14 @@ fn main() -> ExitCode {
         })
         .flat_map(|p| tables::find_tables(p.number, p.width, &p.words))
         .collect();
-    let items = items::items(book, &tables);
+    let mut items = items::items(book, &tables);
+    if let Some((first, last)) = book.trade_pages {
+        let trade_pages: Vec<&words::Page> = pages
+            .iter()
+            .filter(|p| (first..=last).contains(&p.number.saturating_sub(book.page_offset)))
+            .collect();
+        items.extend(trade::trade_goods(book, &trade_pages));
+    }
 
     // A report to review: counts, and rows that look incomplete.
     let mut by_section: BTreeMap<&str, usize> = BTreeMap::new();

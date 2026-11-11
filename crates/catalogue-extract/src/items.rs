@@ -16,6 +16,8 @@ pub struct Book {
     pub pages: (u32, u32),
     /// Chapters by first printed page, in order.
     pub sections: &'static [(u32, &'static str)],
+    /// Printed pages of the Trade Goods table, if the book has one.
+    pub trade_pages: Option<(u32, u32)>,
 }
 
 /// The books, checked against their contents pages.
@@ -39,6 +41,7 @@ pub const BOOKS: &[Book] = &[
             (174, "Weapon Accessories"),
             (176, "Specialised Ammunition"),
         ],
+        trade_pages: None,
     },
     Book {
         id: "core-2022",
@@ -46,6 +49,7 @@ pub const BOOKS: &[Book] = &[
         page_offset: 1,
         pages: (97, 135),
         sections: &[(97, "Equipment")],
+        trade_pages: Some((244, 245)),
     },
 ];
 
@@ -163,7 +167,7 @@ fn traits(cell: &str) -> Vec<String> {
         .collect()
 }
 
-fn slug(text: &str) -> String {
+pub fn slug(text: &str) -> String {
     let mut out = String::new();
     for c in text.chars() {
         if c.is_ascii_alphanumeric() {
@@ -283,6 +287,7 @@ pub fn items(book: &Book, tables: &[RawTable]) -> Vec<CatalogueItem> {
                 kg: kilograms(&kg_cell),
                 weapon,
                 armour,
+                trade: None,
                 effect,
                 columns,
             });

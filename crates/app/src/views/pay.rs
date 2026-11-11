@@ -2,6 +2,7 @@
 //! the same document and recording it in that ledger, in one change with
 //! the item so the two can't get out of step.
 
+use dioxus::prelude::*;
 use serde_json::{Map, Value, json};
 use traveller_model::campaign_state::ImperialDate;
 use traveller_rules::Credits;
@@ -20,6 +21,9 @@ pub struct PaySource {
     /// A campaign fund: entries get ids, the campaign's Imperial date and
     /// a category.
     pub shared: bool,
+    /// In the campaign's document while editing a character sheet: paid
+    /// there first, then the item saved to the sheet.
+    pub elsewhere: bool,
 }
 
 /// A character's cash (sheet).
@@ -28,6 +32,7 @@ pub const CASH: PaySource = PaySource {
     balance: "finances.cash",
     ledger: "finances.ledger",
     shared: false,
+    elsewhere: false,
 };
 
 /// The party's funds (campaign).
@@ -36,6 +41,13 @@ pub const PARTY_FUND: PaySource = PaySource {
     balance: "funds.balance",
     ledger: "funds.ledger",
     shared: true,
+    elsewhere: false,
+};
+
+/// The party's funds, paying for a character's own gear.
+pub const PARTY_FUND_FOR_SHEET: PaySource = PaySource {
+    elsewhere: true,
+    ..PARTY_FUND
 };
 
 /// The ship's account (campaign).
@@ -44,16 +56,26 @@ pub const SHIP_FUND: PaySource = PaySource {
     balance: "ship_fund.balance",
     ledger: "ship_fund.ledger",
     shared: true,
+    elsewhere: false,
 };
 
-/// Sources for a character's gear.
-pub const SHEET_SOURCES: &[PaySource] = &[CASH];
+/// Sources for a character's gear. Party funds are offered only when the
+/// character is in a campaign.
+pub const SHEET_SOURCES: &[PaySource] = &[CASH, PARTY_FUND_FOR_SHEET];
 /// Sources for the campaign's shared gear.
 pub const CAMPAIGN_SOURCES: &[PaySource] = &[PARTY_FUND, SHIP_FUND];
 
-/// What a new entry costs: its unit cost (the form's, else the catalogue
-/// price) times its quantity (1 if it has none).
+/// What a new entry costs: what was paid for the whole lot (cargo), or its
+/// unit cost (the form's, else the catalogue price) times its quantity (1
+/// if it has none).
 pub fn price(fields: &Map<String, Value>, catalogue_cost: Option<i64>) -> Option<i64> {
+    if let Some(paid) = fields
+        .get("paid")
+        .and_then(Value::as_i64)
+        .filter(|p| *p > 0)
+    {
+        return Some(paid);
+    }
     let unit = fields
         .get("cost")
         .and_then(Value::as_i64)
@@ -87,13 +109,27 @@ fn entry_date(source: PaySource, doc: &Value) -> String {
     }
 }
 
+/// The character's campaign, on a character page, for paying from its
+/// funds.
+#[derive(Clone, PartialEq)]
+pub struct CampaignFunds {
+    /// The campaign.
+    pub campaign_id: String,
+    /// Who's buying, for the ledger: the character's name.
+    pub by: String,
+    /// The campaign's state as last loaded (none until it loads, or if it
+    /// can't be read).
+    pub state: Signal<Option<Value>>,
+}
+
 /// The change that pays `amount` from `source` for `what`, or why it
-/// can't: not enough money.
+/// can't: not enough money. `by` names who paid, in a campaign ledger.
 pub fn payment(
     source: PaySource,
     doc: &Value,
     amount: i64,
     what: &str,
+    by: &str,
 ) -> Result<DocChange, String> {
     let have = balance(source, doc);
     if amount > have {
@@ -115,13 +151,21 @@ pub fn payment(
         id,
         amount,
         what,
+        by,
     ))
 }
 
 /// `id` is the ledger entry's (empty for a sheet's ledger, which has none).
-fn payment_change(source: PaySource, date: &str, id: String, amount: i64, what: &str) -> DocChange {
+fn payment_change(
+    source: PaySource,
+    date: &str,
+    id: String,
+    amount: i64,
+    what: &str,
+    by: &str,
+) -> DocChange {
     let entry = if source.shared {
-        json!({ "date": date, "description": what, "amount": -amount, "category": "Expense / Equipment" })
+        json!({ "date": date, "description": what, "amount": -amount, "category": "Expense / Equipment", "by": by })
     } else {
         json!({ "date": date, "description": what, "amount": -amount })
     };
@@ -165,13 +209,25 @@ mod tests {
             "catalogue price"
         );
         assert_eq!(price(&map(json!({"cost": null})), None), None);
+        assert_eq!(
+            price(&map(json!({"tons": 10, "paid": 55000})), Some(1234)),
+            Some(55000),
+            "cargo: the lot's price, not the base price"
+        );
     }
 
     #[test]
     fn paying_from_cash_records_it() {
         let mut doc = json!({"finances": {"cash": 1000, "ledger": []}});
-        payment_change(CASH, "2026-11-11", String::new(), 150, "Bought Revolver")
-            .apply_to(&mut doc);
+        payment_change(
+            CASH,
+            "2026-11-11",
+            String::new(),
+            150,
+            "Bought Revolver",
+            "",
+        )
+        .apply_to(&mut doc);
         assert_eq!(doc["finances"]["cash"], 850);
         assert_eq!(
             doc["finances"]["ledger"][0],
@@ -182,11 +238,19 @@ mod tests {
     #[test]
     fn campaign_funds_get_a_category() {
         let mut doc = json!({"funds": {"balance": 5000}});
-        payment_change(PARTY_FUND, "105-1105", "e1".into(), 2000, "Bought Medikit")
-            .apply_to(&mut doc);
+        payment_change(
+            PARTY_FUND_FOR_SHEET,
+            "105-1105",
+            "e1".into(),
+            2000,
+            "Bought Medikit",
+            "Bram",
+        )
+        .apply_to(&mut doc);
         assert_eq!(doc["funds"]["balance"], 3000);
         let entry = &doc["funds"]["ledger"][0];
         assert_eq!(entry["id"], "e1");
+        assert_eq!(entry["by"], "Bram");
         assert_eq!(entry["category"], "Expense / Equipment");
         assert_eq!(entry["date"], "105-1105");
     }

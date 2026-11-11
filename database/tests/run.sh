@@ -67,6 +67,11 @@ apply "$DB"/10-catalogue.sql
 apply "$DB"/10-catalogue.sql   # re-runnable
 report 25-tests-10.sql
 
+echo "== 11 trade goods"
+apply "$DB"/11-trade-goods.sql
+apply "$DB"/11-trade-goods.sql   # re-runnable
+report 26-tests-11.sql
+
 # Optionally export the documents the migrations produced, so the Rust
 # model's tests can check they load (TD_EXPORT_DIR=… database/tests/run.sh,
 # then the paths printed below).

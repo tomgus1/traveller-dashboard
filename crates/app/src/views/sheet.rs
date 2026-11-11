@@ -16,7 +16,7 @@ use super::editor::{Editor, Notice, NoticeBar, QuickActions, condition_label};
 use super::fields;
 use super::forms::{CharacteristicsEditor, ListEditor, SectionEditor};
 use super::manage::DeleteCharacter;
-use super::pay::SHEET_SOURCES;
+use super::pay::{CampaignFunds, SHEET_SOURCES};
 use super::roller::{RollLog, TaskRoller, WeaponRows};
 use super::tip::{Tip, glossary};
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
@@ -210,6 +210,30 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
         doc,
         saving,
         change,
+    });
+    // In a campaign, gear can be paid for from the party's funds.
+    let mut campaign_state = use_signal(|| None::<serde_json::Value>);
+    let campaign_id = loaded.row.campaign_id.clone();
+    let for_load = campaign_id.clone();
+    use_future(move || {
+        let campaign_id = for_load.clone();
+        async move {
+            let Some(id) = campaign_id else { return };
+            let Ok(current) = fresh_session(session).await else {
+                return;
+            };
+            if let Ok(Some((state, _))) = super::shared::load_state(&current, &id).await {
+                campaign_state.set(serde_json::to_value(state).ok());
+            }
+        }
+    });
+    let by = loaded.row.display_name().to_string();
+    use_context_provider(|| {
+        campaign_id.map(|campaign_id| CampaignFunds {
+            campaign_id,
+            by,
+            state: campaign_state,
+        })
     });
     let row = &loaded.row;
     let current_sheet = sheet();

@@ -103,6 +103,19 @@ fn target_of(item: &Value, index: usize) -> Target {
     }
 }
 
+/// A source's balance for the "Pay for it" list: from this page's
+/// document, or the campaign's for party funds on a sheet ("…" until it
+/// loads).
+fn source_balance(source: PaySource, doc: &Value, funds: Option<&pay::CampaignFunds>) -> String {
+    if source.elsewhere {
+        funds
+            .and_then(|f| f.state.read().as_ref().map(|s| pay::balance(source, s)))
+            .map_or_else(|| "\u{2026}".to_string(), |b| Credits(b).to_string())
+    } else {
+        Credits(pay::balance(source, doc)).to_string()
+    }
+}
+
 #[derive(Clone, PartialEq)]
 enum Editing {
     New,
@@ -136,7 +149,19 @@ pub fn ListEditor(
     let mut values = use_signal(Vec::<String>::new);
     let mut error = use_signal(|| None::<String>);
     let mut confirm_remove = use_signal(|| None::<usize>);
-    let busy = (doc.saving)();
+    // On a character page in a campaign: its funds, to pay from.
+    let funds = try_use_context::<Option<pay::CampaignFunds>>().flatten();
+    let session = super::use_session();
+    let mut paying = use_signal(|| false);
+    let busy = (doc.saving)() || paying();
+    let offered: Vec<(usize, PaySource)> = pay
+        .unwrap_or_default()
+        .iter()
+        .copied()
+        .enumerate()
+        .filter(|(_, s)| !s.elsewhere || funds.is_some())
+        .collect();
+    let funds_for_save = funds.clone();
 
     let items: Vec<Value> = at(&doc.doc.read(), path)
         .and_then(Value::as_array)
@@ -172,6 +197,7 @@ pub fn ListEditor(
                 };
                 let name = fields_map
                     .get("name")
+                    .or_else(|| fields_map.get("goods"))
                     .and_then(Value::as_str)
                     .unwrap_or("item");
                 let quantity = fields_map
@@ -183,7 +209,41 @@ pub fn ListEditor(
                 } else {
                     format!("Bought {name} \u{00d7}{quantity}")
                 };
-                match pay::payment(source, &doc.doc.peek(), amount, &what) {
+                if source.elsewhere {
+                    // Pay in the campaign first (checked against its latest
+                    // funds), then save the item to this sheet.
+                    let Some(funds) = funds_for_save.clone() else {
+                        return;
+                    };
+                    let upsert = DocChange::Upsert {
+                        path,
+                        target,
+                        fields: fields_map,
+                    };
+                    let what = format!("{what} for {}", funds.by);
+                    paying.set(true);
+                    spawn(async move {
+                        let result =
+                            super::shared::apply_latest(session, &funds.campaign_id, |json| {
+                                pay::payment(source, json, amount, &what, &funds.by)
+                            })
+                            .await;
+                        paying.set(false);
+                        match result {
+                            Ok(state) => {
+                                let mut latest = funds.state;
+                                latest.set(Some(state));
+                                doc.change.call((upsert, "Saved; paid from party funds."));
+                                editing.set(None);
+                                picked_cost.set(None);
+                                pay_from.set(None);
+                            }
+                            Err(message) => error.set(Some(message)),
+                        }
+                    });
+                    return;
+                }
+                match pay::payment(source, &doc.doc.peek(), amount, &what, "") {
                     Ok(change) => Some(change),
                     Err(message) => {
                         error.set(Some(message));
@@ -258,15 +318,15 @@ pub fn ListEditor(
                 form { class: "edit-form", onsubmit: save,
                     h3 { if which == Editing::New { "New entry" } else { "Edit entry" } }
                     Inputs { id: "{form_id}", fields, values }
-                    if let (Editing::New, Some(sources)) = (&which, pay) {
+                    if which == Editing::New && !offered.is_empty() {
                         div { class: "field pay-from",
                             label { r#for: "{form_id}-pay", "Pay for it" }
                             select { id: "{form_id}-pay",
                                 onchange: move |e| pay_from.set(e.value().parse::<usize>().ok()),
                                 option { value: "", selected: pay_from().is_none(), "Don't pay (already owned)" }
-                                for (i, source) in sources.iter().enumerate() {
+                                for (i, source) in offered.iter().copied() {
                                     option { key: "{i}", value: "{i}", selected: pay_from() == Some(i),
-                                        "From {source.label.to_lowercase()} ({Credits(pay::balance(*source, &doc.doc.read()))})" }
+                                        "From {source.label.to_lowercase()} ({source_balance(source, &doc.doc.read(), funds.as_ref())})" }
                                 }
                             }
                             if let Some(cost) = picked_cost() {
