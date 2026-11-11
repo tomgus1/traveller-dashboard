@@ -25,6 +25,9 @@ pub enum Error {
     /// Network failure.
     #[error("Couldn't reach the server. Check your connection.")]
     Network,
+    /// The server doesn't have this yet (e.g. a migration isn't applied).
+    #[error("This part of the app isn't set up on the server yet.")]
+    Unavailable,
     /// Anything else the server reported.
     #[error("Something went wrong. Please try again.")]
     Server,
@@ -143,6 +146,7 @@ pub async fn get<T: DeserializeOwned>(current: &Session, path: &str) -> Result<T
     match response.status().as_u16() {
         200 => Ok(response.json().await?),
         401 => Err(Error::SessionExpired),
+        404 => Err(Error::Unavailable),
         _ => Err(Error::Server),
     }
 }

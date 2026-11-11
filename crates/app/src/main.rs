@@ -1,7 +1,6 @@
 //! Traveller Dashboard: the web app, in Rust compiled to WebAssembly.
 
 mod config;
-mod models;
 mod session;
 mod supabase;
 mod views;

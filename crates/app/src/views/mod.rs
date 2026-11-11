@@ -1,21 +1,24 @@
 //! Pages and the app shell.
 
+mod sheet;
+
+pub use sheet::Character;
+
 use dioxus::prelude::*;
-use traveller_rules::{Characteristic, dm};
 
 use crate::Route;
-use crate::models::CharacterRow;
 use crate::session::{self, Session};
 use crate::supabase::{self, Error};
+use traveller_model::CharacterRow;
 
 /// The shared session signal.
-fn use_session() -> Signal<Option<Session>> {
+pub(crate) fn use_session() -> Signal<Option<Session>> {
     use_context()
 }
 
 /// The current session, refreshed if it's about to expire. Signs the user
 /// out if it can't be refreshed.
-async fn fresh_session(mut signal: Signal<Option<Session>>) -> Result<Session, Error> {
+pub(crate) async fn fresh_session(mut signal: Signal<Option<Session>>) -> Result<Session, Error> {
     let current = signal.peek().clone().ok_or(Error::SessionExpired)?;
     match supabase::ensure_fresh(&current).await {
         Ok(fresh) => {
@@ -132,7 +135,7 @@ pub fn Home() -> Element {
 
 /// The section name down the page edge, as on the rulebook pages.
 #[component]
-fn EdgeTab(label: &'static str) -> Element {
+pub(crate) fn EdgeTab(label: &'static str) -> Element {
     rsx! {
         div { class: "edge-tab", aria_hidden: "true", span { "{label}" } }
     }
@@ -191,104 +194,8 @@ pub fn Characters() -> Element {
 
 /// Database ids are UUIDs; anything else is rejected before it reaches a
 /// query string.
-fn is_uuid(id: &str) -> bool {
+pub(crate) fn is_uuid(id: &str) -> bool {
     id.len() == 36 && id.chars().all(|c| c.is_ascii_hexdigit() || c == '-')
-}
-
-/// One character's sheet (read-only for now).
-#[component]
-pub fn Character(id: String) -> Element {
-    let session = use_session();
-    let character = use_resource(use_reactive!(|id| async move {
-        if !is_uuid(&id) {
-            return Ok(None);
-        }
-        let current = fresh_session(session).await?;
-        let rows = supabase::get::<Vec<CharacterRow>>(
-            &current,
-            &format!("characters?select={CHARACTER_COLUMNS}&id=eq.{id}"),
-        )
-        .await?;
-        Ok::<_, Error>(rows.into_iter().next())
-    }));
-
-    rsx! {
-        main { class: "page",
-            EdgeTab { label: "Characters" }
-            match &*character.read() {
-                None => rsx! { p { class: "muted", "Loading…" } },
-                Some(Err(e)) => rsx! { p { class: "error", role: "alert", "{e}" } },
-                Some(Ok(None)) => rsx! {
-                    h1 { class: "display", "Not found" }
-                    p { class: "muted", "This character doesn't exist, or isn't shared with you." }
-                },
-                Some(Ok(Some(row))) => rsx! { Sheet { row: row.clone() } },
-            }
-        }
-    }
-}
-
-#[component]
-fn Sheet(row: CharacterRow) -> Element {
-    let stats = row.characteristics.unwrap_or_default();
-    let mut skills = row.skills.clone().unwrap_or_default();
-    skills.sort_by(|a, b| b.level.cmp(&a.level).then_with(|| a.name.cmp(&b.name)));
-
-    rsx! {
-        div { class: "sheet-head",
-            div {
-                h1 { class: "display", "{row.display_name()}" }
-                if let Some(player) = row.player_name.as_deref().filter(|p| !p.is_empty()) {
-                    p { class: "muted", "Played by {player}" }
-                }
-            }
-            div { class: "upp-block",
-                span { class: "label", "UPP" }
-                span { class: "upp big", {stats.upp()} }
-            }
-        }
-
-        section { aria_labelledby: "chars",
-            h2 { id: "chars", class: "section", "Characteristics" }
-            div { class: "stats",
-                for c in Characteristic::ALL {
-                    div { class: "stat", key: "{c}",
-                        p { class: "stat-key", "{c}" }
-                        p { class: "stat-value", "{stats.get(c)}" }
-                        p { class: "stat-dm", {format_dm(dm(stats.get(c)))} }
-                    }
-                }
-            }
-        }
-
-        section { aria_labelledby: "skills",
-            h2 { id: "skills", class: "section", "Skills" }
-            if skills.is_empty() {
-                p { class: "muted", "No skills recorded." }
-            } else {
-                table { class: "data",
-                    thead { tr { th { scope: "col", "Skill" } th { scope: "col", class: "num", "Level" } } }
-                    tbody {
-                        for skill in skills.iter() {
-                            tr { key: "{skill.name}",
-                                td { "{skill.name}" }
-                                td { class: "num strong", "{skill.level}" }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/// "DM +1", "DM −2", "DM +0".
-fn format_dm(value: i32) -> String {
-    if value < 0 {
-        format!("DM \u{2212}{}", value.abs())
-    } else {
-        format!("DM +{value}")
-    }
 }
 
 /// Unknown addresses.
@@ -312,12 +219,5 @@ mod tests {
         assert!(is_uuid("0b1c6c1e-6a6f-4a5e-9f3a-2d1f5e8b9c70"));
         assert!(!is_uuid("1&select=password"));
         assert!(!is_uuid("0b1c6c1e-6a6f-4a5e-9f3a-2d1f5e8b9c7&"));
-    }
-
-    #[test]
-    fn dm_formatting() {
-        assert_eq!(format_dm(1), "DM +1");
-        assert_eq!(format_dm(0), "DM +0");
-        assert_eq!(format_dm(-2), "DM \u{2212}2");
     }
 }

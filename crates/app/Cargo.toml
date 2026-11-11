@@ -9,6 +9,7 @@ publish.workspace = true
 
 [dependencies]
 traveller-rules = { path = "../traveller-rules" }
+traveller-model = { path = "../traveller-model" }
 dioxus = { version = "=0.7.10", features = ["web", "router"] }
 reqwest = { version = "=0.13.5", default-features = false, features = ["json"] }
 serde = { version = "=1.0.229", features = ["derive"] }

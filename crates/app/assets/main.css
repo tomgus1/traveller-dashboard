@@ -372,3 +372,152 @@ table.data tbody tr:nth-child(even) {
   opacity: 0.6;
   cursor: wait;
 }
+
+/* Sheet tabs */
+.tabs {
+  display: flex;
+  margin-top: 18px;
+  overflow-x: auto;
+  border-bottom: 2px solid var(--ink);
+}
+
+.tab {
+  min-height: 44px;
+  padding: 0 20px;
+  white-space: nowrap;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab[aria-selected="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 0 28px;
+  align-items: start;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.scroll table.data td,
+.scroll table.data th {
+  white-space: nowrap;
+}
+
+.stat-value.reduced {
+  color: var(--red);
+}
+
+.small {
+  font-size: 13px;
+}
+
+.notice {
+  padding: 8px 12px;
+  border-left: 4px solid var(--red);
+  background: var(--alt);
+}
+
+.total {
+  text-align: right;
+}
+
+table.data .neg,
+.tag.neg {
+  color: var(--red);
+}
+
+table.data .pos,
+.tag.pos {
+  color: var(--ok);
+}
+
+.tag {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+table.summary th {
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  border-bottom: 1px solid var(--rule);
+}
+
+table.summary {
+  max-width: 480px;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 20px;
+  margin: 0;
+}
+
+.details div {
+  display: contents;
+}
+
+.details dt {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.details dd {
+  margin: 0;
+}
+
+.prose {
+  max-width: 760px;
+  white-space: pre-wrap;
+}
+
+.training progress {
+  width: 100%;
+  max-width: 420px;
+  height: 10px;
+  accent-color: var(--red);
+}
+
+.referee {
+  margin-top: 24px;
+  padding: 10px 16px;
+  border-left: 4px solid var(--red);
+  background: var(--alt);
+}
+
+.referee-title {
+  margin: 0 0 6px;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--red);
+}
