@@ -146,13 +146,16 @@ impl CatalogueItem {
         format!("{} p.{}", book_short_name(&self.book), self.page)
     }
 
-    /// As a weapon on a sheet, loaded, with no spare magazines yet.
+    /// As a weapon on a sheet, loaded, with no spare magazines yet, and
+    /// its likely skill.
     pub fn to_weapon(&self) -> Weapon {
         let stats = self.weapon.clone().unwrap_or_default();
+        let range = range_text(&stats.range);
         Weapon {
+            skill: crate::sheet::guess_weapon_skill(&self.name, &range),
             name: self.name.clone(),
             tl: self.tl,
-            range: range_text(&stats.range),
+            range,
             damage: stats.damage,
             kg: self.kg,
             magazine: stats.magazine,

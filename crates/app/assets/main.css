@@ -613,6 +613,33 @@ table.summary {
   margin: 0 0 8px;
 }
 
+/* Weapons at the table: one row each, buttons wrap under on a phone */
+.weapon-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+
+.weapon-rows li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.weapon-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 200px;
+  overflow-wrap: anywhere;
+}
+
 /* Rolling a check */
 .roller {
   margin-top: 16px;

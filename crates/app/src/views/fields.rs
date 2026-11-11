@@ -116,6 +116,7 @@ pub const SKILLS: &[Field] = &[
 ];
 pub const WEAPONS: &[Field] = &[
     name("name", "Weapon"),
+    suggesting(text("skill", "Skill (blank: best guess)"), Suggest::Skills),
     TL,
     text("range", "Range"),
     text("damage", "Damage"),

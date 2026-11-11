@@ -4,10 +4,14 @@
 
 use dioxus::prelude::*;
 use traveller_model::Characteristics;
+use traveller_model::sheet::Weapon;
+use traveller_rules::combat::DamageDice;
 use traveller_rules::dice::{self, Dice, Modifier};
 use traveller_rules::skills;
 use traveller_rules::tasks::{self, Difficulty, Outcome, TaskResult};
 use traveller_rules::{Characteristic, dm};
+
+use super::editor::use_editor;
 
 /// Real dice, from the browser's random numbers.
 struct BrowserDice;
@@ -32,7 +36,9 @@ const DIFFICULTIES: [(Difficulty, &str); 8] = [
 
 /// One check: what was rolled for, and how it went.
 #[derive(Debug, Clone, PartialEq)]
-struct Check {
+pub struct Check {
+    /// e.g. "Attack: Revolver"; none for a plain check.
+    title: Option<String>,
     /// e.g. "Gun Combat (slug) + DEX".
     what: String,
     difficulty: &'static str,
@@ -41,6 +47,109 @@ struct Check {
     /// Each DM that applied, e.g. ("DEX", 1), ("Gun Combat (slug)", 2).
     dms: Vec<(String, i32)>,
     result: TaskResult,
+    /// For a hit: the damage roll, in words.
+    damage: Option<String>,
+}
+
+/// The rolls made on this page (newest first), shared by the check roller
+/// and the weapons' Attack buttons.
+#[derive(Clone, Copy, PartialEq)]
+pub struct RollLog(Signal<Vec<Check>>);
+
+impl RollLog {
+    /// Starts the page's log.
+    pub fn provide() -> Self {
+        use_context_provider(|| Self(Signal::new(Vec::new())))
+    }
+
+    fn push(mut self, check: Check) {
+        let mut log = self.0.write();
+        log.insert(0, check);
+        log.truncate(5);
+    }
+}
+
+fn throw(count: usize) -> Vec<u8> {
+    let mut d = BrowserDice;
+    (0..count).map(|_| d.d6()).collect()
+}
+
+/// An attack with a weapon (Core p.72–77): its skill, with DEX (melee: the
+/// better of STR and DEX), against Average (8+). A hit rolls damage: the
+/// weapon's dice plus the Effect, plus the STR DM in melee, before the
+/// target's armour. `damage_dice` supplies the damage dice.
+pub fn attack(
+    weapon: &Weapon,
+    stats: &Characteristics,
+    skill_levels: &[(String, i32)],
+    thrown: Vec<u8>,
+    mut damage_dice: impl FnMut(usize) -> Vec<u8>,
+) -> Check {
+    let skill = weapon.attack_skill();
+    let skill_dm = skills::skill_dm(skill_levels.iter().map(|(n, l)| (n.as_str(), *l)), &skill);
+    let score = |c: Characteristic| stats.get(c).current();
+    let characteristic =
+        if weapon.is_melee() && dm(score(Characteristic::Str)) > dm(score(Characteristic::Dex)) {
+            Characteristic::Str
+        } else {
+            Characteristic::Dex
+        };
+    let mut c = check(
+        thrown,
+        Modifier::None,
+        Some((characteristic, score(characteristic))),
+        Some((&skill, skill_dm)),
+        0,
+        Difficulty::Average,
+    );
+    c.title = Some(format!("Attack: {}", weapon.name));
+    if c.result.outcome.is_success() {
+        c.damage = Some(match DamageDice::parse(&weapon.damage) {
+            Some(dd) => {
+                let rolled = damage_dice(usize::from(dd.dice));
+                let base = dd.total(&rolled);
+                let str_dm = if weapon.is_melee() {
+                    dm(score(Characteristic::Str))
+                } else {
+                    0
+                };
+                let total = (base + c.result.effect + str_dm).max(0);
+                let mut text = format!(
+                    "Damage {}: rolled {} = {base}, Effect {}",
+                    weapon.damage.trim(),
+                    rolled
+                        .iter()
+                        .map(u8::to_string)
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    signed(c.result.effect)
+                );
+                if str_dm != 0 {
+                    text.push_str(" · STR ");
+                    text.push_str(&signed(str_dm));
+                }
+                text.push_str(" = ");
+                text.push_str(&total.to_string());
+                text.push_str(" before armour");
+                if let Some(ap) = weapon
+                    .traits
+                    .split(',')
+                    .map(str::trim)
+                    .find(|t| t.starts_with("AP"))
+                {
+                    text.push_str(" (");
+                    text.push_str(ap);
+                    text.push(')');
+                }
+                text
+            }
+            None => format!(
+                "Damage: {} (roll as the referee says)",
+                weapon.damage.trim()
+            ),
+        });
+    }
+    c
 }
 
 /// Works out a check from thrown dice (3 for a Boon or Bane).
@@ -72,6 +181,8 @@ fn check(
         .find(|(d, _)| *d == difficulty)
         .map_or("", |(_, l)| l);
     Check {
+        title: None,
+        damage: None,
         what: if what.is_empty() {
             "2D".into()
         } else {
@@ -136,7 +247,7 @@ pub fn TaskRoller(stats: Characteristics, skills: Vec<(String, i32)>) -> Element
     let mut difficulty = use_signal(|| Difficulty::Average);
     let mut other = use_signal(String::new);
     let mut modifier = use_signal(|| Modifier::None);
-    let mut history = use_signal(Vec::<Check>::new);
+    let log: RollLog = use_context();
     let mut error = use_signal(|| None::<String>);
 
     // The player's skills first, then every skill in the book.
@@ -177,12 +288,14 @@ pub fn TaskRoller(stats: Characteristics, skills: Vec<(String, i32)>) -> Element
         });
         let c = characteristic().map(|c| (c, stats.get(c).current()));
         let count = if modifier() == Modifier::None { 2 } else { 3 };
-        let mut d = BrowserDice;
-        let thrown: Vec<u8> = (0..count).map(|_| d.d6()).collect();
-        let result = check(thrown, modifier(), c, skill_part, other_dm, difficulty());
-        let mut h = history.write();
-        h.insert(0, result);
-        h.truncate(5);
+        log.push(check(
+            throw(count),
+            modifier(),
+            c,
+            skill_part,
+            other_dm,
+            difficulty(),
+        ));
     };
 
     rsx! {
@@ -249,23 +362,104 @@ pub fn TaskRoller(stats: Characteristics, skills: Vec<(String, i32)>) -> Element
                 p { class: "error", role: "alert", "{message}" }
             }
             button { class: "btn", r#type: "submit", "Roll" }
+            RollLogView {}
+        }
+    }
+}
 
-            if !history.read().is_empty() {
-                ol { class: "roll-log", aria_live: "polite",
-                    for (i, c) in history.read().iter().enumerate() {
-                        li { key: "{i}-{c.result.total}-{c.dice.len()}",
-                            class: if i == 0 { "latest" } else { "" },
-                            p { class: if c.result.outcome.is_success() { "roll-outcome ok" } else { "roll-outcome fail" },
-                                strong { "{outcome_label(c.result.outcome)}" }
-                                " · Effect {signed(c.result.effect)}"
+/// The last few rolls, newest first.
+#[component]
+fn RollLogView() -> Element {
+    let log: RollLog = use_context();
+    let entries = log.0.read();
+    if entries.is_empty() {
+        return rsx! {};
+    }
+    rsx! {
+        ol { class: "roll-log", aria_live: "polite",
+            for (i, c) in entries.iter().enumerate() {
+                li { key: "{entries.len() - i}",
+                    class: if i == 0 { "latest" } else { "" },
+                    p { class: if c.result.outcome.is_success() { "roll-outcome ok" } else { "roll-outcome fail" },
+                        if let Some(title) = &c.title {
+                            "{title}: "
+                        }
+                        strong { "{outcome_label(c.result.outcome)}" }
+                        " · Effect {signed(c.result.effect)}"
+                    }
+                    p { class: "small",
+                        "{c.what}, {c.difficulty}: rolled {dice_text(c)}"
+                        for (name, value) in c.dms.iter() {
+                            " · {name} {signed(*value)}"
+                        }
+                        " = "
+                        strong { "{c.result.total}" }
+                    }
+                    if let Some(damage) = &c.damage {
+                        p { class: "small strong", "{damage}" }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// The character's weapons as compact rows with Attack and Reload, for the
+/// table (no sideways scrolling on a phone). Attack fires a round from a
+/// magazine weapon and rolls; a hit rolls damage.
+#[component]
+pub fn WeaponRows(
+    weapons: Vec<Weapon>,
+    stats: Characteristics,
+    skills: Vec<(String, i32)>,
+) -> Element {
+    let editor = use_editor();
+    let log: RollLog = use_context();
+    let busy = (editor.saving)();
+    if weapons.is_empty() {
+        return rsx! { p { class: "muted", "None." } };
+    }
+    rsx! {
+        ul { class: "weapon-rows",
+            for (i, w) in weapons.into_iter().enumerate() {
+                {
+                    let empty = w.magazine.is_some() && w.rounds.unwrap_or(0) == 0;
+                    let can_reload = w.magazine.is_some() && w.spare_magazines > 0;
+                    let details = weapon_line(&w);
+                    let skills = skills.clone();
+                    let name = w.name.clone();
+                    rsx! {
+                        li { key: "{i}",
+                            div { class: "weapon-text",
+                                strong { "{w.name}" }
+                                span { class: "muted small", "{details}" }
                             }
-                            p { class: "small",
-                                "{c.what}, {c.difficulty}: rolled {dice_text(c)}"
-                                for (name, value) in c.dms.iter() {
-                                    " · {name} {signed(*value)}"
+                            div { class: "row-actions",
+                                button { class: "mini", r#type: "button", disabled: empty || busy,
+                                    aria_label: "Attack with {name}",
+                                    onclick: move |_| {
+                                        if w.magazine.is_some() {
+                                            editor.update_sheet("Fired one round.", move |s| {
+                                                if let Some(x) = s.weapons.get_mut(i) {
+                                                    x.fire();
+                                                }
+                                            });
+                                        }
+                                        log.push(attack(&w, &stats, &skills, throw(2), throw));
+                                    },
+                                    if empty { "Empty" } else { "Attack" }
                                 }
-                                " = "
-                                strong { "{c.result.total}" }
+                                if w.magazine.is_some() {
+                                    button { class: "mini outline", r#type: "button", disabled: !can_reload || busy,
+                                        aria_label: "Reload {name}",
+                                        onclick: move |_| editor.update_sheet("Reloaded.", move |s| {
+                                            if let Some(x) = s.weapons.get_mut(i) {
+                                                x.reload();
+                                            }
+                                        }),
+                                        "Reload"
+                                    }
+                                }
                             }
                         }
                     }
@@ -275,9 +469,93 @@ pub fn TaskRoller(stats: Characteristics, skills: Vec<(String, i32)>) -> Element
     }
 }
 
+/// A weapon's stats in one line: "Gun Combat (slug) · 10m · 3D-3 · 6/6
+/// rounds, 2 spare · AP 5".
+fn weapon_line(w: &Weapon) -> String {
+    let mut parts = vec![w.attack_skill()];
+    for text in [&w.range, &w.damage] {
+        if !text.trim().is_empty() {
+            parts.push(text.trim().to_string());
+        }
+    }
+    if let Some(capacity) = w.magazine {
+        let mut ammo = format!("{}/{capacity} rounds", w.rounds.unwrap_or(0));
+        if w.spare_magazines > 0 {
+            ammo.push_str(", ");
+            ammo.push_str(&w.spare_magazines.to_string());
+            ammo.push_str(" spare");
+        }
+        parts.push(ammo);
+    }
+    if !w.traits.trim().is_empty() {
+        parts.push(w.traits.trim().to_string());
+    }
+    parts.join(" · ")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn stats(str_: i32, dex: i32) -> Characteristics {
+        let mut s = Characteristics::default();
+        s.str.value = str_;
+        s.dex.value = dex;
+        s
+    }
+
+    #[test]
+    fn ranged_attacks_use_dex_and_add_effect_to_damage() {
+        let gun = Weapon {
+            name: "Autopistol".into(),
+            range: "10m".into(),
+            damage: "3D-3".into(),
+            traits: "AP 2".into(),
+            ..Weapon::default()
+        };
+        // DEX 9 (DM+1), Gun Combat (slug) 1: rolls 4+4 = 8 + 2 = 10, Effect +2.
+        let skills = vec![("Gun Combat (slug)".to_string(), 1)];
+        let c = attack(&gun, &stats(12, 9), &skills, vec![4, 4], |_| vec![5, 3, 2]);
+        assert_eq!(c.what, "Gun Combat (slug) + DEX");
+        assert_eq!(c.result.effect, 2);
+        // 5+3+2-3 = 7, + Effect 2 = 9; ranged adds no STR.
+        assert_eq!(
+            c.damage.as_deref(),
+            Some("Damage 3D-3: rolled 5, 3, 2 = 7, Effect +2 = 9 before armour (AP 2)")
+        );
+    }
+
+    #[test]
+    fn melee_uses_the_better_of_str_and_dex_and_adds_str_to_damage() {
+        let blade = Weapon {
+            name: "Cutlass".into(),
+            range: "Melee".into(),
+            damage: "3D".into(),
+            ..Weapon::default()
+        };
+        // STR 12 (DM+2) beats DEX 7 (DM+0); untrained Melee: DM-3.
+        let c = attack(&blade, &stats(12, 7), &[], vec![6, 5], |_| vec![1, 1, 1]);
+        assert_eq!(c.what, "Melee (blade) + STR");
+        assert_eq!(c.result.total, 11 + 2 - 3);
+        assert_eq!(
+            c.damage.as_deref(),
+            Some("Damage 3D: rolled 1, 1, 1 = 3, Effect +2 · STR +2 = 7 before armour")
+        );
+    }
+
+    #[test]
+    fn misses_roll_no_damage() {
+        let gun = Weapon {
+            name: "Revolver".into(),
+            damage: "3D-3".into(),
+            ..Weapon::default()
+        };
+        let c = attack(&gun, &stats(7, 7), &[], vec![1, 2], |_| {
+            panic!("no damage roll on a miss")
+        });
+        assert!(!c.result.outcome.is_success());
+        assert_eq!(c.damage, None);
+    }
 
     #[test]
     fn a_check_adds_every_dm() {

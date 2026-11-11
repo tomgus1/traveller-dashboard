@@ -12,11 +12,11 @@ use traveller_rules::{Characteristic, Credits, dm};
 
 use super::catalogue::Pick;
 use super::doc::{DocChange, DocEditor};
-use super::editor::{Editor, Notice, NoticeBar, QuickActions, WeaponButtons, condition_label};
+use super::editor::{Editor, Notice, NoticeBar, QuickActions, condition_label};
 use super::fields;
 use super::forms::{CharacteristicsEditor, ListEditor, SectionEditor};
 use super::manage::DeleteCharacter;
-use super::roller::TaskRoller;
+use super::roller::{RollLog, TaskRoller, WeaponRows};
 use super::tip::{Tip, glossary};
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
 use crate::supabase::{self, Error};
@@ -420,12 +420,13 @@ fn Overview(
     let worn: Vec<Armour> = sheet.worn_armour().cloned().collect();
     let skill_levels: Vec<(String, i32)> =
         skills.iter().map(|s| (s.name.clone(), s.level())).collect();
+    RollLog::provide();
 
     rsx! {
         Stats { stats, bonus }
         if editable {
             QuickActions {}
-            TaskRoller { stats, skills: skill_levels }
+            TaskRoller { stats, skills: skill_levels.clone() }
         } else {
             p { class: "notice",
                 "Read only: this character belongs to another account, and players manage their own sheets. "
@@ -461,7 +462,11 @@ fn Overview(
             div {
                 section { aria_labelledby: "weapons",
                     h2 { id: "weapons", class: "section", "Weapons" }
-                    WeaponTable { weapons: sheet.weapons.clone(), full: false, actions: editable }
+                    if editable {
+                        WeaponRows { weapons: sheet.weapons.clone(), stats, skills: skill_levels }
+                    } else {
+                        WeaponTable { weapons: sheet.weapons.clone(), full: false }
+                    }
                 }
                 section { aria_labelledby: "armour",
                     h2 { id: "armour", class: "section", "Armour worn" }
@@ -479,7 +484,7 @@ fn Overview(
 // Equipment
 
 #[component]
-fn WeaponTable(weapons: Vec<Weapon>, full: bool, actions: bool) -> Element {
+fn WeaponTable(weapons: Vec<Weapon>, full: bool) -> Element {
     if weapons.is_empty() {
         return rsx! { Empty {} };
     }
@@ -497,7 +502,6 @@ fn WeaponTable(weapons: Vec<Weapon>, full: bool, actions: bool) -> Element {
                         th { scope: "col", class: "num", Tip { text: glossary::KG, "Kg" } }
                     }
                     th { scope: "col", Tip { text: glossary::TRAITS, "Traits" } }
-                    if actions { th { scope: "col", span { class: "sr-only", "Actions" } } }
                 } }
                 tbody {
                     for (i, w) in weapons.iter().enumerate() {
@@ -512,7 +516,6 @@ fn WeaponTable(weapons: Vec<Weapon>, full: bool, actions: bool) -> Element {
                                 td { class: "num", {kg(w.kg)} }
                             }
                             td { class: "muted", {dash(&w.traits)} }
-                            if actions { td { WeaponButtons { index: i } } }
                         }
                     }
                 }
@@ -559,7 +562,7 @@ fn Equipment(sheet: CharacterSheet) -> Element {
     rsx! {
         section { aria_labelledby: "eq-weapons",
             h2 { id: "eq-weapons", class: "section", "Weapons" }
-            WeaponTable { weapons: sheet.weapons.clone(), full: true, actions: false }
+            WeaponTable { weapons: sheet.weapons.clone(), full: true }
         }
         if !sheet.ammo.is_empty() {
             section { aria_labelledby: "eq-ammo",
