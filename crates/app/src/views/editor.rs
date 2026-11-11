@@ -346,7 +346,7 @@ fn parse_credits(text: &str) -> Option<i64> {
 
 /// Today's date for ledger entries (the campaign's Imperial date comes
 /// with the campaign screens).
-fn today() -> String {
+pub fn today() -> String {
     let date = js_sys::Date::new_0();
     format!(
         "{:04}-{:02}-{:02}",

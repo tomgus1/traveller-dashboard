@@ -159,6 +159,7 @@ impl CatalogueItem {
             damage: stats.damage,
             kg: self.kg,
             magazine: stats.magazine,
+            magazine_cost: stats.magazine_cost,
             rounds: stats.magazine,
             spare_magazines: 0,
             traits: stats.traits.join(", "),

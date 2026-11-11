@@ -157,6 +157,8 @@ pub struct Weapon {
     /// The skill it's used with, e.g. "Gun Combat (slug)"; blank means
     /// [`guess_weapon_skill`]'s guess.
     pub skill: String,
+    /// Price of a spare magazine (or power pack), in Credits.
+    pub magazine_cost: Option<i64>,
 }
 
 /// The likely skill for a weapon, from its name and range, for weapons

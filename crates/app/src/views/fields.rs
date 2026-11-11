@@ -123,6 +123,7 @@ pub const WEAPONS: &[Field] = &[
     opt_int("magazine", "Magazine", 0, 10_000),
     opt_int("rounds", "Rounds loaded", 0, 10_000),
     int("spare_magazines", "Spare magazines", 0, 1000),
+    opt_int("magazine_cost", "Magazine cost (Cr)", 0, MONEY),
     kg("kg", "Kg"),
     COST,
     text("traits", "Traits"),

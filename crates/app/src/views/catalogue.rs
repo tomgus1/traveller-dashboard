@@ -21,6 +21,8 @@ pub enum Pick {
     Armour,
     Gear,
     Augment,
+    /// The campaign's shared locker: any gear, weapon or armour.
+    Locker,
 }
 
 impl Pick {
@@ -31,16 +33,21 @@ impl Pick {
             Self::Armour => "armour",
             Self::Gear => "gear,software",
             Self::Augment => "augment",
+            Self::Locker => "weapon,armour,gear,software",
         }
     }
 
-    /// The item as the sheet stores it.
+    /// The item as the list stores it.
     pub fn convert(self, item: &CatalogueItem) -> Value {
         let value = match self {
             Self::Weapon => serde_json::to_value(item.to_weapon()),
             Self::Armour => serde_json::to_value(item.to_armour()),
             Self::Gear => serde_json::to_value(item.to_item()),
             Self::Augment => serde_json::to_value(item.to_augment()),
+            Self::Locker => {
+                let gear = item.to_item();
+                Ok(serde_json::json!({ "name": gear.name, "quantity": 1, "notes": gear.notes }))
+            }
         };
         value.unwrap_or(Value::Null)
     }
@@ -83,7 +90,7 @@ fn describe(pick: Pick, item: &CatalogueItem) -> String {
                 parts.push(a.protection.clone());
             }
         }
-        Pick::Gear | Pick::Augment => {}
+        Pick::Gear | Pick::Augment | Pick::Locker => {}
     }
     if let Some(cost) = item.cost {
         parts.push(Credits(cost).to_string());
@@ -92,12 +99,12 @@ fn describe(pick: Pick, item: &CatalogueItem) -> String {
     parts.join(" · ")
 }
 
-/// Search the catalogue and pick an item. `on_pick` gets it as the sheet
-/// stores it.
+/// Search the catalogue and pick an item. `on_pick` gets it as the list
+/// stores it, and its catalogue price.
 #[component]
 pub fn CataloguePicker(
     pick: Pick,
-    on_pick: EventHandler<Value>,
+    on_pick: EventHandler<(Value, Option<i64>)>,
     on_close: EventHandler<()>,
 ) -> Element {
     let session = use_session();
@@ -158,7 +165,7 @@ pub fn CataloguePicker(
                         for item in items.iter().cloned() {
                             li { key: "{item.id}",
                                 button { class: "pick", r#type: "button",
-                                    onclick: move |_| on_pick.call(pick.convert(&item)),
+                                    onclick: move |_| on_pick.call((pick.convert(&item), item.cost)),
                                     strong { "{item.name}" }
                                     span { class: "muted small", {describe(pick, &item)} }
                                 }

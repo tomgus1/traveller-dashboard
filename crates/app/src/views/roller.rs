@@ -11,7 +11,8 @@ use traveller_rules::skills;
 use traveller_rules::tasks::{self, Difficulty, Outcome, TaskResult};
 use traveller_rules::{Characteristic, dm};
 
-use super::editor::use_editor;
+use super::editor::{today, use_editor};
+use traveller_rules::Credits;
 
 /// Real dice, from the browser's random numbers.
 struct BrowserDice;
@@ -425,9 +426,13 @@ pub fn WeaponRows(
                 {
                     let empty = w.magazine.is_some() && w.rounds.unwrap_or(0) == 0;
                     let can_reload = w.magazine.is_some() && w.spare_magazines > 0;
+                    // A spare magazine can be bought when its price is known.
+                    let mag_cost = w.magazine.and(w.magazine_cost);
+                    let cash = editor.sheet.read().finances.cash;
                     let details = weapon_line(&w);
                     let skills = skills.clone();
                     let name = w.name.clone();
+                    let name_for_mag = w.name.clone();
                     rsx! {
                         li { key: "{i}",
                             div { class: "weapon-text",
@@ -458,6 +463,25 @@ pub fn WeaponRows(
                                             }
                                         }),
                                         "Reload"
+                                    }
+                                }
+                                if let Some(cost) = mag_cost {
+                                    button { class: "mini outline", r#type: "button", disabled: cash < cost || busy,
+                                        aria_label: "Buy a spare magazine for {name} for {Credits(cost)} from cash",
+                                        title: if cash < cost { "Not enough cash" } else { "" },
+                                        onclick: move |_| {
+                                            let what = format!("Spare magazine: {name_for_mag}");
+                                            editor.update_sheet("Bought a spare magazine.", move |s| {
+                                                if s.finances.cash < cost {
+                                                    return;
+                                                }
+                                                if let Some(x) = s.weapons.get_mut(i) {
+                                                    x.spare_magazines += 1;
+                                                    s.finances.record(today(), what, Credits(-cost));
+                                                }
+                                            });
+                                        },
+                                        "+ Mag {Credits(cost)}"
                                     }
                                 }
                             }

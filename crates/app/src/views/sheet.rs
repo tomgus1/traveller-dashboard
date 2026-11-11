@@ -16,6 +16,7 @@ use super::editor::{Editor, Notice, NoticeBar, QuickActions, condition_label};
 use super::fields;
 use super::forms::{CharacteristicsEditor, ListEditor, SectionEditor};
 use super::manage::DeleteCharacter;
+use super::pay::SHEET_SOURCES;
 use super::roller::{RollLog, TaskRoller, WeaponRows};
 use super::tip::{Tip, glossary};
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
@@ -319,11 +320,11 @@ fn EditTab(tab: Tab, name: String) -> Element {
             ListEditor { path: "skills", title: "Skills", fields: fields::SKILLS }
         },
         Tab::Equipment => rsx! {
-            ListEditor { path: "weapons", title: "Weapons", fields: fields::WEAPONS, catalogue: Pick::Weapon }
+            ListEditor { path: "weapons", title: "Weapons", fields: fields::WEAPONS, catalogue: Pick::Weapon, pay: SHEET_SOURCES }
             ListEditor { path: "ammo", title: "Ammunition", fields: fields::AMMO }
-            ListEditor { path: "armour", title: "Armour", fields: fields::ARMOUR, catalogue: Pick::Armour }
-            ListEditor { path: "gear", title: "Gear", fields: fields::GEAR, catalogue: Pick::Gear }
-            ListEditor { path: "augments", title: "Augments", fields: fields::AUGMENTS, catalogue: Pick::Augment }
+            ListEditor { path: "armour", title: "Armour", fields: fields::ARMOUR, catalogue: Pick::Armour, pay: SHEET_SOURCES }
+            ListEditor { path: "gear", title: "Gear", fields: fields::GEAR, catalogue: Pick::Gear, pay: SHEET_SOURCES }
+            ListEditor { path: "augments", title: "Augments", fields: fields::AUGMENTS, catalogue: Pick::Augment, pay: SHEET_SOURCES }
         },
         Tab::Finances => rsx! {
             SectionEditor { path: "finances", title: "Finances", fields: fields::FINANCES }

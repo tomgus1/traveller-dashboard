@@ -15,6 +15,8 @@ use super::editor::use_editor;
 use super::fields::{
     Field, Kind, MAX_LONG, MAX_TEXT, Suggest, blank, collect, field_text, summary, whole,
 };
+use super::pay::{self, PaySource};
+use traveller_rules::Credits;
 
 /// Inputs for `fields`, bound to `values` (same order).
 #[component]
@@ -120,10 +122,17 @@ pub fn ListEditor(
     /// Offer picking new items from the rulebook catalogue.
     #[props(default)]
     catalogue: Option<Pick>,
+    /// Where an item picked from the catalogue can be paid from.
+    #[props(default)]
+    pay: Option<&'static [PaySource]>,
 ) -> Element {
     let doc = use_doc();
     let mut editing = use_signal(|| None::<Editing>);
     let mut picking = use_signal(|| false);
+    // For an item picked from the catalogue: its price, and which source
+    // pays (None: don't pay).
+    let mut picked_cost = use_signal(|| None::<i64>);
+    let mut pay_from = use_signal(|| None::<usize>);
     let mut values = use_signal(Vec::<String>::new);
     let mut error = use_signal(|| None::<String>);
     let mut confirm_remove = use_signal(|| None::<usize>);
@@ -144,19 +153,60 @@ pub fn ListEditor(
                 return;
             }
         };
+        let is_new = which == Editing::New;
         let target = match which {
             Editing::New => Target::New(if ids { new_id() } else { String::new() }),
             Editing::Item(t) => t,
         };
-        doc.change.call((
-            DocChange::Upsert {
-                path,
-                target,
-                fields: fields_map,
-            },
-            "Saved.",
-        ));
+        // Paying, if chosen: in the same change as the item.
+        let payment = match (is_new, pay, pay_from()) {
+            (true, Some(sources), Some(i)) => {
+                let Some(source) = sources.get(i).copied() else {
+                    return;
+                };
+                let Some(amount) = pay::price(&fields_map, picked_cost()) else {
+                    error.set(Some(
+                        "There's no price to pay: enter a cost, or choose Don't pay.".into(),
+                    ));
+                    return;
+                };
+                let name = fields_map
+                    .get("name")
+                    .and_then(Value::as_str)
+                    .unwrap_or("item");
+                let quantity = fields_map
+                    .get("quantity")
+                    .and_then(Value::as_i64)
+                    .unwrap_or(1);
+                let what = if quantity == 1 {
+                    format!("Bought {name}")
+                } else {
+                    format!("Bought {name} \u{00d7}{quantity}")
+                };
+                match pay::payment(source, &doc.doc.peek(), amount, &what) {
+                    Ok(change) => Some(change),
+                    Err(message) => {
+                        error.set(Some(message));
+                        return;
+                    }
+                }
+            }
+            _ => None,
+        };
+        let upsert = DocChange::Upsert {
+            path,
+            target,
+            fields: fields_map,
+        };
+        match payment {
+            Some(change) => doc
+                .change
+                .call((DocChange::Batch(vec![upsert, change]), "Saved and paid.")),
+            None => doc.change.call((upsert, "Saved.")),
+        }
         editing.set(None);
+        picked_cost.set(None);
+        pay_from.set(None);
     };
 
     let form_id = path.replace('.', "-");
@@ -180,6 +230,8 @@ pub fn ListEditor(
                                 values.set(blank(fields));
                                 error.set(None);
                                 confirm_remove.set(None);
+                                picked_cost.set(None);
+                                pay_from.set(None);
                                 editing.set(Some(Editing::New));
                             },
                             "Add"
@@ -190,10 +242,12 @@ pub fn ListEditor(
 
             if let (Some(pick), true) = (catalogue, picking()) {
                 CataloguePicker { pick,
-                    on_pick: move |item: Value| {
+                    on_pick: move |(item, cost): (Value, Option<i64>)| {
                         values.set(fields.iter().map(|f| field_text(f, item.get(f.key))).collect());
                         error.set(None);
                         picking.set(false);
+                        picked_cost.set(cost);
+                        pay_from.set(None);
                         editing.set(Some(Editing::New));
                     },
                     on_close: move |()| picking.set(false),
@@ -204,6 +258,22 @@ pub fn ListEditor(
                 form { class: "edit-form", onsubmit: save,
                     h3 { if which == Editing::New { "New entry" } else { "Edit entry" } }
                     Inputs { id: "{form_id}", fields, values }
+                    if let (Editing::New, Some(sources)) = (&which, pay) {
+                        div { class: "field pay-from",
+                            label { r#for: "{form_id}-pay", "Pay for it" }
+                            select { id: "{form_id}-pay",
+                                onchange: move |e| pay_from.set(e.value().parse::<usize>().ok()),
+                                option { value: "", selected: pay_from().is_none(), "Don't pay (already owned)" }
+                                for (i, source) in sources.iter().enumerate() {
+                                    option { key: "{i}", value: "{i}", selected: pay_from() == Some(i),
+                                        "From {source.label.to_lowercase()} ({Credits(pay::balance(*source, &doc.doc.read()))})" }
+                                }
+                            }
+                            if let Some(cost) = picked_cost() {
+                                p { class: "muted small", "Catalogue price {Credits(cost)} each." }
+                            }
+                        }
+                    }
                     if let Some(message) = error() {
                         p { class: "error", role: "alert", "{message}" }
                     }
