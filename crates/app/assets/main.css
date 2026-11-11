@@ -864,13 +864,11 @@ table.summary {
 }
 
 .tip-text {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 20;
+  position: fixed;
+  z-index: 50;
   display: none;
   width: max-content;
-  max-width: min(280px, 80vw);
+  max-width: min(280px, calc(100vw - 16px));
   padding: 8px 10px;
   background: var(--ink);
   color: var(--bg);
@@ -886,20 +884,9 @@ table.summary {
   box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
 }
 
-/* Right-hand columns: open towards the left so it stays on screen. */
-.num .tip-text,
-.upp-block .tip-text {
-  left: auto;
-  right: 0;
-}
-
-.tip:hover .tip-text,
-.tip:focus-within .tip-text {
+/* Shown only once positioned, so it never flashes in the wrong place. */
+.tip-text.open {
   display: block;
-}
-
-.tip .tip-text.dismissed {
-  display: none;
 }
 
 .role-key {
