@@ -199,6 +199,46 @@ pub fn level_for<'a>(
     found
 }
 
+/// The book's entry for a skill, by name (ignoring case).
+pub fn find(name: &str) -> Option<&'static SkillDef> {
+    SKILLS
+        .iter()
+        .find(|s| s.name.eq_ignore_ascii_case(name.trim()))
+}
+
+/// The specialities a Traveller has at 0 without writing them down
+/// (Core p.58): every speciality of a skill they have, at any level, that
+/// they don't list themselves, e.g. Athletics (dexterity) 1 gives
+/// Athletics (endurance) 0 and Athletics (strength) 0. Open-ended skills
+/// (Language, Profession, Science) have no fixed list, so give none.
+pub fn implied_at_zero(held: &[&str]) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for name in held {
+        let (base, _) = split(name);
+        let Some(def) = find(base).filter(|d| !d.open) else {
+            continue;
+        };
+        for spec in def.specialities {
+            let full = format!("{} ({spec})", def.name);
+            let listed = held.iter().any(|h| {
+                let (b, s) = split(h);
+                b.eq_ignore_ascii_case(def.name) && s.is_some_and(|s| s.eq_ignore_ascii_case(spec))
+            });
+            if !listed && !out.contains(&full) {
+                out.push(full);
+            }
+        }
+    }
+    out
+}
+
+/// Whether a skill written without a speciality ("Drive") has a fixed list
+/// of them, so at level 0 it's shown as those specialities instead.
+pub fn has_fixed_specialities(name: &str) -> bool {
+    let (base, spec) = split(name);
+    spec.is_none() && find(base).is_some_and(|d| !d.open && !d.specialities.is_empty())
+}
+
 /// The DM a skill gives a check (Core p.58–59): its level, or untrained
 /// DM-3, which Jack-of-all-Trades reduces by its level (to no better than
 /// DM+0).
@@ -268,6 +308,33 @@ mod tests {
         assert_eq!(skill_dm(jack.iter().copied(), "Pilot"), -1);
         let jack3 = have(&[(JACK_OF_ALL_TRADES, 3)]);
         assert_eq!(skill_dm(jack3.iter().copied(), "Pilot"), 0, "never a bonus");
+    }
+
+    #[test]
+    fn other_specialities_come_at_zero() {
+        let held = [
+            "Athletics (dexterity)",
+            "Broker",
+            "Drive",
+            "Science (physics)",
+        ];
+        let implied = implied_at_zero(&held);
+        assert_eq!(
+            implied,
+            [
+                "Athletics (endurance)",
+                "Athletics (strength)",
+                "Drive (hovercraft)",
+                "Drive (mole)",
+                "Drive (track)",
+                "Drive (walker)",
+                "Drive (wheel)",
+            ]
+        );
+        assert!(has_fixed_specialities("Drive"));
+        assert!(!has_fixed_specialities("Drive (wheel)"));
+        assert!(!has_fixed_specialities("Broker"));
+        assert!(!has_fixed_specialities("Science"), "open-ended");
     }
 
     #[test]

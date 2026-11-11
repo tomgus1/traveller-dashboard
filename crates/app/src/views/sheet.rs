@@ -416,8 +416,8 @@ fn Overview(
     editable: bool,
 ) -> Element {
     let email = use_session()().map(|s| s.email).unwrap_or_default();
-    let mut skills = sheet.effective_skills();
-    skills.sort_by(|a, b| b.level().cmp(&a.level()).then_with(|| a.name.cmp(&b.name)));
+    let listed = sheet.listed_skills();
+    let skills = sheet.effective_skills();
     let worn: Vec<Armour> = sheet.worn_armour().cloned().collect();
     let skill_levels: Vec<(String, i32)> =
         skills.iter().map(|s| (s.name.clone(), s.level())).collect();
@@ -437,26 +437,29 @@ fn Overview(
         div { class: "columns",
             section { aria_labelledby: "skills",
                 h2 { id: "skills", class: "section", "Skills" }
-                if skills.is_empty() {
+                if listed.is_empty() {
                     Empty {}
                 } else {
                     table { class: "data",
                         thead { tr { th { scope: "col", "Skill" } th { scope: "col", class: "num", Tip { text: glossary::LEVEL, "Level" } } } }
                         tbody {
-                            for (i, skill) in skills.iter().enumerate() {
-                                tr { key: "{i}",
+                            for (i, l) in listed.iter().enumerate() {
+                                tr { key: "{i}", class: if l.implied { "implied" } else { "" },
                                     td {
-                                        "{skill.name}"
-                                        if skill.own.is_none() {
+                                        "{l.skill.name}"
+                                        if l.skill.own.is_none() {
                                             span { class: "muted small", " (augment)" }
-                                        } else if skill.bonus != 0 {
-                                            span { class: "muted small", " ({signed(skill.bonus)} augment)" }
+                                        } else if l.skill.bonus != 0 {
+                                            span { class: "muted small", " ({signed(l.skill.bonus)} augment)" }
                                         }
                                     }
-                                    td { class: "num strong", "{skill.level()}" }
+                                    td { class: if l.implied { "num" } else { "num strong" }, "{l.skill.level()}" }
                                 }
                             }
                         }
+                    }
+                    if listed.iter().any(|l| l.implied) {
+                        p { class: "muted small", "Greyed: other specialities of your skills, at 0 (Core p.58)." }
                     }
                 }
             }

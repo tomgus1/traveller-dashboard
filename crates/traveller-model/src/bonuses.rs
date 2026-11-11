@@ -189,6 +189,50 @@ impl CharacterSheet {
     }
 }
 
+/// A skill as the sheet lists it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ListedSkill {
+    /// The skill, with any augment bonus.
+    pub skill: EffectiveSkill,
+    /// Not written on the sheet: another speciality of a skill they have,
+    /// at 0 (Core p.58).
+    pub implied: bool,
+}
+
+impl CharacterSheet {
+    /// Every skill the Traveller can use, A to Z: the sheet's skills (with
+    /// augment bonuses), plus the other specialities of each at 0. A skill
+    /// written at 0 without a speciality ("Drive 0") is shown as its
+    /// specialities instead.
+    pub fn listed_skills(&self) -> Vec<ListedSkill> {
+        let effective = self.effective_skills();
+        let names: Vec<&str> = effective.iter().map(|s| s.name.as_str()).collect();
+        let implied = traveller_rules::skills::implied_at_zero(&names);
+        let mut out: Vec<ListedSkill> = effective
+            .iter()
+            .filter(|s| {
+                !(traveller_rules::skills::has_fixed_specialities(&s.name)
+                    && s.own == Some(0)
+                    && s.bonus == 0)
+            })
+            .map(|s| ListedSkill {
+                skill: s.clone(),
+                implied: false,
+            })
+            .chain(implied.into_iter().map(|name| ListedSkill {
+                skill: EffectiveSkill {
+                    name,
+                    own: Some(0),
+                    bonus: 0,
+                },
+                implied: true,
+            }))
+            .collect();
+        out.sort_by_key(|l| l.skill.name.to_lowercase());
+        out
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -279,6 +323,49 @@ mod tests {
         let mut without = s;
         without.augments.clear();
         assert_eq!(without.effective(&own), own);
+    }
+
+    #[test]
+    fn listed_skills_are_alphabetical_with_implied_specialities() {
+        let sheet = CharacterSheet {
+            skills: vec![
+                Skill {
+                    name: "Broker".into(),
+                    level: 3,
+                },
+                Skill {
+                    name: "Athletics (dexterity)".into(),
+                    level: 1,
+                },
+                Skill {
+                    name: "Drive".into(),
+                    level: 0,
+                },
+            ],
+            ..CharacterSheet::default()
+        };
+        let listed: Vec<(String, i32, bool)> = sheet
+            .listed_skills()
+            .into_iter()
+            .map(|l| (l.skill.name.clone(), l.skill.level(), l.implied))
+            .collect();
+        let names: Vec<&str> = listed.iter().map(|(n, _, _)| n.as_str()).collect();
+        assert_eq!(
+            names,
+            [
+                "Athletics (dexterity)",
+                "Athletics (endurance)",
+                "Athletics (strength)",
+                "Broker",
+                "Drive (hovercraft)",
+                "Drive (mole)",
+                "Drive (track)",
+                "Drive (walker)",
+                "Drive (wheel)",
+            ]
+        );
+        assert_eq!(listed[0], ("Athletics (dexterity)".into(), 1, false));
+        assert_eq!(listed[1], ("Athletics (endurance)".into(), 0, true));
     }
 
     #[test]

@@ -613,6 +613,11 @@ table.summary {
   margin: 0 0 8px;
 }
 
+/* Specialities at 0 the player didn't write down */
+tr.implied td {
+  color: var(--muted);
+}
+
 /* Weapons at the table: one row each, buttons wrap under on a phone */
 .weapon-rows {
   margin: 0;
