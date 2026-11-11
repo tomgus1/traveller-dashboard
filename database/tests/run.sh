@@ -55,5 +55,22 @@ apply "$DB"/08-campaign-state.sql
 apply "$DB"/08-campaign-state.sql   # re-runnable
 report 23-tests-08.sql
 
+echo "== 09 import old finances"
+apply 24-seed-before-09.sql
+apply "$DB"/09-import-old-finances.sql
+# The checks re-apply 09 themselves (via \i) to test re-running.
+"$ENGINE" cp "$DB"/09-import-old-finances.sql td-test:/tmp/09.sql
+report 24-tests-09.sql
+
+# Optionally export the documents the migrations produced, so the Rust
+# model's tests can check they load (TD_EXPORT_DIR=… database/tests/run.sh,
+# then the paths printed below).
+if [[ -n ${TD_EXPORT_DIR:-} ]]; then
+  mkdir -p "$TD_EXPORT_DIR"
+  "$ENGINE" exec td-test psql -U postgres -tAc "copy (select data from public.character_sheets) to stdout" > "$TD_EXPORT_DIR/sheets.jsonl"
+  "$ENGINE" exec td-test psql -U postgres -tAc "copy (select data from public.campaign_state) to stdout" > "$TD_EXPORT_DIR/states.jsonl"
+  echo "Exported: TD_SHEETS_JSONL=$TD_EXPORT_DIR/sheets.jsonl TD_STATES_JSONL=$TD_EXPORT_DIR/states.jsonl"
+fi
+
 "$ENGINE" rm -f td-test >/dev/null
 [[ $FAILED -eq 0 ]] && echo "All checks passed." || { echo "Some checks FAILED." >&2; exit 1; }

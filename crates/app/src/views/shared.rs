@@ -13,7 +13,7 @@ use dioxus::prelude::*;
 use serde::Deserialize;
 use serde_json::{Map, Value, json};
 use traveller_model::CampaignState;
-use traveller_model::campaign_state::{ContractStatus, ImperialDate, TradeSide};
+use traveller_model::campaign_state::{ContractStatus, Funds, ImperialDate, TradeSide};
 use traveller_rules::Credits;
 
 use super::doc::{DocChange, DocEditor, Target, new_id};
@@ -216,18 +216,69 @@ fn EditToggle(editing: Signal<bool>) -> Element {
 }
 
 // ---------------------------------------------------------------------------
-// Party funds and the ship's locker (Party tab)
+// Funds (party funds on the Party tab, the ship fund on the Ship tab) and
+// the ship's locker
 
-/// Party funds, quick spend/receive, the ledger and the ship's locker.
+/// Which account.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum FundKind {
+    /// The party's money.
+    Party,
+    /// The ship's own account.
+    Ship,
+}
+
+impl FundKind {
+    fn root(self) -> &'static str {
+        match self {
+            Self::Party => "funds",
+            Self::Ship => "ship_fund",
+        }
+    }
+    fn balance_path(self) -> &'static str {
+        match self {
+            Self::Party => "funds.balance",
+            Self::Ship => "ship_fund.balance",
+        }
+    }
+    fn ledger_path(self) -> &'static str {
+        match self {
+            Self::Party => "funds.ledger",
+            Self::Ship => "ship_fund.ledger",
+        }
+    }
+    fn title(self) -> &'static str {
+        match self {
+            Self::Party => "Party funds",
+            Self::Ship => "Ship fund",
+        }
+    }
+    fn id(self) -> &'static str {
+        match self {
+            Self::Party => "party",
+            Self::Ship => "ship",
+        }
+    }
+    fn of(self, state: &CampaignState) -> &Funds {
+        match self {
+            Self::Party => &state.funds,
+            Self::Ship => &state.ship_fund,
+        }
+    }
+}
+
+/// A fund: balance, quick spend/receive, and its ledger.
 #[component]
-pub fn PartyFunds() -> Element {
+pub fn Fund(kind: FundKind) -> Element {
     let shared = use_shared();
     let doc = use_context::<DocEditor>();
     let editing = use_signal(|| false);
     let mut amount = use_signal(String::new);
     let mut what = use_signal(String::new);
     let state = shared.state.read().clone();
+    let funds = kind.of(&state).clone();
     let busy = (doc.saving)();
+    let id = kind.id();
 
     let record = use_callback(move |sign: i64| {
         let mut message = shared.message;
@@ -247,37 +298,37 @@ pub fn PartyFunds() -> Element {
         doc.change.call((
             DocChange::Batch(vec![
                 DocChange::Increment {
-                    path: "funds.balance",
+                    path: kind.balance_path(),
                     by: value * sign,
                 },
                 DocChange::Upsert {
-                    path: "funds.ledger",
+                    path: kind.ledger_path(),
                     target: Target::New(new_id()),
                     fields: fields_of(
                         json!({ "date": date, "description": description, "amount": value * sign }),
                     ),
                 },
             ]),
-            "Party funds updated.",
+            "Funds updated.",
         ));
         amount.set(String::new());
         what.set(String::new());
     });
 
     rsx! {
-        section { aria_labelledby: "funds",
+        section { aria_labelledby: "fund-{id}",
             div { class: "edit-head",
-                h2 { id: "funds", class: "section", "Party funds" }
-                span { class: "big-figure", {Credits(state.funds.balance).to_string()} }
+                h2 { id: "fund-{id}", class: "section", "{kind.title()}" }
+                span { class: if funds.balance < 0 { "big-figure neg" } else { "big-figure" }, {Credits(funds.balance).to_string()} }
             }
             if shared.can_edit {
                 form { class: "edit-form", onsubmit: move |e: FormEvent| { e.prevent_default(); record.call(-1); },
                     div { class: "inline wrap",
-                        label { class: "sr-only", r#for: "party-cr", "Amount in credits" }
-                        input { id: "party-cr", r#type: "text", inputmode: "numeric", placeholder: "Cr",
+                        label { class: "sr-only", r#for: "{id}-cr", "Amount in credits" }
+                        input { id: "{id}-cr", r#type: "text", inputmode: "numeric", placeholder: "Cr",
                             value: "{amount}", oninput: move |e| amount.set(e.value()) }
-                        label { class: "sr-only", r#for: "party-what", "What for" }
-                        input { id: "party-what", r#type: "text", placeholder: "What for", maxlength: "120",
+                        label { class: "sr-only", r#for: "{id}-what", "What for" }
+                        input { id: "{id}-what", r#type: "text", placeholder: "What for", maxlength: "120",
                             value: "{what}", oninput: move |e| what.set(e.value()) }
                         button { class: "btn", r#type: "submit", disabled: busy, "Spend" }
                         button { class: "btn outline", r#type: "button", disabled: busy, onclick: move |_| record.call(1), "Receive" }
@@ -286,27 +337,52 @@ pub fn PartyFunds() -> Element {
             }
             EditToggle { editing }
             if editing() {
-                SectionEditor { path: "funds", title: "Balance", fields: fields::FUNDS }
-                ListEditor { path: "funds.ledger", title: "Ledger", fields: fields::FUNDS_LEDGER, ids: true }
-                ListEditor { path: "locker", title: "Ship's locker", fields: fields::LOCKER, ids: true }
+                SectionEditor { path: kind.root(), title: "Balance", fields: fields::FUNDS }
+                ListEditor { path: kind.ledger_path(), title: "Ledger", fields: fields::FUNDS_LEDGER, ids: true }
+            } else if funds.ledger.is_empty() {
+                p { class: "muted", "No transactions yet." }
             } else {
-                if state.funds.ledger.is_empty() {
-                    p { class: "muted", "No transactions yet." }
-                } else {
+                div { class: "scroll",
                     table { class: "data",
-                        thead { tr { th { scope: "col", "Date" } th { scope: "col", "Entry" } th { scope: "col", class: "num", "Amount" } } }
+                        thead { tr {
+                            th { scope: "col", "Date" }
+                            th { scope: "col", "Entry" }
+                            th { scope: "col", "By" }
+                            th { scope: "col", class: "num", "Amount" }
+                        } }
                         tbody {
-                            for entry in state.funds.ledger.iter().rev().take(20) {
+                            for entry in funds.ledger.iter().rev() {
                                 tr { key: "{entry.id}",
                                     td { class: "muted", {dash(&entry.date)} }
-                                    td { "{entry.description}" }
+                                    td { "{entry.description}"
+                                        if !entry.category.is_empty() { br {} span { class: "muted small", "{entry.category}" } }
+                                        if !entry.notes.is_empty() { br {} span { class: "muted small", "{entry.notes}" } }
+                                    }
+                                    td { class: "muted", {dash(&entry.by)} }
                                     td { class: if entry.amount < 0 { "num strong neg" } else { "num strong pos" }, {signed(entry.amount)} }
                                 }
                             }
                         }
                     }
                 }
-                h2 { class: "section", "Ship's locker" }
+            }
+        }
+    }
+}
+
+/// Shared gear in the ship's locker.
+#[component]
+pub fn Locker() -> Element {
+    let shared = use_shared();
+    let editing = use_signal(|| false);
+    let state = shared.state.read().clone();
+    rsx! {
+        section { aria_labelledby: "locker",
+            h2 { id: "locker", class: "section", "Ship's locker" }
+            EditToggle { editing }
+            if editing() {
+                ListEditor { path: "locker", title: "Items", fields: fields::LOCKER, ids: true }
+            } else {
                 if state.locker.is_empty() {
                     p { class: "muted", "Nothing in the locker yet." }
                 } else {
@@ -351,7 +427,7 @@ pub fn ShipTab() -> Element {
         doc.change.call((
             DocChange::Batch(vec![
                 DocChange::Increment {
-                    path: "funds.balance",
+                    path: FundKind::Ship.balance_path(),
                     by: -total,
                 },
                 DocChange::Increment {
@@ -359,16 +435,17 @@ pub fn ShipTab() -> Element {
                     by: -mortgage,
                 },
                 DocChange::Upsert {
-                    path: "funds.ledger",
+                    path: FundKind::Ship.ledger_path(),
                     target: Target::New(new_id()),
                     fields: fields_of(json!({
                         "date": today_label(&s),
                         "description": "Running costs (mortgage, maintenance, life support, salaries)",
+                        "category": "Expense / Running costs",
                         "amount": -total,
                     })),
                 },
             ]),
-            "Running costs paid from party funds.",
+            "Running costs paid from the ship fund.",
         ));
     };
 
@@ -387,6 +464,8 @@ pub fn ShipTab() -> Element {
                 ].into_iter().flatten().collect::<Vec<_>>().join(" · ")}
             }
         }
+        Fund { kind: FundKind::Ship }
+        h2 { class: "section", "Ship details" }
         EditToggle { editing }
         if editing() {
             SectionEditor { path: "ship", title: "Ship", fields: fields::SHIP }

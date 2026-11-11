@@ -233,6 +233,9 @@ pub const FUNDS_LEDGER: &[Field] = &[
         -MONEY,
         MONEY,
     ),
+    text("category", "Category"),
+    text("by", "Paid or received by"),
+    long("notes", "Notes"),
 ];
 pub const LOCKER: &[Field] = &[
     name("name", "Item"),

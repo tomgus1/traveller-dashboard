@@ -14,7 +14,9 @@ use traveller_model::{
 use traveller_rules::Characteristic;
 use traveller_rules::characteristics::Condition;
 
-use super::shared::{CargoTab, PartyFunds, SharedState, ShipTab, TravelTab, load_state};
+use super::shared::{
+    CargoTab, Fund, FundKind, Locker, SharedState, ShipTab, TravelTab, load_state,
+};
 use super::tip::{Tip, glossary};
 use super::{EdgeTab, fresh_session, is_uuid, use_session};
 use crate::Route;
@@ -511,7 +513,8 @@ pub fn Campaign(id: String) -> Element {
                                     match current_tab {
                                         Tab::Party => rsx! {
                                             Party { data: data.clone(), actions }
-                                            PartyFunds {}
+                                            Fund { kind: FundKind::Party }
+                                            Locker {}
                                         },
                                         Tab::Ship => rsx! { ShipTab {} },
                                         Tab::Cargo => rsx! { CargoTab {} },

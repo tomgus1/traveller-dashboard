@@ -26,6 +26,9 @@ pub struct CampaignState {
     pub ship: Ship,
     /// Party funds and their ledger.
     pub funds: Funds,
+    /// The ship's own account (running costs, fuel, repairs), kept apart
+    /// from the party's money.
+    pub ship_fund: Funds,
     /// Shared gear aboard.
     pub locker: Vec<LockerItem>,
     /// Cargo in the hold.
@@ -46,6 +49,7 @@ impl Default for CampaignState {
             location: String::new(),
             ship: Ship::default(),
             funds: Funds::default(),
+            ship_fund: Funds::default(),
             locker: Vec::new(),
             cargo: Vec::new(),
             contracts: Vec::new(),
@@ -222,6 +226,11 @@ pub struct FundsEntry {
     pub description: String,
     /// Credits; negative for spending.
     pub amount: i64,
+    /// e.g. "Expense / Fuel".
+    pub category: String,
+    /// Who paid or received it.
+    pub by: String,
+    pub notes: String,
 }
 
 /// Shared gear in the ship's locker.
@@ -466,6 +475,26 @@ mod tests {
             ..Contract::default()
         });
         assert_eq!(state.cargo_tons(), 48, "booked freight isn't aboard yet");
+    }
+
+    /// Checks states produced by the database migrations (08, 09) load.
+    /// Run `TD_EXPORT_DIR=… database/tests/run.sh` and point
+    /// `TD_STATES_JSONL` at the exported file; skipped when unset.
+    #[test]
+    fn migrated_states_load() {
+        let Ok(path) = std::env::var("TD_STATES_JSONL") else {
+            return;
+        };
+        let text = std::fs::read_to_string(path).unwrap();
+        let mut count = 0;
+        for line in text.lines().filter(|l| !l.trim().is_empty()) {
+            let state: CampaignState = serde_json::from_str(line)
+                .unwrap_or_else(|e| panic!("migrated state didn't load: {e}\n{line}"));
+            let total: i64 = state.ship_fund.ledger.iter().map(|e| e.amount).sum();
+            assert_eq!(state.ship_fund.balance, total, "ship balance = its ledger");
+            count += 1;
+        }
+        assert!(count > 0, "no states in file");
     }
 
     #[test]
