@@ -5,6 +5,7 @@
 //! `campaign_state.rs`).
 
 use serde_json::Value;
+use traveller_rules::Credits;
 
 /// What kind of value a field holds.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -416,22 +417,43 @@ pub fn blank(fields: &[Field]) -> Vec<String> {
         .collect()
 }
 
-/// One line describing an item: its first three non-empty values.
+/// One value as the summary shows it, labelled where a bare number would
+/// mean nothing: "TL4", "Cr1,500", "1 kg", "Magazine 6". `None` when
+/// empty, or a required number that's zero.
+fn summary_part(field: &Field, value: Option<&Value>) -> Option<String> {
+    let text = to_text(value);
+    if text.is_empty() {
+        return None;
+    }
+    let number = value.and_then(Value::as_i64);
+    let is_money = field.key == "cost" || field.label.contains("(Cr");
+    Some(match field.kind {
+        Kind::Choice(options) => options
+            .iter()
+            .find(|(v, _)| *v == text)
+            .map_or(text, |(_, l)| (*l).to_string()),
+        Kind::Int { .. } if number == Some(0) => return None,
+        Kind::Int { .. } | Kind::OptInt { .. } => match number {
+            Some(n) if field.key == "tl" => format!("TL{n}"),
+            Some(n) if is_money => Credits(n).to_string(),
+            _ => {
+                let label = field.label.split(" (").next().unwrap_or(field.label);
+                format!("{label} {text}")
+            }
+        },
+        Kind::OptDecimal => format!("{text} kg"),
+        _ => text,
+    })
+}
+
+/// One line describing an item: its first six values, labelled where
+/// needed.
 pub fn summary(fields: &[Field], item: &Value) -> String {
     let parts: Vec<String> = fields
         .iter()
         .filter(|f| !matches!(f.kind, Kind::Long | Kind::Bool))
-        .filter_map(|f| {
-            let text = to_text(item.get(f.key));
-            (!text.is_empty()).then(|| match f.kind {
-                Kind::Choice(options) => options
-                    .iter()
-                    .find(|(v, _)| *v == text)
-                    .map_or(text, |(_, l)| (*l).to_string()),
-                _ => text,
-            })
-        })
-        .take(3)
+        .filter_map(|f| summary_part(f, item.get(f.key)))
+        .take(6)
         .collect();
     if parts.is_empty() {
         "(blank)".into()
@@ -535,5 +557,25 @@ mod tests {
         let item = json!({"relation": "ally", "name": "Dax", "location": "", "relationship": "Old crewmate"});
         assert_eq!(summary(PEOPLE, &item), "Ally · Dax · Old crewmate");
         assert_eq!(summary(PEOPLE, &json!({})), "(blank)");
+    }
+
+    #[test]
+    fn summaries_label_numbers() {
+        let revolver = json!({"name": "Revolver", "tl": 4, "range": "10m", "damage": "3D-3",
+            "magazine": 6, "rounds": 6, "spare_magazines": 0, "kg": 1.0, "cost": 150});
+        assert_eq!(
+            summary(WEAPONS, &revolver),
+            "Revolver · TL4 · 10m · 3D-3 · Magazine 6 · Rounds loaded 6"
+        );
+        let mask = json!({"name": "Filter Mask", "tl": 3, "quantity": 2, "kg": 0.5, "cost": 1500});
+        assert_eq!(
+            summary(GEAR, &mask),
+            "Filter Mask · TL3 · Quantity 2 · 0.5 kg · Cr1,500"
+        );
+        let spent = json!({"date": "2026-11-11", "description": "Fuel", "amount": -500});
+        assert_eq!(
+            summary(LEDGER, &spent),
+            format!("2026-11-11 · Fuel · {}", Credits(-500))
+        );
     }
 }
