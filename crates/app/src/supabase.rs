@@ -30,6 +30,10 @@ pub enum Error {
     /// The server doesn't have this yet (e.g. a migration isn't applied).
     #[error("This part of the app isn't set up on the server yet.")]
     Unavailable,
+    /// A message written for users by our own server code (the invite-user
+    /// function), shown as it is.
+    #[error("{0}")]
+    Rejected(String),
     /// Anything else the server reported.
     #[error("Something went wrong. Please try again.")]
     Server,
@@ -218,6 +222,64 @@ pub async fn delete(current: &Session, path: &str) -> Result<usize, Error> {
         404 => Err(Error::Unavailable),
         _ => Err(Error::Server),
     }
+}
+
+/// Calls a database function (`/rest/v1/rpc/<name>`).
+pub async fn rpc<T: DeserializeOwned>(
+    current: &Session,
+    name: &str,
+    args: &serde_json::Value,
+) -> Result<T, Error> {
+    let (url, key) = settings()?;
+    let response = reqwest::Client::new()
+        .post(format!("{url}/rest/v1/rpc/{name}"))
+        .header("apikey", key)
+        .bearer_auth(&current.access_token)
+        .json(args)
+        .send()
+        .await?;
+    match response.status().as_u16() {
+        200 => Ok(response.json().await?),
+        401 => Err(Error::SessionExpired),
+        404 => Err(Error::Unavailable),
+        _ => Err(Error::Server),
+    }
+}
+
+#[derive(Deserialize)]
+struct FunctionError {
+    error: Option<String>,
+}
+
+/// Calls one of our Edge Functions. Its `{"error": …}` messages are written
+/// for users and come back as [`Error::Rejected`].
+pub async fn invoke(
+    current: &Session,
+    function: &str,
+    body: &serde_json::Value,
+) -> Result<serde_json::Value, Error> {
+    let (url, key) = settings()?;
+    let response = reqwest::Client::new()
+        .post(format!("{url}/functions/v1/{function}"))
+        .header("apikey", key)
+        .bearer_auth(&current.access_token)
+        .json(body)
+        .send()
+        .await?;
+    let status = response.status().as_u16();
+    if status == 200 {
+        return Ok(response.json().await?);
+    }
+    if status == 404 {
+        return Err(Error::Unavailable);
+    }
+    let message = response
+        .json::<FunctionError>()
+        .await
+        .ok()
+        .and_then(|e| e.error)
+        .filter(|m| !m.is_empty() && m.len() < 300);
+    Err(message.map_or(Error::Server, Error::Rejected))
 }
 
 /// Percent-encodes a value for a query string (RFC 3986 unreserved

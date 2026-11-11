@@ -1,10 +1,12 @@
 //! Pages and the app shell.
 
+mod campaigns;
 mod editor;
 mod forms;
 mod manage;
 mod sheet;
 
+pub use campaigns::{Campaign, Campaigns};
 pub use sheet::Character;
 
 use dioxus::prelude::*;
@@ -12,7 +14,7 @@ use dioxus::prelude::*;
 use crate::Route;
 use crate::session::{self, Session};
 use crate::supabase::{self, Error};
-use traveller_model::CharacterRow;
+use traveller_model::{CharacterRow, MyInvitation};
 
 /// The shared session signal.
 pub(crate) fn use_session() -> Signal<Option<Session>> {
@@ -63,6 +65,7 @@ pub fn Shell() -> Element {
             nav { class: "nav", aria_label: "Main",
                 Link { to: Route::Home {}, active_class: "active", "Home" }
                 Link { to: Route::Characters {}, active_class: "active", "Characters" }
+                Link { to: Route::Campaigns {}, active_class: "active", "Campaigns" }
             }
             button { class: "top-action", r#type: "button", onclick: sign_out, "Sign out" }
         }
@@ -125,13 +128,91 @@ fn SignIn() -> Element {
 #[component]
 pub fn Home() -> Element {
     let session = use_session();
+    let navigator = use_navigator();
     let email = session().map(|s| s.email).unwrap_or_default();
+    let mut message = use_signal(|| None::<(String, bool)>);
+    let mut busy = use_signal(|| false);
+    let mut invitations = use_resource(move || async move {
+        let current = fresh_session(session).await?;
+        supabase::rpc::<Vec<MyInvitation>>(&current, "get_user_invitations", &serde_json::json!({}))
+            .await
+    });
+
+    // Accept (joins the campaign) or decline an invitation.
+    let mut respond = move |id: String, campaign: String, accept: bool| {
+        if busy() {
+            return;
+        }
+        busy.set(true);
+        spawn(async move {
+            let result = async {
+                let current = fresh_session(session).await?;
+                let function = if accept {
+                    "accept_campaign_invitation"
+                } else {
+                    "decline_campaign_invitation"
+                };
+                supabase::rpc::<bool>(
+                    &current,
+                    function,
+                    &serde_json::json!({ "p_invitation_id": id }),
+                )
+                .await
+            }
+            .await;
+            busy.set(false);
+            match result {
+                Ok(true) if accept => {
+                    navigator.push(Route::Campaign { id: campaign });
+                }
+                Ok(_) => {
+                    message.set(Some(("Invitation declined.".into(), false)));
+                    invitations.restart();
+                }
+                Err(e) => message.set(Some((e.to_string(), true))),
+            }
+        });
+    };
+
     rsx! {
         main { class: "page",
             EdgeTab { label: "Home" }
             h1 { class: "display", "Welcome back" }
             p { class: "muted", "Signed in as {email}." }
-            p { Link { to: Route::Characters {}, "Your characters" } }
+            if let Some((text, is_error)) = message() {
+                p { class: if is_error { "notice error-notice" } else { "notice ok-notice" },
+                    role: if is_error { "alert" } else { "status" }, "{text}" }
+            }
+            if let Some(Ok(list)) = &*invitations.read() {
+                for inv in list.iter() {
+                    {
+                        let (id_a, id_d, camp) = (inv.id.clone(), inv.id.clone(), inv.campaign_id.clone());
+                        rsx! {
+                            section { key: "{inv.id}", class: "invitation", aria_label: "Invitation",
+                                div {
+                                    p { class: "invitation-kicker", "Invitation" }
+                                    p {
+                                        strong { "{inv.campaign_name}" }
+                                        " · as a {inv.roles_offered.label()}"
+                                        if let Some(from) = inv.inviter_name.as_deref() { " · from {from}" }
+                                        " · expires {inv.expires_at.get(..10).unwrap_or_default()}"
+                                    }
+                                }
+                                div { class: "inline",
+                                    button { class: "btn outline", r#type: "button", disabled: busy(),
+                                        onclick: move |_| respond(id_d.clone(), String::new(), false), "Decline" }
+                                    button { class: "btn", r#type: "button", disabled: busy(),
+                                        onclick: move |_| respond(id_a.clone(), camp.clone(), true), "Accept" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            div { class: "home-links",
+                Link { class: "btn outline", to: Route::Characters {}, "Your characters" }
+                Link { class: "btn outline", to: Route::Campaigns {}, "Your campaigns" }
+            }
         }
     }
 }

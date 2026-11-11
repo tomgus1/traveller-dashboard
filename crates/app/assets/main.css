@@ -780,3 +780,67 @@ table.summary {
 .danger .section {
   color: var(--red);
 }
+
+/* Campaigns */
+.invitation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 14px 18px;
+  border: 2px solid var(--red);
+}
+
+.invitation p {
+  margin: 0;
+}
+
+.invitation-kicker {
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.home-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.home-links .btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.roles {
+  gap: 14px;
+}
+
+.small-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  font-size: 14px;
+}
+
+.small-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--red);
+}
+
+.pos {
+  color: var(--ok);
+}
+
+.neg {
+  color: var(--red);
+}
