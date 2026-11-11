@@ -296,6 +296,13 @@ fn read_rows(header: &Header, below: &[Vec<Word>]) -> Vec<Vec<String>> {
             let wrapped = has_name
                 && named_row_above.is_some_and(|row_y| y - row_y <= 14.0)
                 && rows.len() >= 2
+                // The row above starts a new item (its name is new), so it
+                // can have a second line; a repeated name is another
+                // variant of an item, as in tables that print the name on
+                // every row.
+                && rows.last().is_some_and(|prev| {
+                    rows[..rows.len() - 1].iter().all(|r| r[0] != prev[0])
+                })
                 && rows[..rows.len() - 1].iter().any(|r| r[0] == row[0]);
             if wrapped {
                 let prev = rows.last_mut().expect("checked above");
@@ -670,6 +677,30 @@ mod tests {
                 "Hostile Environment Vacc Suit",
                 "Hostile Environment Vacc Suit",
                 "Hostile Environment Vacc Suit"
+            ]
+        );
+    }
+
+    #[test]
+    fn a_name_repeated_on_each_variant_row() {
+        let words = weapon_table(
+            &[
+                ["Dexterity Augmentation", "11", "", "", "", "Cr500000", ""],
+                ["Cognitive Augmentation", "12", "", "", "", "Cr500000", ""],
+                ["Cognitive Augmentation", "14", "", "", "", "Cr1000000", ""],
+                ["Dexterity Augmentation", "12", "", "", "", "Cr1000000", ""],
+            ],
+            100.0,
+        );
+        let t = &find_tables(5, 900.0, &words)[0];
+        let names: Vec<&str> = t.rows.iter().map(|r| r[0].as_str()).collect();
+        assert_eq!(
+            names,
+            [
+                "Dexterity Augmentation",
+                "Cognitive Augmentation",
+                "Cognitive Augmentation",
+                "Dexterity Augmentation"
             ]
         );
     }

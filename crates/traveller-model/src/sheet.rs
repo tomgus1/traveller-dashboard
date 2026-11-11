@@ -329,6 +329,9 @@ pub struct Augment {
     pub name: String,
     pub tl: Option<u8>,
     pub effect: String,
+    /// What it adds to characteristics and skills, on top of the values
+    /// entered on the sheet; removing the augment removes them.
+    pub bonuses: Vec<crate::bonuses::Bonus>,
 }
 
 /// Study towards a skill.

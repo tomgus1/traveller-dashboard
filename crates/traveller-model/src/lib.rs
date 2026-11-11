@@ -12,6 +12,7 @@
 //! Every field has a default, so older or partial documents still load and
 //! new fields can be added without migrating stored data.
 
+pub mod bonuses;
 pub mod campaign;
 pub mod campaign_state;
 pub mod catalogue;

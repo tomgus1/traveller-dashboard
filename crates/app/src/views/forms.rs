@@ -13,7 +13,7 @@ use super::catalogue::{CataloguePicker, Pick};
 use super::doc::{DocChange, Target, at, new_id, use_doc};
 use super::editor::use_editor;
 use super::fields::{
-    Field, Kind, MAX_LONG, MAX_TEXT, Suggest, blank, collect, summary, to_text, whole,
+    Field, Kind, MAX_LONG, MAX_TEXT, Suggest, blank, collect, field_text, summary, whole,
 };
 
 /// Inputs for `fields`, bound to `values` (same order).
@@ -26,7 +26,7 @@ fn Inputs(id: String, fields: &'static [Field], values: Signal<Vec<String>>) -> 
                 {
                     let input_id = format!("{id}-{}", field.key);
                     let value = values.read().get(i).cloned().unwrap_or_default();
-                    let wide = matches!(field.kind, Kind::Long);
+                    let wide = matches!(field.kind, Kind::Long | Kind::Bonuses);
                     rsx! {
                         div { key: "{input_id}", class: if wide { "field wide" } else { "field" },
                             match field.kind {
@@ -58,6 +58,12 @@ fn Inputs(id: String, fields: &'static [Field], values: Signal<Vec<String>>) -> 
                                 Kind::OptDecimal => rsx! {
                                     label { r#for: "{input_id}", "{field.label}" }
                                     input { id: "{input_id}", r#type: "text", inputmode: "decimal", value: "{value}",
+                                        oninput: move |e| values.write()[i] = e.value() }
+                                },
+                                Kind::Bonuses => rsx! {
+                                    label { r#for: "{input_id}", "{field.label}" }
+                                    input { id: "{input_id}", r#type: "text", maxlength: "{MAX_TEXT}", value: "{value}",
+                                        autocomplete: "off", placeholder: "STR +2, Athletics (dexterity) +1",
                                         oninput: move |e| values.write()[i] = e.value() }
                                 },
                                 Kind::Text if field.suggest != Suggest::None => rsx! {
@@ -185,7 +191,7 @@ pub fn ListEditor(
             if let (Some(pick), true) = (catalogue, picking()) {
                 CataloguePicker { pick,
                     on_pick: move |item: Value| {
-                        values.set(fields.iter().map(|f| to_text(item.get(f.key))).collect());
+                        values.set(fields.iter().map(|f| field_text(f, item.get(f.key))).collect());
                         error.set(None);
                         picking.set(false);
                         editing.set(Some(Editing::New));
@@ -237,7 +243,7 @@ pub fn ListEditor(
                                         span { class: "row-actions",
                                             button { class: "mini outline", r#type: "button", disabled: busy,
                                                 onclick: move |_| {
-                                                    values.set(fields.iter().map(|f| to_text(for_edit.get(f.key))).collect());
+                                                    values.set(fields.iter().map(|f| field_text(f, for_edit.get(f.key))).collect());
                                                     error.set(None);
                                                     confirm_remove.set(None);
                                                     editing.set(Some(Editing::Item(edit_target.clone())));
@@ -267,7 +273,7 @@ pub fn SectionEditor(path: &'static str, title: &'static str, fields: &'static [
         let object = at(&json, path).cloned().unwrap_or(Value::Null);
         fields
             .iter()
-            .map(|f| to_text(object.get(f.key)))
+            .map(|f| field_text(f, object.get(f.key)))
             .collect::<Vec<_>>()
     };
     let values = use_signal(|| initial);

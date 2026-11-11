@@ -210,8 +210,11 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
         change,
     });
     let row = &loaded.row;
-    let stats = stats();
     let current_sheet = sheet();
+    // Shown and rolled with augment bonuses on top of the Traveller's own.
+    let own_stats = stats();
+    let stats = current_sheet.effective(&own_stats);
+    let bonus = Characteristic::ALL.map(|c| current_sheet.characteristic_bonus(c));
     // Players manage their own sheets; everyone else (the referee) reads.
     let editable =
         session().is_some_and(|s| loaded.row.owner_id.as_deref() == Some(s.user_id.as_str()));
@@ -248,7 +251,7 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
 
         match &loaded.sheet {
             None => rsx! {
-                Stats { stats }
+                Stats { stats, bonus }
                 if loaded.sheet_missing_on_server {
                     p { class: "notice",
                         "The full character sheet isn't set up on the server yet (database migration 06)."
@@ -293,7 +296,7 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
                         EditTab { tab: tab(), name: row.display_name().to_string() }
                     } else {
                     match tab() {
-                        Tab::Overview => rsx! { Overview { stats, sheet: current_sheet.clone(), editable } },
+                        Tab::Overview => rsx! { Overview { stats, bonus, sheet: current_sheet.clone(), editable } },
                         Tab::Equipment => rsx! { Equipment { sheet: current_sheet.clone() } },
                         Tab::Finances => rsx! { Finances { sheet: current_sheet.clone() } },
                         Tab::History => rsx! { History { sheet: current_sheet.clone() } },
@@ -361,8 +364,10 @@ fn subtitle(loaded: &Loaded) -> String {
 // ---------------------------------------------------------------------------
 // Overview
 
+/// Characteristics as they count (with augment bonuses); `bonus` is each
+/// one's augment bonus, in [`Characteristic::ALL`] order.
 #[component]
-fn Stats(stats: Characteristics) -> Element {
+fn Stats(stats: Characteristics, bonus: [i32; 6]) -> Element {
     let condition = condition_label(&stats);
     rsx! {
         section { aria_labelledby: "chars",
@@ -371,8 +376,8 @@ fn Stats(stats: Characteristics) -> Element {
                 p { class: "notice", role: "status", "{state}" }
             }
             div { class: "stats",
-                for c in Characteristic::ALL {
-                    StatBox { key: "{c}", c, stats }
+                for (i, c) in Characteristic::ALL.into_iter().enumerate() {
+                    StatBox { key: "{c}", c, stats, bonus: bonus[i] }
                 }
             }
             p { class: "muted small", "Large figures are current values; red means reduced by damage." }
@@ -381,7 +386,7 @@ fn Stats(stats: Characteristics) -> Element {
 }
 
 #[component]
-fn StatBox(c: Characteristic, stats: Characteristics) -> Element {
+fn StatBox(c: Characteristic, stats: Characteristics, bonus: i32) -> Element {
     let stat = stats.get(c);
     let reduced = stat.is_reduced();
     let modifier = signed(dm(stat.current()));
@@ -394,19 +399,27 @@ fn StatBox(c: Characteristic, stats: Characteristics) -> Element {
                 Tip { text: glossary::DM, "DM" }
                 " {modifier}"
             }
+            if bonus != 0 {
+                p { class: "stat-dm", Tip { text: glossary::AUGMENT_BONUS, "{signed(bonus)} aug" } }
+            }
         }
     }
 }
 
 #[component]
-fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> Element {
+fn Overview(
+    stats: Characteristics,
+    bonus: [i32; 6],
+    sheet: CharacterSheet,
+    editable: bool,
+) -> Element {
     let email = use_session()().map(|s| s.email).unwrap_or_default();
-    let mut skills = sheet.skills.clone();
-    skills.sort_by(|a, b| b.level.cmp(&a.level).then_with(|| a.name.cmp(&b.name)));
+    let mut skills = sheet.effective_skills();
+    skills.sort_by(|a, b| b.level().cmp(&a.level()).then_with(|| a.name.cmp(&b.name)));
     let worn: Vec<Armour> = sheet.worn_armour().cloned().collect();
 
     rsx! {
-        Stats { stats }
+        Stats { stats, bonus }
         if editable {
             QuickActions {}
         } else {
@@ -426,8 +439,15 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> El
                         tbody {
                             for (i, skill) in skills.iter().enumerate() {
                                 tr { key: "{i}",
-                                    td { "{skill.name}" }
-                                    td { class: "num strong", "{skill.level}" }
+                                    td {
+                                        "{skill.name}"
+                                        if skill.own.is_none() {
+                                            span { class: "muted small", " (augment)" }
+                                        } else if skill.bonus != 0 {
+                                            span { class: "muted small", " ({signed(skill.bonus)} augment)" }
+                                        }
+                                    }
+                                    td { class: "num strong", "{skill.level()}" }
                                 }
                             }
                         }

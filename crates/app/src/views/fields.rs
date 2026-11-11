@@ -5,6 +5,7 @@
 //! `campaign_state.rs`).
 
 use serde_json::Value;
+use traveller_model::bonuses;
 use traveller_rules::Credits;
 
 /// What kind of value a field holds.
@@ -24,6 +25,9 @@ pub enum Kind {
     Bool,
     /// One of a fixed set: (stored value, label).
     Choice(&'static [(&'static str, &'static str)]),
+    /// Augment bonuses, typed as "STR +2, Athletics (dexterity) +1" and
+    /// stored as a list.
+    Bonuses,
 }
 
 /// Suggestions offered while typing in a text field (any text is still
@@ -148,7 +152,17 @@ pub const GEAR: &[Field] = &[
     COST,
     long("notes", "Notes"),
 ];
-pub const AUGMENTS: &[Field] = &[name("name", "Augment"), TL, text("effect", "Effect")];
+pub const AUGMENTS: &[Field] = &[
+    name("name", "Augment"),
+    TL,
+    text("effect", "Effect"),
+    field(
+        "bonuses",
+        "Bonuses (e.g. STR +2, Athletics (dexterity) +1)",
+        Kind::Bonuses,
+        false,
+    ),
+];
 pub const LEDGER: &[Field] = &[
     text("date", "Date"),
     name("description", "Entry"),
@@ -401,6 +415,20 @@ pub fn parse(field: &Field, raw: &str) -> Result<Value, String> {
             .find(|(value, _)| *value == raw)
             .map(|(value, _)| Value::String((*value).to_string()))
             .ok_or_else(|| format!("Choose a {}.", label.to_lowercase())),
+        Kind::Bonuses => bonuses::parse_list(raw)
+            .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
+    }
+}
+
+/// A stored value as a form field shows it.
+pub fn field_text(field: &Field, value: Option<&Value>) -> String {
+    match field.kind {
+        Kind::Bonuses => value
+            .cloned()
+            .and_then(|v| serde_json::from_value::<Vec<bonuses::Bonus>>(v).ok())
+            .map(|list| bonuses::format_list(&list))
+            .unwrap_or_default(),
+        _ => to_text(value),
     }
 }
 
@@ -447,7 +475,7 @@ pub fn blank(fields: &[Field]) -> Vec<String> {
 /// mean nothing: "TL4", "Cr1,500", "1 kg", "Magazine 6". `None` when
 /// empty, or a required number that's zero.
 fn summary_part(field: &Field, value: Option<&Value>) -> Option<String> {
-    let text = to_text(value);
+    let text = field_text(field, value);
     if text.is_empty() {
         return None;
     }

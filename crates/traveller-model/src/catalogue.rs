@@ -213,12 +213,14 @@ impl CatalogueItem {
         }
     }
 
-    /// As an augment on a sheet.
+    /// As an augment on a sheet, with any characteristic bonuses its
+    /// effect states plainly ("STR +1").
     pub fn to_augment(&self) -> Augment {
         Augment {
             name: self.name.clone(),
             tl: self.tl,
             effect: sentence(&[&self.effect, &self.reference()]),
+            bonuses: crate::bonuses::from_effect(&self.effect),
         }
     }
 }
