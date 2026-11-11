@@ -13,6 +13,7 @@ use traveller_rules::{Characteristic, Credits, dm};
 use super::editor::{Editor, Notice, NoticeBar, QuickActions, WeaponButtons, condition_label};
 use super::forms::{self, CharacteristicsEditor, ListEditor, SectionEditor};
 use super::manage::DeleteCharacter;
+use super::tip::{Tip, glossary};
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
 use crate::supabase::{self, Error};
 
@@ -214,7 +215,7 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
                 p { class: "muted", {subtitle(&loaded)} }
             }
             div { class: "upp-block",
-                span { class: "label", "UPP" }
+                span { class: "label", Tip { text: glossary::UPP, "UPP" } }
                 span { class: "upp big", {stats.upp()} }
             }
         }
@@ -359,16 +360,16 @@ fn Stats(stats: Characteristics) -> Element {
 fn StatBox(c: Characteristic, stats: Characteristics) -> Element {
     let stat = stats.get(c);
     let reduced = stat.is_reduced();
-    let detail = if reduced {
-        format!("of {} · {}", stat.value, format_dm(dm(stat.current())))
-    } else {
-        format_dm(dm(stat.current()))
-    };
+    let modifier = signed(dm(stat.current()));
     rsx! {
         div { class: "stat",
-            p { class: "stat-key", "{c}" }
+            p { class: "stat-key", Tip { text: glossary::characteristic(c), "{c}" } }
             p { class: if reduced { "stat-value reduced" } else { "stat-value" }, "{stat.current()}" }
-            p { class: "stat-dm", "{detail}" }
+            p { class: "stat-dm",
+                if reduced { "of {stat.value} · " }
+                Tip { text: glossary::DM, "DM" }
+                " {modifier}"
+            }
         }
     }
 }
@@ -397,7 +398,7 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> El
                     Empty {}
                 } else {
                     table { class: "data",
-                        thead { tr { th { scope: "col", "Skill" } th { scope: "col", class: "num", "Level" } } }
+                        thead { tr { th { scope: "col", "Skill" } th { scope: "col", class: "num", Tip { text: glossary::LEVEL, "Level" } } } }
                         tbody {
                             for (i, skill) in skills.iter().enumerate() {
                                 tr { key: "{i}",
@@ -419,7 +420,7 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> El
                     ArmourTable { armour: worn, full: false }
                 }
                 if sheet.rads > 0 {
-                    p { class: "muted", "Radiation: ", strong { "{sheet.rads} rads" } }
+                    p { class: "muted", Tip { text: glossary::RADS, "Radiation" } ": ", strong { "{sheet.rads} rads" } }
                 }
             }
         }
@@ -439,15 +440,15 @@ fn WeaponTable(weapons: Vec<Weapon>, full: bool, actions: bool) -> Element {
             table { class: "data",
                 thead { tr {
                     th { scope: "col", "Weapon" }
-                    if full { th { scope: "col", class: "num", "TL" } }
-                    th { scope: "col", "Range" }
-                    th { scope: "col", "Damage" }
-                    th { scope: "col", class: "num", "Rounds" }
+                    if full { th { scope: "col", class: "num", Tip { text: glossary::TL, "TL" } } }
+                    th { scope: "col", Tip { text: glossary::RANGE, "Range" } }
+                    th { scope: "col", Tip { text: glossary::DAMAGE, "Damage" } }
+                    th { scope: "col", class: "num", Tip { text: glossary::ROUNDS, "Rounds" } }
                     if full {
-                        th { scope: "col", class: "num", "Spare mags" }
-                        th { scope: "col", class: "num", "Kg" }
+                        th { scope: "col", class: "num", Tip { text: glossary::SPARE_MAGS, "Spare mags" } }
+                        th { scope: "col", class: "num", Tip { text: glossary::KG, "Kg" } }
                     }
-                    th { scope: "col", "Traits" }
+                    th { scope: "col", Tip { text: glossary::TRAITS, "Traits" } }
                     if actions { th { scope: "col", span { class: "sr-only", "Actions" } } }
                 } }
                 tbody {
@@ -481,10 +482,10 @@ fn ArmourTable(armour: Vec<Armour>, full: bool) -> Element {
         table { class: "data",
             thead { tr {
                 th { scope: "col", "Armour" }
-                th { scope: "col", class: "num", "Protection" }
-                th { scope: "col", class: "num", "Rad" }
+                th { scope: "col", class: "num", Tip { text: glossary::PROTECTION, "Protection" } }
+                th { scope: "col", class: "num", Tip { text: glossary::RAD, "Rad" } }
                 if full {
-                    th { scope: "col", class: "num", "Kg" }
+                    th { scope: "col", class: "num", Tip { text: glossary::KG, "Kg" } }
                     th { scope: "col", "Worn" }
                 }
             } }
@@ -543,9 +544,9 @@ fn Equipment(sheet: CharacterSheet) -> Element {
                 table { class: "data",
                     thead { tr {
                         th { scope: "col", "Item" }
-                        th { scope: "col", class: "num", "TL" }
+                        th { scope: "col", class: "num", Tip { text: glossary::TL, "TL" } }
                         th { scope: "col", class: "num", "Qty" }
-                        th { scope: "col", class: "num", "Kg each" }
+                        th { scope: "col", class: "num", Tip { text: glossary::KG, "Kg each" } }
                     } }
                     tbody {
                         for (i, item) in sheet.gear.iter().enumerate() {
@@ -567,7 +568,7 @@ fn Equipment(sheet: CharacterSheet) -> Element {
             section { aria_labelledby: "eq-aug",
                 h2 { id: "eq-aug", class: "section", "Augments" }
                 table { class: "data",
-                    thead { tr { th { scope: "col", "Augment" } th { scope: "col", class: "num", "TL" } th { scope: "col", "Effect" } } }
+                    thead { tr { th { scope: "col", "Augment" } th { scope: "col", class: "num", Tip { text: glossary::TL, "TL" } } th { scope: "col", "Effect" } } }
                     tbody {
                         for (i, a) in sheet.augments.iter().enumerate() {
                             tr { key: "{i}", td { "{a.name}" } td { class: "num", {opt(a.tl)} } td { class: "muted", {dash(&a.effect)} } }
@@ -586,25 +587,35 @@ fn Equipment(sheet: CharacterSheet) -> Element {
 fn Finances(sheet: CharacterSheet) -> Element {
     let f = &sheet.finances;
     let summary = [
-        ("Cash on hand", Credits(f.cash).to_string()),
-        ("Pension", per(f.pension, "year")),
+        ("Cash on hand", None, Credits(f.cash).to_string()),
+        ("Pension", Some(glossary::PENSION), per(f.pension, "year")),
         (
             "Debts",
+            Some(glossary::DEBTS),
             if f.debt == 0 {
                 "—".into()
             } else {
                 Credits(f.debt).to_string()
             },
         ),
-        ("Living cost", per(f.living_cost, "month")),
+        (
+            "Living cost",
+            Some(glossary::LIVING_COST),
+            per(f.living_cost, "month"),
+        ),
     ];
     rsx! {
         section { aria_labelledby: "fin",
             h2 { id: "fin", class: "section", "Finances" }
             table { class: "data summary",
                 tbody {
-                    for (label, value) in summary {
-                        tr { key: "{label}", th { scope: "row", "{label}" } td { class: "num strong", "{value}" } }
+                    for (label, tip, value) in summary {
+                        tr { key: "{label}",
+                            th { scope: "row",
+                                if let Some(text) = tip { Tip { text, "{label}" } } else { "{label}" }
+                            }
+                            td { class: "num strong", "{value}" }
+                        }
                     }
                 }
             }
@@ -758,7 +769,7 @@ fn Notes(sheet: CharacterSheet, referee_notes: Option<String>) -> Element {
             section { aria_labelledby: "injuries",
                 h2 { id: "injuries", class: "section", "Injuries & radiation" }
                 if !sheet.injuries.trim().is_empty() { p { class: "prose", "{sheet.injuries}" } }
-                p { "Accumulated radiation: ", strong { "{sheet.rads} rads" } }
+                p { Tip { text: glossary::RADS, "Accumulated radiation" } ": ", strong { "{sheet.rads} rads" } }
             }
         }
         if let Some(notes) = referee_notes {
@@ -782,12 +793,12 @@ fn Empty() -> Element {
     rsx! { p { class: "muted", "Nothing recorded yet." } }
 }
 
-/// "DM +1", "DM −2", "DM +0".
-fn format_dm(value: i32) -> String {
+/// "+1", "−2", "+0".
+fn signed(value: i32) -> String {
     if value < 0 {
-        format!("DM \u{2212}{}", value.abs())
+        format!("\u{2212}{}", value.abs())
     } else {
-        format!("DM +{value}")
+        format!("+{value}")
     }
 }
 
@@ -867,10 +878,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn dm_formatting() {
-        assert_eq!(format_dm(1), "DM +1");
-        assert_eq!(format_dm(0), "DM +0");
-        assert_eq!(format_dm(-2), "DM \u{2212}2");
+    fn signed_formatting() {
+        assert_eq!(signed(1), "+1");
+        assert_eq!(signed(0), "+0");
+        assert_eq!(signed(-2), "\u{2212}2");
     }
 
     #[test]

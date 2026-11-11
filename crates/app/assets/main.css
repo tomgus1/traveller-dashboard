@@ -844,3 +844,64 @@ table.summary {
 .neg {
   color: var(--red);
 }
+
+/* Tooltips for Traveller terms */
+.tip {
+  position: relative;
+  display: inline-block;
+}
+
+.tip-term {
+  padding: 0;
+  background: none;
+  color: inherit;
+  border: none;
+  border-bottom: 1px dotted currentColor;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: help;
+}
+
+.tip-text {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  display: none;
+  width: max-content;
+  max-width: min(280px, 80vw);
+  padding: 8px 10px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--body);
+  font-size: 13px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  white-space: normal;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+}
+
+/* Right-hand columns: open towards the left so it stays on screen. */
+.num .tip-text,
+.upp-block .tip-text {
+  left: auto;
+  right: 0;
+}
+
+.tip:hover .tip-text,
+.tip:focus-within .tip-text {
+  display: block;
+}
+
+.tip .tip-text.dismissed {
+  display: none;
+}
+
+.role-key {
+  margin-top: -4px;
+}

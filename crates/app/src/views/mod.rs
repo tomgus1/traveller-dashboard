@@ -5,6 +5,7 @@ mod editor;
 mod forms;
 mod manage;
 mod sheet;
+mod tip;
 
 pub use campaigns::{Campaign, Campaigns};
 pub use sheet::Character;
@@ -265,7 +266,7 @@ pub fn Characters() -> Element {
                     table { class: "data",
                         thead { tr {
                             th { scope: "col", "Traveller" }
-                            th { scope: "col", "UPP" }
+                            th { scope: "col", tip::Tip { text: tip::glossary::UPP, "UPP" } }
                             th { scope: "col", "Campaign" }
                         } }
                         tbody {

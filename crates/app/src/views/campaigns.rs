@@ -12,6 +12,7 @@ use traveller_model::{CampaignRow, CharacterRow, InvitationRow, MemberRow, Profi
 use traveller_rules::Characteristic;
 use traveller_rules::characteristics::Condition;
 
+use super::tip::{Tip, glossary};
 use super::{EdgeTab, fresh_session, is_uuid, use_session};
 use crate::Route;
 use crate::session::Session;
@@ -571,8 +572,8 @@ fn Party(data: CampaignData, actions: Actions) -> Element {
                         thead { tr {
                             th { scope: "col", "Traveller" }
                             th { scope: "col", "Player" }
-                            th { scope: "col", "UPP" }
-                            th { scope: "col", "Condition" }
+                            th { scope: "col", Tip { text: glossary::UPP, "UPP" } }
+                            th { scope: "col", Tip { text: glossary::CONDITION, "Condition" } }
                             th { scope: "col", span { class: "sr-only", "Actions" } }
                         } }
                         tbody {
@@ -642,6 +643,14 @@ fn Members(data: CampaignData, actions: Actions) -> Element {
     rsx! {
         section { aria_labelledby: "members",
             h2 { id: "members", class: "section", "Members" }
+            p { class: "muted small role-key",
+                "Roles: "
+                Tip { text: glossary::REFEREE, "Referee" }
+                " · "
+                Tip { text: glossary::PLAYER, "Player" }
+                " · "
+                Tip { text: glossary::ADMIN, "Admin" }
+            }
             ul { class: "edit-list",
                 for member in data.members.iter() {
                     MemberItem { key: "{member.id}", member: member.clone(), data: data.clone(), actions }
