@@ -707,6 +707,11 @@ table.summary {
   gap: 12px;
 }
 
+/* Buttons level with the section heading's text, not its top margin. */
+.edit-head {
+  align-items: baseline;
+}
+
 .edit-toggle {
   display: flex;
   justify-content: flex-end;

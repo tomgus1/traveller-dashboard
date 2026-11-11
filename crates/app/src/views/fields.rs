@@ -26,6 +26,25 @@ pub enum Kind {
     Choice(&'static [(&'static str, &'static str)]),
 }
 
+/// Suggestions offered while typing in a text field (any text is still
+/// allowed).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Suggest {
+    None,
+    /// Every skill and speciality in the Core Rulebook.
+    Skills,
+}
+
+impl Suggest {
+    /// The suggestions, if any.
+    pub fn options(self) -> Vec<String> {
+        match self {
+            Self::None => Vec::new(),
+            Self::Skills => traveller_rules::skills::all_names(),
+        }
+    }
+}
+
 /// One field of a form.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Field {
@@ -34,6 +53,7 @@ pub struct Field {
     pub kind: Kind,
     /// Text that must not be blank.
     pub required: bool,
+    pub suggest: Suggest,
 }
 
 const fn field(key: &'static str, label: &'static str, kind: Kind, required: bool) -> Field {
@@ -42,7 +62,13 @@ const fn field(key: &'static str, label: &'static str, kind: Kind, required: boo
         label,
         kind,
         required,
+        suggest: Suggest::None,
     }
+}
+
+/// A field with suggestions.
+const fn suggesting(field: Field, suggest: Suggest) -> Field {
+    Field { suggest, ..field }
 }
 const fn text(key: &'static str, label: &'static str) -> Field {
     field(key, label, Kind::Text, false)
@@ -81,7 +107,7 @@ const COST: Field = opt_int("cost", "Cost (Cr)", 0, MONEY);
 // Character sheet
 
 pub const SKILLS: &[Field] = &[
-    name("name", "Skill (speciality)"),
+    suggesting(name("name", "Skill (speciality)"), Suggest::Skills),
     int("level", "Level", 0, 15),
 ];
 pub const WEAPONS: &[Field] = &[

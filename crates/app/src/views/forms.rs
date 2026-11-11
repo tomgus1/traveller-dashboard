@@ -12,7 +12,9 @@ use traveller_rules::Characteristic;
 use super::catalogue::{CataloguePicker, Pick};
 use super::doc::{DocChange, Target, at, new_id, use_doc};
 use super::editor::use_editor;
-use super::fields::{Field, Kind, MAX_LONG, MAX_TEXT, blank, collect, summary, to_text, whole};
+use super::fields::{
+    Field, Kind, MAX_LONG, MAX_TEXT, Suggest, blank, collect, summary, to_text, whole,
+};
 
 /// Inputs for `fields`, bound to `values` (same order).
 #[component]
@@ -57,6 +59,18 @@ fn Inputs(id: String, fields: &'static [Field], values: Signal<Vec<String>>) -> 
                                     label { r#for: "{input_id}", "{field.label}" }
                                     input { id: "{input_id}", r#type: "text", inputmode: "decimal", value: "{value}",
                                         oninput: move |e| values.write()[i] = e.value() }
+                                },
+                                Kind::Text if field.suggest != Suggest::None => rsx! {
+                                    label { r#for: "{input_id}", "{field.label}" }
+                                    input { id: "{input_id}", r#type: "text", maxlength: "{MAX_TEXT}", value: "{value}",
+                                        required: field.required, autocomplete: "off",
+                                        list: "{input_id}-options", placeholder: "Start typing to search",
+                                        oninput: move |e| values.write()[i] = e.value() }
+                                    datalist { id: "{input_id}-options",
+                                        for option in field.suggest.options() {
+                                            option { key: "{option}", value: "{option}" }
+                                        }
+                                    }
                                 },
                                 Kind::Text => rsx! {
                                     label { r#for: "{input_id}", "{field.label}" }
