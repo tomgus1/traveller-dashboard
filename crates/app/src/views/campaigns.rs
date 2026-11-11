@@ -8,10 +8,13 @@
 use std::collections::HashMap;
 
 use dioxus::prelude::*;
-use traveller_model::{CampaignRow, CharacterRow, InvitationRow, MemberRow, ProfileRow};
+use traveller_model::{
+    CampaignRow, CampaignState, CharacterRow, InvitationRow, MemberRow, ProfileRow,
+};
 use traveller_rules::Characteristic;
 use traveller_rules::characteristics::Condition;
 
+use super::shared::{CargoTab, PartyFunds, SharedState, ShipTab, TravelTab, load_state};
 use super::tip::{Tip, glossary};
 use super::{EdgeTab, fresh_session, is_uuid, use_session};
 use crate::Route;
@@ -220,6 +223,9 @@ struct CampaignData {
     /// Pending invitations; admins only.
     invitations: Vec<InvitationRow>,
     me: String,
+    /// The shared state and its version; `None` until migration 08 is
+    /// applied.
+    state: Option<(CampaignState, String)>,
 }
 
 impl CampaignData {
@@ -313,6 +319,8 @@ async fn load_campaign(
     )
     .await?;
 
+    let state = load_state(&current, &id).await?;
+
     let mut data = CampaignData {
         campaign,
         members,
@@ -321,6 +329,7 @@ async fn load_campaign(
         unassigned,
         invitations: Vec::new(),
         me: current.user_id.clone(),
+        state,
     };
     if data.is_admin() {
         data.invitations = supabase::get(
@@ -484,11 +493,31 @@ pub fn Campaign(id: String) -> Element {
                         }
                     }
                     div { id: "cpanel-{tab().id()}", role: "tabpanel", aria_labelledby: "ctab-{tab().id()}",
-                        match tab() {
-                            Tab::Party => rsx! { Party { data: data.clone(), actions } },
-                            Tab::Members => rsx! { Members { data: data.clone(), actions } },
-                            other => rsx! {
-                                p { class: "notice", "{other.label()} is coming next: the ship, cargo and travel log need their own storage." }
+                        match (tab(), data.state.clone()) {
+                            (Tab::Members, _) => rsx! { Members { data: data.clone(), actions } },
+                            (Tab::Party, None) => rsx! { Party { data: data.clone(), actions } },
+                            (_, None) => rsx! {
+                                p { class: "notice", "Shared campaign data isn't set up on the server yet (database migration 08)." }
+                            },
+                            (current_tab, Some((state, version))) => rsx! {
+                                SharedState {
+                                    key: "{data.campaign.id}",
+                                    session,
+                                    campaign_id: data.campaign.id.clone(),
+                                    initial: state,
+                                    initial_version: Some(version),
+                                    can_edit: data.my_membership().is_some() || data.is_creator(),
+                                    message,
+                                    match current_tab {
+                                        Tab::Party => rsx! {
+                                            Party { data: data.clone(), actions }
+                                            PartyFunds {}
+                                        },
+                                        Tab::Ship => rsx! { ShipTab {} },
+                                        Tab::Cargo => rsx! { CargoTab {} },
+                                        _ => rsx! { TravelTab {} },
+                                    }
+                                }
                             },
                         }
                     }

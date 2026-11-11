@@ -6,6 +6,7 @@ mod editor;
 mod fields;
 mod forms;
 mod manage;
+mod shared;
 mod sheet;
 mod tip;
 

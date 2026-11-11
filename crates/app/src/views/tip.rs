@@ -133,6 +133,9 @@ pub mod glossary {
     pub const DEBTS: &str = "Money owed, such as medical bills or loans.";
     pub const CONDITION: &str = "Fit, or which of STR, DEX and END are reduced by damage. \
         STR or DEX at 0 means unconscious; all three at 0, dead.";
+    pub const UWP: &str = "Universal World Profile: a world in one code, e.g. B867A69-C: \
+        starport, size, atmosphere, hydrographics, population, government, law level, then \
+        tech level.";
     pub const REFEREE: &str = "Runs the game (the GM). Can read players' sheets but not edit them.";
     pub const PLAYER: &str = "Plays a character in the campaign and manages its sheet.";
     pub const ADMIN: &str = "Manages the campaign's members, roles and invitations.";

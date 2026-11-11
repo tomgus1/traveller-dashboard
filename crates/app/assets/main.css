@@ -892,3 +892,81 @@ table.summary {
 .role-key {
   margin-top: -4px;
 }
+
+/* Shared campaign state */
+.big-figure {
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 30px;
+}
+
+.accent {
+  color: var(--red);
+}
+
+.readouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin: 12px 0 18px;
+  border: 1px solid var(--rule);
+}
+
+.readouts > div {
+  padding: 10px 14px;
+  border-right: 1px solid var(--rule);
+}
+
+.readouts p {
+  margin: 0;
+}
+
+.readout-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.readout {
+  margin-top: 4px !important;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.readout.neg {
+  color: var(--red);
+}
+
+.journal-entry {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.journal-entry h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.journal-entry p {
+  margin: 4px 0 0;
+}
+
+.journal-date {
+  margin: 0;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .journal-entry {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
