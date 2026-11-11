@@ -2,6 +2,8 @@
 //! (`PostgREST`) reads. There's no official Rust client, and these endpoints
 //! are plain HTTP.
 
+use std::fmt::Write as _;
+
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -148,5 +150,59 @@ pub async fn get<T: DeserializeOwned>(current: &Session, path: &str) -> Result<T
         401 => Err(Error::SessionExpired),
         404 => Err(Error::Unavailable),
         _ => Err(Error::Server),
+    }
+}
+
+/// PATCH rows matching `path`'s filters with `body`, returning the updated
+/// rows. Row Level Security limits which rows can change; an empty result
+/// means nothing matched (no permission, or a version filter didn't match).
+pub async fn patch<T: DeserializeOwned>(
+    current: &Session,
+    path: &str,
+    body: &serde_json::Value,
+) -> Result<Vec<T>, Error> {
+    let (url, key) = settings()?;
+    let response = reqwest::Client::new()
+        .patch(format!("{url}/rest/v1/{path}"))
+        .header("apikey", key)
+        .header("Prefer", "return=representation")
+        .bearer_auth(&current.access_token)
+        .json(body)
+        .send()
+        .await?;
+    match response.status().as_u16() {
+        200 => Ok(response.json().await?),
+        401 => Err(Error::SessionExpired),
+        404 => Err(Error::Unavailable),
+        _ => Err(Error::Server),
+    }
+}
+
+/// Percent-encodes a value for a query string (RFC 3986 unreserved
+/// characters pass through). Timestamps contain `+` and `:`, which would
+/// otherwise be misread.
+pub fn encode(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for byte in value.bytes() {
+        if byte.is_ascii_alphanumeric() || b"-_.~".contains(&byte) {
+            out.push(char::from(byte));
+        } else {
+            let _ = write!(out, "%{byte:02X}");
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::encode;
+
+    #[test]
+    fn encodes_timestamps_for_filters() {
+        assert_eq!(
+            encode("2026-11-11T00:12:34.5+00:00"),
+            "2026-11-11T00%3A12%3A34.5%2B00%3A00"
+        );
+        assert_eq!(encode("a b&c"), "a%20b%26c");
     }
 }

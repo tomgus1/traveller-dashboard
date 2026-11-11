@@ -521,3 +521,125 @@ table.summary {
   text-transform: uppercase;
   color: var(--red);
 }
+
+/* Quick actions at the table */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.quick-box {
+  padding: 12px 14px 14px;
+  border-top: 3px solid var(--ink);
+  background: var(--alt);
+}
+
+.quick-box h3 {
+  margin: 0 0 4px;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.quick-box p {
+  margin: 0 0 8px;
+}
+
+.inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.inline.wrap {
+  flex-wrap: wrap;
+}
+
+.inline input,
+.inline select {
+  min-height: 44px;
+  min-width: 0;
+  flex: 1 1 90px;
+  padding: 6px 10px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 2px solid var(--muted);
+  font: inherit;
+  font-size: 16px;
+}
+
+.btn.outline,
+.mini.outline {
+  background: transparent;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+}
+
+.mini {
+  min-height: 40px;
+  min-width: 44px;
+  padding: 0 12px;
+  background: var(--btn);
+  color: #ffffff;
+  border: 2px solid var(--btn);
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.mini:disabled,
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.notice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.ok-notice {
+  border-left-color: var(--ok);
+}
+
+.error-notice {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.link-button {
+  min-width: 40px;
+  min-height: 40px;
+  background: transparent;
+  color: inherit;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}

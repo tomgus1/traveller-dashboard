@@ -1,5 +1,6 @@
 //! Pages and the app shell.
 
+mod editor;
 mod sheet;
 
 pub use sheet::Character;

@@ -8,15 +8,16 @@ use dioxus::prelude::*;
 use serde::Deserialize;
 use traveller_model::sheet::{Armour, Relation, Weapon};
 use traveller_model::{CharacterRow, CharacterSheet, Characteristics};
-use traveller_rules::characteristics::Condition;
 use traveller_rules::{Characteristic, Credits, dm};
 
+use super::editor::{Editor, Notice, NoticeBar, QuickActions, WeaponButtons, condition_label};
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
 use crate::supabase::{self, Error};
 
 #[derive(Deserialize)]
 struct SheetRow {
     data: CharacterSheet,
+    updated_at: String,
 }
 
 #[derive(Deserialize)]
@@ -30,6 +31,8 @@ struct Loaded {
     row: CharacterRow,
     /// None: not shared with this user, or not set up yet.
     sheet: Option<CharacterSheet>,
+    /// The sheet's `updated_at`, for saving without overwriting others.
+    sheet_version: Option<String>,
     sheet_missing_on_server: bool,
     /// Some only for the campaign's referee.
     referee_notes: Option<String>,
@@ -53,14 +56,17 @@ async fn load(
         return Ok(None);
     };
 
-    let (sheet, sheet_missing_on_server) = match supabase::get::<Vec<SheetRow>>(
+    let (sheet, sheet_version, sheet_missing_on_server) = match supabase::get::<Vec<SheetRow>>(
         &current,
-        &format!("character_sheets?select=data&character_id=eq.{id}"),
+        &format!("character_sheets?select=data,updated_at&character_id=eq.{id}"),
     )
     .await
     {
-        Ok(rows) => (rows.into_iter().next().map(|r| r.data), false),
-        Err(Error::Unavailable) => (None, true),
+        Ok(rows) => match rows.into_iter().next() {
+            Some(r) => (Some(r.data), Some(r.updated_at), false),
+            None => (None, None, false),
+        },
+        Err(Error::Unavailable) => (None, None, true),
         Err(e) => return Err(e),
     };
 
@@ -77,6 +83,7 @@ async fn load(
     Ok(Some(Loaded {
         row,
         sheet,
+        sheet_version,
         sheet_missing_on_server,
         referee_notes,
     }))
@@ -86,7 +93,10 @@ async fn load(
 #[component]
 pub fn Character(id: String) -> Element {
     let session = use_session();
-    let page = use_resource(use_reactive!(|id| load(session, id)));
+    let mut page = use_resource(use_reactive!(|id| load(session, id)));
+    let reload = use_callback(move |()| page.restart());
+    // Lives here, not in the page, so a message survives a reload.
+    let notice = use_signal(|| None::<Notice>);
 
     rsx! {
         main { class: "page",
@@ -98,7 +108,16 @@ pub fn Character(id: String) -> Element {
                     h1 { class: "display", "Not found" }
                     p { class: "muted", "This character doesn't exist, or isn't shared with you." }
                 },
-                Some(Ok(Some(loaded))) => rsx! { CharacterPage { loaded: loaded.clone() } },
+                // Keyed by version: a reload with newer data starts the
+                // page afresh rather than keeping stale edits.
+                Some(Ok(Some(loaded))) => rsx! {
+                    CharacterPage {
+                        key: "{loaded.sheet_version.clone().unwrap_or_default()}",
+                        loaded: loaded.clone(),
+                        notice,
+                        reload,
+                    }
+                },
             }
         }
     }
@@ -144,10 +163,27 @@ impl Tab {
 }
 
 #[component]
-fn CharacterPage(loaded: Loaded) -> Element {
+fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callback<()>) -> Element {
     let mut tab = use_signal(|| Tab::Overview);
+    let session = use_session();
+    let character_id = use_signal(|| loaded.row.id.clone());
+    let sheet = use_signal(|| loaded.sheet.clone().unwrap_or_default());
+    let version = use_signal(|| loaded.sheet_version.clone());
+    let stats = use_signal(|| loaded.row.characteristics.unwrap_or_default());
+    let saving = use_signal(|| false);
+    use_context_provider(|| Editor {
+        session,
+        character_id,
+        sheet,
+        version,
+        stats,
+        notice,
+        saving,
+        reload,
+    });
     let row = &loaded.row;
-    let stats = row.characteristics.unwrap_or_default();
+    let stats = stats();
+    let current_sheet = sheet();
 
     // Arrow keys, Home and End move between tabs (WAI-ARIA tabs pattern).
     let on_key = move |e: KeyboardEvent| {
@@ -177,6 +213,8 @@ fn CharacterPage(loaded: Loaded) -> Element {
             }
         }
 
+        NoticeBar {}
+
         match &loaded.sheet {
             None => rsx! {
                 Stats { stats }
@@ -188,7 +226,7 @@ fn CharacterPage(loaded: Loaded) -> Element {
                     p { class: "muted", "The full sheet is visible to this character's player and the referee." }
                 }
             },
-            Some(sheet) => rsx! {
+            Some(_) => rsx! {
                 div { class: "tabs", role: "tablist", aria_label: "Character sections", onkeydown: on_key,
                     for t in Tab::ALL {
                         button {
@@ -210,11 +248,11 @@ fn CharacterPage(loaded: Loaded) -> Element {
                     role: "tabpanel",
                     aria_labelledby: "tab-{tab().id()}",
                     match tab() {
-                        Tab::Overview => rsx! { Overview { stats, sheet: sheet.clone() } },
-                        Tab::Equipment => rsx! { Equipment { sheet: sheet.clone() } },
-                        Tab::Finances => rsx! { Finances { sheet: sheet.clone() } },
-                        Tab::History => rsx! { History { sheet: sheet.clone() } },
-                        Tab::Notes => rsx! { Notes { sheet: sheet.clone(), referee_notes: loaded.referee_notes.clone() } },
+                        Tab::Overview => rsx! { Overview { stats, sheet: current_sheet.clone() } },
+                        Tab::Equipment => rsx! { Equipment { sheet: current_sheet.clone() } },
+                        Tab::Finances => rsx! { Finances { sheet: current_sheet.clone() } },
+                        Tab::History => rsx! { History { sheet: current_sheet.clone() } },
+                        Tab::Notes => rsx! { Notes { sheet: current_sheet.clone(), referee_notes: loaded.referee_notes.clone() } },
                     }
                 }
             },
@@ -247,11 +285,7 @@ fn subtitle(loaded: &Loaded) -> String {
 
 #[component]
 fn Stats(stats: Characteristics) -> Element {
-    let condition = match stats.condition() {
-        Condition::Conscious => None,
-        Condition::Unconscious => Some("Unconscious"),
-        Condition::Dead => Some("Dead"),
-    };
+    let condition = condition_label(&stats);
     rsx! {
         section { aria_labelledby: "chars",
             h2 { id: "chars", class: "section", "Characteristics" }
@@ -294,6 +328,7 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet) -> Element {
 
     rsx! {
         Stats { stats }
+        QuickActions {}
         div { class: "columns",
             section { aria_labelledby: "skills",
                 h2 { id: "skills", class: "section", "Skills" }
@@ -316,7 +351,7 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet) -> Element {
             div {
                 section { aria_labelledby: "weapons",
                     h2 { id: "weapons", class: "section", "Weapons" }
-                    WeaponTable { weapons: sheet.weapons.clone(), full: false }
+                    WeaponTable { weapons: sheet.weapons.clone(), full: false, actions: true }
                 }
                 section { aria_labelledby: "armour",
                     h2 { id: "armour", class: "section", "Armour worn" }
@@ -334,7 +369,7 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet) -> Element {
 // Equipment
 
 #[component]
-fn WeaponTable(weapons: Vec<Weapon>, full: bool) -> Element {
+fn WeaponTable(weapons: Vec<Weapon>, full: bool, actions: bool) -> Element {
     if weapons.is_empty() {
         return rsx! { Empty {} };
     }
@@ -352,6 +387,7 @@ fn WeaponTable(weapons: Vec<Weapon>, full: bool) -> Element {
                         th { scope: "col", class: "num", "Kg" }
                     }
                     th { scope: "col", "Traits" }
+                    if actions { th { scope: "col", span { class: "sr-only", "Actions" } } }
                 } }
                 tbody {
                     for (i, w) in weapons.iter().enumerate() {
@@ -366,6 +402,7 @@ fn WeaponTable(weapons: Vec<Weapon>, full: bool) -> Element {
                                 td { class: "num", {kg(w.kg)} }
                             }
                             td { class: "muted", {dash(&w.traits)} }
+                            if actions { td { WeaponButtons { index: i } } }
                         }
                     }
                 }
@@ -412,7 +449,7 @@ fn Equipment(sheet: CharacterSheet) -> Element {
     rsx! {
         section { aria_labelledby: "eq-weapons",
             h2 { id: "eq-weapons", class: "section", "Weapons" }
-            WeaponTable { weapons: sheet.weapons.clone(), full: true }
+            WeaponTable { weapons: sheet.weapons.clone(), full: true, actions: false }
         }
         if !sheet.ammo.is_empty() {
             section { aria_labelledby: "eq-ammo",
