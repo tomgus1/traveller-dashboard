@@ -1,0 +1,18 @@
+[package]
+name = "traveller-model"
+version = "0.1.0"
+description = "Traveller Dashboard data model: what the database stores, as Rust types"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+traveller-rules = { path = "../traveller-rules" }
+serde = { version = "=1.0.229", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "=1.0.154"
+
+[lints]
+workspace = true

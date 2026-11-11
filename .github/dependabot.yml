@@ -10,3 +10,14 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+
+  # Rust crates (dependencies are pinned exactly in each Cargo.toml).
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 14
+    groups:
+      crates:
+        patterns: ["*"]
