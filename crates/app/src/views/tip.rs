@@ -115,7 +115,10 @@ pub mod glossary {
     pub const DM: &str = "Dice modifier: added to a 2D roll. Comes from characteristic scores \
         and skill levels.";
     pub const LEVEL: &str = "Skill level. 0 means trained but no bonus; each level above adds +1. \
+        Any level in one speciality gives the skill's other specialities at 0. \
         Without the skill at all, checks take DM \u{2212}3.";
+    pub const AUGMENT_BONUS: &str = "Added by augments, on top of the Traveller's own value. \
+        Removing the augment removes it.";
     pub const TL: &str =
         "Tech Level: how advanced the technology is. Higher is more sophisticated.";
     pub const RANGE: &str = "Effective range in metres, or Melee for close combat.";

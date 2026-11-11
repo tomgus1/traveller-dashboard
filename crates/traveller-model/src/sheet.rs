@@ -154,9 +154,95 @@ pub struct Weapon {
     /// Purchase cost in Credits.
     pub cost: Option<i64>,
     pub notes: String,
+    /// The skill it's used with, e.g. "Gun Combat (slug)"; blank means
+    /// [`guess_weapon_skill`]'s guess.
+    pub skill: String,
+    /// Price of a spare magazine (or power pack), in Credits.
+    pub magazine_cost: Option<i64>,
+}
+
+/// The likely skill for a weapon, from its name and range, for weapons
+/// with none recorded. A guess: the player can set the right one.
+pub fn guess_weapon_skill(name: &str, range: &str) -> String {
+    let name = name.to_lowercase();
+    let has = |words: &[&str]| words.iter().any(|w| name.contains(w));
+    let skill = if range.to_lowercase().contains("melee") || has(&["shield"]) {
+        if has(&[
+            "knuckle",
+            "glove",
+            "fist",
+            "garrotte",
+            "handspike",
+            "unarmed",
+        ]) {
+            "Melee (unarmed)"
+        } else if has(&[
+            "club",
+            "mace",
+            "hammer",
+            "staff",
+            "stunstick",
+            "sap",
+            "flail",
+            "maul",
+            "shield",
+            "whip",
+        ]) {
+            "Melee (bludgeon)"
+        } else {
+            "Melee (blade)"
+        }
+    } else if has(&["grenade", "javelin", "boomerang", "bolas", "dart"]) && !has(&["launcher"]) {
+        "Athletics (dexterity)"
+    } else if has(&[
+        "launcher",
+        "machinegun",
+        "fghp",
+        "pghp",
+        "rocket",
+        "missile",
+        "cannon",
+        "flamer",
+        "flame rifle",
+    ]) {
+        "Heavy Weapons (portable)"
+    } else if has(&["bow", "atlatl", "sling", "net"]) {
+        "Gun Combat (archaic)"
+    } else if has(&[
+        "laser",
+        "plasma",
+        "fusion",
+        "ion ",
+        "ion rifle",
+        "maser",
+        "stunner",
+        "disintegrator",
+        "cryo",
+        "solar beam",
+        "stun blaster",
+    ]) {
+        "Gun Combat (energy)"
+    } else {
+        "Gun Combat (slug)"
+    };
+    skill.to_string()
 }
 
 impl Weapon {
+    /// The skill an attack uses: the one recorded, or a guess.
+    pub fn attack_skill(&self) -> String {
+        if self.skill.trim().is_empty() {
+            guess_weapon_skill(&self.name, &self.range)
+        } else {
+            self.skill.trim().to_string()
+        }
+    }
+
+    /// A melee weapon (attacks may use STR; damage adds the STR DM).
+    pub fn is_melee(&self) -> bool {
+        self.attack_skill().to_lowercase().starts_with("melee")
+            || self.range.to_lowercase().contains("melee")
+    }
     /// Fires one round. Returns false if the magazine is empty.
     pub fn fire(&mut self) -> bool {
         match self.rounds {
@@ -329,6 +415,9 @@ pub struct Augment {
     pub name: String,
     pub tl: Option<u8>,
     pub effect: String,
+    /// What it adds to characteristics and skills, on top of the values
+    /// entered on the sheet; removing the augment removes them.
+    pub bonuses: Vec<crate::bonuses::Bonus>,
 }
 
 /// Study towards a skill.
@@ -356,6 +445,36 @@ pub struct Psionics {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn guesses_weapon_skills() {
+        let cases = [
+            ("Revolver", "10m", "Gun Combat (slug)"),
+            ("Laser Rifle", "200", "Gun Combat (energy)"),
+            ("Stunner", "5", "Gun Combat (energy)"),
+            ("Dagger", "Melee", "Melee (blade)"),
+            ("Stunstick", "Melee", "Melee (bludgeon)"),
+            ("Brass Knuckles", "Melee", "Melee (unarmed)"),
+            ("Frag Grenade", "20", "Athletics (dexterity)"),
+            ("RAM Grenade Launcher", "250", "Heavy Weapons (portable)"),
+            ("Long Bow", "200", "Gun Combat (archaic)"),
+        ];
+        for (name, range, skill) in cases {
+            assert_eq!(guess_weapon_skill(name, range), skill, "{name}");
+        }
+        let mut w = Weapon {
+            name: "Cutlass".into(),
+            range: "Melee".into(),
+            ..Weapon::default()
+        };
+        assert!(w.is_melee());
+        w.skill = "Melee (bludgeon)".into();
+        assert_eq!(
+            w.attack_skill(),
+            "Melee (bludgeon)",
+            "a recorded skill wins"
+        );
+    }
 
     #[test]
     fn empty_and_partial_documents_load() {

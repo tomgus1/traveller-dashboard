@@ -613,6 +613,80 @@ table.summary {
   margin: 0 0 8px;
 }
 
+/* Specialities at 0 the player didn't write down */
+tr.implied td {
+  color: var(--muted);
+}
+
+/* Weapons at the table: one row each, buttons wrap under on a phone */
+.weapon-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+
+.weapon-rows li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.weapon-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 200px;
+  overflow-wrap: anywhere;
+}
+
+/* Rolling a check */
+.roller {
+  margin-top: 16px;
+}
+
+.roller-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px 16px;
+  margin-bottom: 12px;
+}
+
+.roll-log {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+
+.roll-log li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+.roll-log li.latest {
+  color: var(--ink);
+}
+
+.roll-log .roll-outcome {
+  margin: 0 0 2px;
+  font-size: 18px;
+}
+
+.roll-outcome.ok strong {
+  color: var(--ink);
+}
+
+.roll-outcome.fail strong {
+  color: var(--red);
+}
+
 .inline {
   display: flex;
   gap: 8px;
@@ -705,6 +779,11 @@ table.summary {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+}
+
+/* Buttons level with the section heading's text, not its top margin. */
+.edit-head {
+  align-items: baseline;
 }
 
 .edit-toggle {
@@ -818,6 +897,81 @@ table.summary {
   gap: 8px;
   padding: 8px 0;
   border-bottom: 1px solid var(--rule);
+}
+
+/* Picking from the catalogue */
+.picker .field {
+  margin-bottom: 10px;
+}
+
+.picker .books {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 20px;
+  margin: 0 0 10px;
+  padding: 0;
+  border: none;
+}
+
+.picker .books legend {
+  float: left;
+  margin-right: 8px;
+  font-family: var(--heading);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.picker .books .check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.picker .books .check input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--red);
+}
+
+.pick-list {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  max-height: 360px;
+  overflow-y: auto;
+  border-top: 2px solid var(--ink);
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 4px;
+  background: none;
+  color: var(--ink);
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pick:hover,
+.pick:focus-visible {
+  background: var(--bg);
+}
+
+.pick:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: -3px;
 }
 
 .edit-summary {

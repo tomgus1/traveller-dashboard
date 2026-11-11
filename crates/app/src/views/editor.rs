@@ -189,52 +189,6 @@ pub fn NoticeBar() -> Element {
     }
 }
 
-/// Fire and reload buttons for a weapon with a magazine.
-#[component]
-pub fn WeaponButtons(index: usize) -> Element {
-    let editor = use_editor();
-    let sheet = editor.sheet.read();
-    let Some(weapon) = sheet.weapons.get(index) else {
-        return rsx! {};
-    };
-    if weapon.magazine.is_none() {
-        return rsx! {};
-    }
-    let can_fire = weapon.rounds.is_some_and(|r| r > 0);
-    let can_reload = weapon.spare_magazines > 0;
-    let name = weapon.name.clone();
-    let busy = (editor.saving)();
-
-    rsx! {
-        div { class: "row-actions",
-            button {
-                class: "mini",
-                r#type: "button",
-                disabled: !can_fire || busy,
-                aria_label: "Fire one round from {name}",
-                onclick: move |_| editor.update_sheet("Fired one round.", move |s| {
-                    if let Some(w) = s.weapons.get_mut(index) {
-                        w.fire();
-                    }
-                }),
-                "Fire"
-            }
-            button {
-                class: "mini outline",
-                r#type: "button",
-                disabled: !can_reload || busy,
-                aria_label: "Reload {name}",
-                onclick: move |_| editor.update_sheet("Reloaded.", move |s| {
-                    if let Some(w) = s.weapons.get_mut(index) {
-                        w.reload();
-                    }
-                }),
-                "Reload"
-            }
-        }
-    }
-}
-
 const PHYSICAL: [Characteristic; 3] = [
     Characteristic::Str,
     Characteristic::Dex,
@@ -392,7 +346,7 @@ fn parse_credits(text: &str) -> Option<i64> {
 
 /// Today's date for ledger entries (the campaign's Imperial date comes
 /// with the campaign screens).
-fn today() -> String {
+pub fn today() -> String {
     let date = js_sys::Date::new_0();
     format!(
         "{:04}-{:02}-{:02}",

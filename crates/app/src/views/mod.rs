@@ -1,11 +1,14 @@
 //! Pages and the app shell.
 
 mod campaigns;
+mod catalogue;
 mod doc;
 mod editor;
 mod fields;
 mod forms;
 mod manage;
+mod pay;
+mod roller;
 mod shared;
 mod sheet;
 mod tip;

@@ -19,6 +19,7 @@ pub mod credits;
 pub mod dice;
 pub mod healing;
 pub mod ship;
+pub mod skills;
 pub mod tasks;
 
 pub use characteristics::{Characteristic, dm};

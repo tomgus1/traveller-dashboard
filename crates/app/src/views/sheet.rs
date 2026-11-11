@@ -10,11 +10,14 @@ use traveller_model::sheet::{Armour, Relation, Weapon};
 use traveller_model::{CharacterRow, CharacterSheet, Characteristics};
 use traveller_rules::{Characteristic, Credits, dm};
 
+use super::catalogue::Pick;
 use super::doc::{DocChange, DocEditor};
-use super::editor::{Editor, Notice, NoticeBar, QuickActions, WeaponButtons, condition_label};
+use super::editor::{Editor, Notice, NoticeBar, QuickActions, condition_label};
 use super::fields;
 use super::forms::{CharacteristicsEditor, ListEditor, SectionEditor};
 use super::manage::DeleteCharacter;
+use super::pay::SHEET_SOURCES;
+use super::roller::{RollLog, TaskRoller, WeaponRows};
 use super::tip::{Tip, glossary};
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
 use crate::supabase::{self, Error};
@@ -209,8 +212,11 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
         change,
     });
     let row = &loaded.row;
-    let stats = stats();
     let current_sheet = sheet();
+    // Shown and rolled with augment bonuses on top of the Traveller's own.
+    let own_stats = stats();
+    let stats = current_sheet.effective(&own_stats);
+    let bonus = Characteristic::ALL.map(|c| current_sheet.characteristic_bonus(c));
     // Players manage their own sheets; everyone else (the referee) reads.
     let editable =
         session().is_some_and(|s| loaded.row.owner_id.as_deref() == Some(s.user_id.as_str()));
@@ -247,7 +253,7 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
 
         match &loaded.sheet {
             None => rsx! {
-                Stats { stats }
+                Stats { stats, bonus }
                 if loaded.sheet_missing_on_server {
                     p { class: "notice",
                         "The full character sheet isn't set up on the server yet (database migration 06)."
@@ -292,7 +298,7 @@ fn CharacterPage(loaded: Loaded, notice: Signal<Option<Notice>>, reload: Callbac
                         EditTab { tab: tab(), name: row.display_name().to_string() }
                     } else {
                     match tab() {
-                        Tab::Overview => rsx! { Overview { stats, sheet: current_sheet.clone(), editable } },
+                        Tab::Overview => rsx! { Overview { stats, bonus, sheet: current_sheet.clone(), editable } },
                         Tab::Equipment => rsx! { Equipment { sheet: current_sheet.clone() } },
                         Tab::Finances => rsx! { Finances { sheet: current_sheet.clone() } },
                         Tab::History => rsx! { History { sheet: current_sheet.clone() } },
@@ -314,11 +320,11 @@ fn EditTab(tab: Tab, name: String) -> Element {
             ListEditor { path: "skills", title: "Skills", fields: fields::SKILLS }
         },
         Tab::Equipment => rsx! {
-            ListEditor { path: "weapons", title: "Weapons", fields: fields::WEAPONS }
+            ListEditor { path: "weapons", title: "Weapons", fields: fields::WEAPONS, catalogue: Pick::Weapon, pay: SHEET_SOURCES }
             ListEditor { path: "ammo", title: "Ammunition", fields: fields::AMMO }
-            ListEditor { path: "armour", title: "Armour", fields: fields::ARMOUR }
-            ListEditor { path: "gear", title: "Gear", fields: fields::GEAR }
-            ListEditor { path: "augments", title: "Augments", fields: fields::AUGMENTS }
+            ListEditor { path: "armour", title: "Armour", fields: fields::ARMOUR, catalogue: Pick::Armour, pay: SHEET_SOURCES }
+            ListEditor { path: "gear", title: "Gear", fields: fields::GEAR, catalogue: Pick::Gear, pay: SHEET_SOURCES }
+            ListEditor { path: "augments", title: "Augments", fields: fields::AUGMENTS, catalogue: Pick::Augment, pay: SHEET_SOURCES }
         },
         Tab::Finances => rsx! {
             SectionEditor { path: "finances", title: "Finances", fields: fields::FINANCES }
@@ -360,8 +366,10 @@ fn subtitle(loaded: &Loaded) -> String {
 // ---------------------------------------------------------------------------
 // Overview
 
+/// Characteristics as they count (with augment bonuses); `bonus` is each
+/// one's augment bonus, in [`Characteristic::ALL`] order.
 #[component]
-fn Stats(stats: Characteristics) -> Element {
+fn Stats(stats: Characteristics, bonus: [i32; 6]) -> Element {
     let condition = condition_label(&stats);
     rsx! {
         section { aria_labelledby: "chars",
@@ -370,8 +378,8 @@ fn Stats(stats: Characteristics) -> Element {
                 p { class: "notice", role: "status", "{state}" }
             }
             div { class: "stats",
-                for c in Characteristic::ALL {
-                    StatBox { key: "{c}", c, stats }
+                for (i, c) in Characteristic::ALL.into_iter().enumerate() {
+                    StatBox { key: "{c}", c, stats, bonus: bonus[i] }
                 }
             }
             p { class: "muted small", "Large figures are current values; red means reduced by damage." }
@@ -380,7 +388,7 @@ fn Stats(stats: Characteristics) -> Element {
 }
 
 #[component]
-fn StatBox(c: Characteristic, stats: Characteristics) -> Element {
+fn StatBox(c: Characteristic, stats: Characteristics, bonus: i32) -> Element {
     let stat = stats.get(c);
     let reduced = stat.is_reduced();
     let modifier = signed(dm(stat.current()));
@@ -393,21 +401,33 @@ fn StatBox(c: Characteristic, stats: Characteristics) -> Element {
                 Tip { text: glossary::DM, "DM" }
                 " {modifier}"
             }
+            if bonus != 0 {
+                p { class: "stat-dm", Tip { text: glossary::AUGMENT_BONUS, "{signed(bonus)} aug" } }
+            }
         }
     }
 }
 
 #[component]
-fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> Element {
+fn Overview(
+    stats: Characteristics,
+    bonus: [i32; 6],
+    sheet: CharacterSheet,
+    editable: bool,
+) -> Element {
     let email = use_session()().map(|s| s.email).unwrap_or_default();
-    let mut skills = sheet.skills.clone();
-    skills.sort_by(|a, b| b.level.cmp(&a.level).then_with(|| a.name.cmp(&b.name)));
+    let listed = sheet.listed_skills();
+    let skills = sheet.effective_skills();
     let worn: Vec<Armour> = sheet.worn_armour().cloned().collect();
+    let skill_levels: Vec<(String, i32)> =
+        skills.iter().map(|s| (s.name.clone(), s.level())).collect();
+    RollLog::provide();
 
     rsx! {
-        Stats { stats }
+        Stats { stats, bonus }
         if editable {
             QuickActions {}
+            TaskRoller { stats, skills: skill_levels.clone() }
         } else {
             p { class: "notice",
                 "Read only: this character belongs to another account, and players manage their own sheets. "
@@ -417,26 +437,40 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> El
         div { class: "columns",
             section { aria_labelledby: "skills",
                 h2 { id: "skills", class: "section", "Skills" }
-                if skills.is_empty() {
+                if listed.is_empty() {
                     Empty {}
                 } else {
                     table { class: "data",
                         thead { tr { th { scope: "col", "Skill" } th { scope: "col", class: "num", Tip { text: glossary::LEVEL, "Level" } } } }
                         tbody {
-                            for (i, skill) in skills.iter().enumerate() {
-                                tr { key: "{i}",
-                                    td { "{skill.name}" }
-                                    td { class: "num strong", "{skill.level}" }
+                            for (i, l) in listed.iter().enumerate() {
+                                tr { key: "{i}", class: if l.implied { "implied" } else { "" },
+                                    td {
+                                        "{l.skill.name}"
+                                        if l.skill.own.is_none() {
+                                            span { class: "muted small", " (augment)" }
+                                        } else if l.skill.bonus != 0 {
+                                            span { class: "muted small", " ({signed(l.skill.bonus)} augment)" }
+                                        }
+                                    }
+                                    td { class: if l.implied { "num" } else { "num strong" }, "{l.skill.level()}" }
                                 }
                             }
                         }
+                    }
+                    if listed.iter().any(|l| l.implied) {
+                        p { class: "muted small", "Greyed: other specialities of your skills, at 0 (Core p.58)." }
                     }
                 }
             }
             div {
                 section { aria_labelledby: "weapons",
                     h2 { id: "weapons", class: "section", "Weapons" }
-                    WeaponTable { weapons: sheet.weapons.clone(), full: false, actions: editable }
+                    if editable {
+                        WeaponRows { weapons: sheet.weapons.clone(), stats, skills: skill_levels }
+                    } else {
+                        WeaponTable { weapons: sheet.weapons.clone(), full: false }
+                    }
                 }
                 section { aria_labelledby: "armour",
                     h2 { id: "armour", class: "section", "Armour worn" }
@@ -454,7 +488,7 @@ fn Overview(stats: Characteristics, sheet: CharacterSheet, editable: bool) -> El
 // Equipment
 
 #[component]
-fn WeaponTable(weapons: Vec<Weapon>, full: bool, actions: bool) -> Element {
+fn WeaponTable(weapons: Vec<Weapon>, full: bool) -> Element {
     if weapons.is_empty() {
         return rsx! { Empty {} };
     }
@@ -472,7 +506,6 @@ fn WeaponTable(weapons: Vec<Weapon>, full: bool, actions: bool) -> Element {
                         th { scope: "col", class: "num", Tip { text: glossary::KG, "Kg" } }
                     }
                     th { scope: "col", Tip { text: glossary::TRAITS, "Traits" } }
-                    if actions { th { scope: "col", span { class: "sr-only", "Actions" } } }
                 } }
                 tbody {
                     for (i, w) in weapons.iter().enumerate() {
@@ -487,7 +520,6 @@ fn WeaponTable(weapons: Vec<Weapon>, full: bool, actions: bool) -> Element {
                                 td { class: "num", {kg(w.kg)} }
                             }
                             td { class: "muted", {dash(&w.traits)} }
-                            if actions { td { WeaponButtons { index: i } } }
                         }
                     }
                 }
@@ -534,7 +566,7 @@ fn Equipment(sheet: CharacterSheet) -> Element {
     rsx! {
         section { aria_labelledby: "eq-weapons",
             h2 { id: "eq-weapons", class: "section", "Weapons" }
-            WeaponTable { weapons: sheet.weapons.clone(), full: true, actions: false }
+            WeaponTable { weapons: sheet.weapons.clone(), full: true }
         }
         if !sheet.ammo.is_empty() {
             section { aria_labelledby: "eq-ammo",

@@ -16,10 +16,12 @@ use traveller_model::CampaignState;
 use traveller_model::campaign_state::{ContractStatus, Funds, ImperialDate, TradeSide};
 use traveller_rules::Credits;
 
+use super::catalogue::Pick;
 use super::doc::{DocChange, DocEditor, Target, new_id};
 use super::fields;
 use super::forms::{ListEditor, SectionEditor};
 use super::fresh_session;
+use super::pay::CAMPAIGN_SOURCES;
 use super::tip::{Tip, glossary};
 use crate::session::Session;
 use crate::supabase::{self, Error};
@@ -381,7 +383,8 @@ pub fn Locker() -> Element {
             h2 { id: "locker", class: "section", "Ship's locker" }
             EditToggle { editing }
             if editing() {
-                ListEditor { path: "locker", title: "Items", fields: fields::LOCKER, ids: true }
+                ListEditor { path: "locker", title: "Items", fields: fields::LOCKER, ids: true,
+                    catalogue: Pick::Locker, pay: CAMPAIGN_SOURCES }
             } else {
                 if state.locker.is_empty() {
                     p { class: "muted", "Nothing in the locker yet." }
