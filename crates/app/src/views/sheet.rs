@@ -16,6 +16,7 @@ use super::editor::{Editor, Notice, NoticeBar, QuickActions, WeaponButtons, cond
 use super::fields;
 use super::forms::{CharacteristicsEditor, ListEditor, SectionEditor};
 use super::manage::DeleteCharacter;
+use super::roller::TaskRoller;
 use super::tip::{Tip, glossary};
 use super::{CHARACTER_COLUMNS, EdgeTab, fresh_session, is_uuid, use_session};
 use crate::supabase::{self, Error};
@@ -417,11 +418,14 @@ fn Overview(
     let mut skills = sheet.effective_skills();
     skills.sort_by(|a, b| b.level().cmp(&a.level()).then_with(|| a.name.cmp(&b.name)));
     let worn: Vec<Armour> = sheet.worn_armour().cloned().collect();
+    let skill_levels: Vec<(String, i32)> =
+        skills.iter().map(|s| (s.name.clone(), s.level())).collect();
 
     rsx! {
         Stats { stats, bonus }
         if editable {
             QuickActions {}
+            TaskRoller { stats, skills: skill_levels }
         } else {
             p { class: "notice",
                 "Read only: this character belongs to another account, and players manage their own sheets. "

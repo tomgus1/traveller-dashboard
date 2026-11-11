@@ -7,6 +7,7 @@ mod editor;
 mod fields;
 mod forms;
 mod manage;
+mod roller;
 mod shared;
 mod sheet;
 mod tip;

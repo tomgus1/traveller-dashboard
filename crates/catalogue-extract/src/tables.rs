@@ -290,20 +290,9 @@ fn read_rows(header: &Header, below: &[Vec<Word>]) -> Vec<Vec<String>> {
         let joined: Vec<String> = cells.iter().map(|c| c.join(" ")).collect();
         if has_tl {
             let mut row = joined;
-            // A name already used by an earlier item, right under a row
-            // that has its own name, is the second line of that name with
-            // another TL ("Hostile Environment" / "Vacc Suit").
             let wrapped = has_name
                 && named_row_above.is_some_and(|row_y| y - row_y <= 14.0)
-                && rows.len() >= 2
-                // The row above starts a new item (its name is new), so it
-                // can have a second line; a repeated name is another
-                // variant of an item, as in tables that print the name on
-                // every row.
-                && rows.last().is_some_and(|prev| {
-                    rows[..rows.len() - 1].iter().all(|r| r[0] != prev[0])
-                })
-                && rows[..rows.len() - 1].iter().any(|r| r[0] == row[0]);
+                && is_second_line(&rows, &row[0]);
             if wrapped {
                 let prev = rows.last_mut().expect("checked above");
                 prev[0] = format!("{} {}", prev[0], row[0]);
@@ -338,6 +327,18 @@ fn read_rows(header: &Header, below: &[Vec<Word>]) -> Vec<Vec<String>> {
         last_y = y;
     }
     rows
+}
+
+/// Whether `name`, on a row just under one with its own name, is really the
+/// second line of that name with another TL ("Hostile Environment" /
+/// "Vacc Suit"): `name` belongs to an earlier item, and the row above
+/// starts a new item. A name repeated from the row above is just another
+/// variant, as in tables that print the name on every row.
+fn is_second_line(rows: &[Vec<String>], name: &str) -> bool {
+    let Some((prev, earlier)) = rows.split_last() else {
+        return false;
+    };
+    earlier.iter().all(|r| r[0] != prev[0]) && earlier.iter().any(|r| r[0] == name)
 }
 
 /// Where an all-caps heading starts among a name cell's words: a caps word

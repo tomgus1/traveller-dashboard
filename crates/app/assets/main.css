@@ -613,6 +613,48 @@ table.summary {
   margin: 0 0 8px;
 }
 
+/* Rolling a check */
+.roller {
+  margin-top: 16px;
+}
+
+.roller-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px 16px;
+  margin-bottom: 12px;
+}
+
+.roll-log {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+
+.roll-log li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+.roll-log li.latest {
+  color: var(--ink);
+}
+
+.roll-log .roll-outcome {
+  margin: 0 0 2px;
+  font-size: 18px;
+}
+
+.roll-outcome.ok strong {
+  color: var(--ink);
+}
+
+.roll-outcome.fail strong {
+  color: var(--red);
+}
+
 .inline {
   display: flex;
   gap: 8px;
