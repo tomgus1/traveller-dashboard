@@ -12,6 +12,7 @@
 
 pub mod campaign;
 pub mod campaign_state;
+pub mod catalogue;
 pub mod character;
 pub mod sheet;
 

@@ -1,0 +1,15 @@
+[package]
+name = "catalogue-extract"
+version = "0.1.0"
+description = "Extracts equipment tables from the Traveller rulebook PDFs into the private catalogue JSON"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+traveller-model = { path = "../traveller-model" }
+serde_json = "=1.0.154"
+
+[lints]
+workspace = true
