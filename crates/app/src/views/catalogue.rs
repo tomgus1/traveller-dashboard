@@ -8,7 +8,7 @@
 use dioxus::prelude::*;
 use serde::Deserialize;
 use serde_json::Value;
-use traveller_model::catalogue::CatalogueItem;
+use traveller_model::catalogue::{BOOKS, CatalogueItem, range_text};
 use traveller_rules::Credits;
 
 use super::{fresh_session, use_session};
@@ -46,11 +46,12 @@ impl Pick {
     }
 }
 
-/// The search query for `term`.
-fn search_path(pick: Pick, term: &str) -> String {
+/// The search query for `term` in `books` (ids).
+fn search_path(pick: Pick, term: &str, books: &[&str]) -> String {
     format!(
-        "catalogue_items?select=item&kind=in.({})&name=ilike.*{}*&order=name.asc,tl.asc&limit=40",
+        "catalogue_items?select=item&kind=in.({})&book=in.({})&name=ilike.*{}*&order=name.asc,tl.asc&limit=40",
         pick.kinds(),
+        books.join(","),
         supabase::encode(term.trim())
     )
 }
@@ -73,7 +74,7 @@ fn describe(pick: Pick, item: &CatalogueItem) -> String {
                     parts.push(w.damage.clone());
                 }
                 if !w.range.is_empty() {
-                    parts.push(w.range.clone());
+                    parts.push(range_text(&w.range));
                 }
             }
         }
@@ -101,14 +102,17 @@ pub fn CataloguePicker(
 ) -> Element {
     let session = use_session();
     let mut term = use_signal(String::new);
+    // Which books to search (ids); all of them to start with.
+    let mut books = use_signal(|| BOOKS.iter().map(|(id, _)| *id).collect::<Vec<_>>());
 
     let results = use_resource(move || async move {
         let term = term();
-        if term.trim().chars().count() < 2 {
+        let books = books();
+        if term.trim().chars().count() < 2 || books.is_empty() {
             return Ok(None);
         }
         let current = fresh_session(session).await?;
-        let rows: Vec<Row> = supabase::get(&current, &search_path(pick, &term)).await?;
+        let rows: Vec<Row> = supabase::get(&current, &search_path(pick, &term, &books)).await?;
         Ok::<_, Error>(Some(rows.into_iter().map(|r| r.item).collect::<Vec<_>>()))
     });
 
@@ -121,8 +125,28 @@ pub fn CataloguePicker(
                     placeholder: "e.g. rifle, vacc suit, medikit",
                     value: "{term}", oninput: move |e| term.set(e.value()) }
             }
+            fieldset { class: "books",
+                legend { "Books" }
+                for (id, short) in BOOKS.iter().copied() {
+                    label { key: "{id}", class: "check",
+                        input { r#type: "checkbox", checked: books.read().contains(&id),
+                            onchange: move |e| {
+                                let mut chosen = books.write();
+                                chosen.retain(|b| *b != id);
+                                if e.checked() {
+                                    chosen.push(id);
+                                }
+                            }
+                        }
+                        "{short}"
+                    }
+                }
+            }
             match &*results.read() {
                 None => rsx! { p { class: "muted small", "Searching…" } },
+                Some(Ok(None)) if books.read().is_empty() => rsx! {
+                    p { class: "muted small", "Tick at least one book." }
+                },
                 Some(Ok(None)) => rsx! { p { class: "muted small", "Type at least two letters." } },
                 Some(Ok(Some(items))) if items.is_empty() => rsx! {
                     p { class: "muted small",
@@ -185,8 +209,8 @@ mod tests {
     #[test]
     fn searches_by_kind_and_encoded_name() {
         assert_eq!(
-            search_path(Pick::Gear, " vacc suit "),
-            "catalogue_items?select=item&kind=in.(gear,software)&name=ilike.*vacc%20suit*&order=name.asc,tl.asc&limit=40"
+            search_path(Pick::Gear, " vacc suit ", &["csc-2023"]),
+            "catalogue_items?select=item&kind=in.(gear,software)&book=in.(csc-2023)&name=ilike.*vacc%20suit*&order=name.asc,tl.asc&limit=40"
         );
     }
 
@@ -195,7 +219,7 @@ mod tests {
         let item = rifle();
         assert_eq!(
             describe(Pick::Weapon, &item),
-            "TL12 · 4D · 600 · Cr1,500 · CSC p.145"
+            "TL12 · 4D · 600m · Cr1,500 · CSC p.145"
         );
         let value = Pick::Weapon.convert(&item);
         assert_eq!(value["rounds"], 80);

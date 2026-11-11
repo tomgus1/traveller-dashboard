@@ -95,6 +95,21 @@ pub struct ArmourStats {
     pub required_skill: String,
 }
 
+/// The books a catalogue can come from: id and short name.
+pub const BOOKS: &[(&str, &str)] = &[("core-2022", "Core"), ("csc-2023", "CSC")];
+
+/// A weapon's range as the sheet shows it: the CSC prints bare metres
+/// ("250"), the Core "250m"; both become "250m". Anything else ("Melee")
+/// is kept.
+pub fn range_text(range: &str) -> String {
+    let range = range.trim();
+    if !range.is_empty() && range.chars().all(|c| c.is_ascii_digit() || c == ',') {
+        format!("{range}m")
+    } else {
+        range.to_string()
+    }
+}
+
 /// A book's short name for references, e.g. "CSC" for "csc-2023".
 pub fn book_short_name(book: &str) -> &str {
     match book.split('-').next().unwrap_or(book) {
@@ -137,7 +152,7 @@ impl CatalogueItem {
         Weapon {
             name: self.name.clone(),
             tl: self.tl,
-            range: stats.range,
+            range: range_text(&stats.range),
             damage: stats.damage,
             kg: self.kg,
             magazine: stats.magazine,
@@ -294,6 +309,10 @@ mod tests {
         assert_eq!(leading_int("+10 (+16 vs. lasers)"), Some(10));
         assert_eq!(leading_int("-1"), Some(-1));
         assert_eq!(leading_int("—"), None);
+        assert_eq!(range_text("250"), "250m");
+        assert_eq!(range_text("250m"), "250m");
+        assert_eq!(range_text("Melee"), "Melee");
+        assert_eq!(range_text(""), "");
         assert_eq!(
             book_short_name("mystery-1999"),
             "mystery-1999",
